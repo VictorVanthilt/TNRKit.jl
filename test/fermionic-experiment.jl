@@ -26,11 +26,11 @@ for m in ms
     lnz_btrgs = []
     for χ in χs
         T = gross_neveu_start(0, m, 0)
-        trg = TRG(copy(T); stop=convcrit(1e-20, custom_convcrit), f=fermionic_trg_finalize!)
-        btrg = BTRG(copy(T), -0.5; stop=convcrit(1e-20, custom_convcrit), f=fermionic_btrg_finalize!)
+        trg = TRG(copy(T); f=fermionic_trg_finalize!)
+        btrg = BTRG(copy(T), -0.5;  f=fermionic_btrg_finalize!)
 
-        data_trg = run!(trg, truncdim(χ))
-        data_btrg = run!(btrg, truncdim(χ))
+        data_trg = run!(trg, truncdim(χ),  stop=convcrit(1e-20, custom_convcrit))
+        data_btrg = run!(btrg, truncdim(χ), stop=convcrit(1e-20, custom_convcrit))
 
         lnz_trg = 0
         for (i, d) in enumerate(data_trg)
