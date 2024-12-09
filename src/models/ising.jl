@@ -1,3 +1,6 @@
+Ising_βc = log(1.0+sqrt(2))/2.0
+Potts_βc(q) := log(1.0+sqrt(q))
+
 function classical_ising(β::Number; h=0)
     function σ(i::Int64)
         return 2i-3
@@ -31,4 +34,21 @@ function classical_ising_symmetric(β)
         end
     end
     return TensorMap(Ising,V⊗V←V⊗V)
+end
+
+function classical_Potts(q::Int64, β::Float64)
+    V = ℂ^q
+    A_potts = TensorMap(zeros,V⊗V←V⊗V)
+    
+    for i=1:q
+        for j=1:q
+            for k=1:q
+                for l=1:q
+                    E = -(Int(i==j)+Int(j==k)+Int(k==l)+Int(l==i))
+                    A_potts[i,j,k,l] = exp(-β*E)
+                end
+            end
+        end
+    end
+    return A_potts
 end
