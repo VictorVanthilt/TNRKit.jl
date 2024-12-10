@@ -1,5 +1,5 @@
 Ising_βc = log(1.0+sqrt(2))/2.0
-Potts_βc(q) := log(1.0+sqrt(q))
+Potts_βc(q) = log(1.0+sqrt(q))
 
 function classical_ising(β::Number; h=0)
     function σ(i::Int64)
