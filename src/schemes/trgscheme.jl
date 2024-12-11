@@ -2,8 +2,6 @@ abstract type TRGScheme end
 
 function step! end
 function finalize! end
-function criterion end
-function run! end
 
 function run!(scheme::TRGScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalize_beginning=true)
 
