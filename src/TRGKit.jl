@@ -24,7 +24,7 @@ module TRGKit
 
     # utility functions
     include("utility/cft.jl")
-    export cft_data
+    export cft_data, central_charge
 
     # export the different models (do we really want to ship those ourselves?)    
 end 

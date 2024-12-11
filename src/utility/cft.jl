@@ -27,3 +27,22 @@ end
 function cft_data(scheme::BTRG; v=1, unitcell=1)
     throw(NotImplementedError("BTRG requires extra care with the environment tensors, this method will be implemented later"))
 end
+
+function central_charge(scheme::TRGScheme, trunc::TensorKit.TruncationScheme, stop::stopcrit)
+    data = run!(scheme, trunc, stop; finalize_beginning=true)
+    @tensor M[-1; -2] := (scheme.T/data[end])[1 -1; 1 -2]
+    _, S, _ = tsvd(M)
+    return log(S[1, 1])*6/(π)
+end
+
+function central_charge(scheme::BTRG, trunc::TensorKit.TruncationScheme, stop::stopcrit)
+    data = run!(scheme, trunc, stop; finalize_beginning=true)
+    @tensor M[-1; -2] := (scheme.T/data[end])[1 2; 3 -2] * scheme.S1[-1; 2] * scheme.S2[3; 1]
+    _, S, _ = tsvd(M)
+    return log(S[1, 1])*6/(π)
+end
+
+# default maxiter criterion of 15 iterations
+function central_charge(scheme::TRGScheme, trunc::TensorKit.TruncationScheme)
+    return central_charge(scheme, trunc, maxiter(15))
+end
