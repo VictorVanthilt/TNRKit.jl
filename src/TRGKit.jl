@@ -17,7 +17,7 @@ module TRGKit
 
     # models
     include("models/ising.jl")
-    export classical_ising, classical_ising_symmetric
+    export classical_ising, classical_ising_symmetric, Potts_βc, Ising_βc
 
     include("models/gross-neveu.jl")
     export gross_neveu_start
