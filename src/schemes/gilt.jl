@@ -28,7 +28,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
 
-    U, S, V, _ = tsvd(R′)
+    U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
     @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 -2; 1 -4] * U[1; 2] * sqrtS[2; -3]
@@ -50,7 +50,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
     R′ = transpose(R′)
-    U, S, V, _ = tsvd(R′)
+    U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
     @tensor scheme.T2[-1 -2; -3 -4] := scheme.T2[-1 1; -3 -4] * U[2; 1] * sqrtS[-2; 2]
@@ -72,7 +72,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
     R′ = transpose(R′)
-    U, S, V, _ = tsvd(R′)
+    U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
     @tensor scheme.T3[-1 -2; -3 -4] := sqrtS[-1; 1] * U[1; 2] * scheme.T3[2 -2; -3 -4]
@@ -93,7 +93,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     @tensor t′[-1] := t[-1] * (S² * inv(epsid + S²))[-1; -1]
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
-    U, S, V, _ = tsvd(R′)
+    U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
     @tensor scheme.T4[-1 -2; -3 -4] := scheme.T4[-1 -2; -3 1] * U[1; 2] * sqrtS[2; -4]
