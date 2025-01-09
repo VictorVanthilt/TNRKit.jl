@@ -24,7 +24,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     epsid = scheme.ε^2 * id(domain(S²))
 
-    @tensor t′[-1] := t[-1] * (S² * inv(epsid + S²))[-1; -1]
+    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
 
@@ -46,7 +46,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     epsid = scheme.ε^2 * id(domain(S²))
 
-    @tensor t′[-1] := t[-1] * (S² * inv(epsid + S²))[-1; -1]
+    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
     R′ = transpose(R′)
@@ -68,7 +68,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     epsid = scheme.ε^2 * id(domain(S²))
 
-    @tensor t′[-1] := t[-1] * (S² * inv(epsid + S²))[-1; -1]
+    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
     R′ = transpose(R′)
@@ -90,7 +90,7 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     epsid = scheme.ε^2 * id(domain(S²))
 
-    @tensor t′[-1] := t[-1] * (S² * inv(epsid + S²))[-1; -1]
+    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
 
     @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
     U, S, V, _ = tsvd(R′; trunc=trunc)
