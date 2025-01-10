@@ -1,6 +1,5 @@
 module TRGKit
 using TensorKit, LinearAlgebra
-using Printf
 
 # stop criteria
 include("utility/stopping.jl")
