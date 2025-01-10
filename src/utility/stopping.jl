@@ -15,7 +15,6 @@ end
 
 Base.:&(a::stopcrit, b::stopcrit) = MultipleCrit([a, b])
 
-
 (crit::maxiter)(steps::Int, data) = steps < crit.n
 (crit::convcrit)(steps::Int, data) = crit.Δ < crit.f(steps, data)
 

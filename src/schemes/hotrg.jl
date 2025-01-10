@@ -3,7 +3,7 @@ mutable struct HOTRG <: TRGScheme
 
     finalize!::Function
     function HOTRG(T::TensorMap; finalize=finalize!)
-        new(T, finalize)
+        return new(T, finalize)
     end
 end
 

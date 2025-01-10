@@ -6,10 +6,10 @@ using .TRGKit
 trg_f(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 
 # stop when converged or after 50 steps, whichever comes first
-stopping_criterion = convcrit(1e-16, trg_f)&maxiter(20)
+stopping_criterion = convcrit(1e-16, trg_f) & maxiter(20)
 
 # choose a TensorKit truncation scheme
-trunc = truncdim(16)&truncbelow(1e-40)
+trunc = truncdim(16) & truncbelow(1e-40)
 
 # initialize the TRG scheme
 scheme = TRG(classical_ising(1.0))

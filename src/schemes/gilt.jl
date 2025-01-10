@@ -8,7 +8,7 @@ mutable struct GILT <: TRGScheme
 
     ε::Float64
     function GILT(T::TensorMap; ε=5e-8)
-        new(copy(T), copy(T), copy(T), copy(T), ε)
+        return new(copy(T), copy(T), copy(T), copy(T), ε)
     end
 end
 
