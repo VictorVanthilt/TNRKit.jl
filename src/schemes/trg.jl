@@ -9,18 +9,18 @@ mutable struct TRG <: TRGScheme
 end
 
 function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(scheme.T, (1, 2), (3, 4); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc=trunc)
 
     @plansor begin
         A[-1 -2; -3] := U[-1 -2; 1] * sqrt(S)[1; -3]
         B[-1; -2 -3] := sqrt(S)[-1; 1] * V[1; -2 -3]
     end
 
-    U, S, V, _ = tsvd(scheme.T, (1, 4), (2, 3); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 4), (2, 3)); trunc=trunc)
 
     # Flip legs to their original domain (to mitigate space mismatch at the end)
-    U = permute(U, (1,), (2, 3))
-    V = permute(V, (1, 2), (3,))
+    U = permute(U, ((1,), (2, 3)))
+    V = permute(V, ((1, 2), (3,)))
 
     @plansor begin
         C[-1; -2 -3] := U[-1; -2 1] * sqrt(S)[1; -3]
