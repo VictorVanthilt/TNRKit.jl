@@ -26,7 +26,7 @@ function pseudopow(t::AbstractTensorMap, a::Real; tol=eps(scalartype(t))^(3 / 4)
 end
 
 function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
-    U, S, V, ε = tsvd(scheme.T, ((1, 2), (3, 4)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc=trunc)
 
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
@@ -37,7 +37,7 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
         S1′[-1; -2] := S_b[-1; -2]
     end
 
-    U, S, V, ε = tsvd(scheme.T, ((1, 4), (2, 3)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 4), (2, 3)); trunc=trunc)
 
     # permute to correct the spaces
     U = permute(U, ((1,), (2, 3)))
