@@ -1,5 +1,4 @@
 mutable struct BTRG <: TRGScheme
-    # data
     T::TensorMap
     S1::TensorMap
     S2::TensorMap
