@@ -2,7 +2,7 @@ println("-------------")
 println(" Ising Model ")
 println("-------------")
 
-# Onsanger solution
+# Onsager solution
 function onsager_integrand(θ, T)
     k = 1 / sinh(2 / T)^(2)
     integrand = 1 / (2π) * log(cosh(2 / T)^2 + 1 / k * sqrt(1 + k^2 - 2k * cos(2 * θ)))
