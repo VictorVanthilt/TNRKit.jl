@@ -71,3 +71,11 @@ end
 
 # example convcrit function
 btrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
+
+function Base.show(io::IO, scheme::BTRG)
+    println(io, "BTRG - Bond-weighted TRG scheme")
+    println(io, "  T: $(summary(scheme.T))")
+    println(io, "  S1: $(summary(scheme.S1))")
+    println(io, "  S2: $(summary(scheme.S2))")
+    println(io, "  k: $(scheme.k)")
+end
