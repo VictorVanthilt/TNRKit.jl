@@ -37,3 +37,9 @@ end
 
 # example convcrit function
 hotrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
+
+function Base.show(io::IO, scheme::HOTRG)
+    println(io, "HOTRG - Higher Order TRG scheme")
+    println(io, "  T: $(summary(scheme.T))")
+    return nothing
+end

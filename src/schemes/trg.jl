@@ -39,3 +39,9 @@ end
 
 # example convcrit function
 trg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
+
+function Base.show(io::IO, scheme::TRG)
+    println(io, "TRG - Tensor Renormalization Group scheme")
+    println(io, "  T: $(summary(scheme.T))")
+    return nothing
+end
