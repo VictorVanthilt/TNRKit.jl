@@ -78,4 +78,5 @@ function Base.show(io::IO, scheme::BTRG)
     println(io, "  S1: $(summary(scheme.S1))")
     println(io, "  S2: $(summary(scheme.S2))")
     println(io, "  k: $(scheme.k)")
+    return nothing
 end
