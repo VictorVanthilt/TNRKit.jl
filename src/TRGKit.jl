@@ -14,7 +14,8 @@ include("schemes/hotrg.jl")
 include("schemes/gilt.jl")
 include("schemes/atrg.jl")
 
-export TRGScheme, TRG, BTRG, HOTRG, GILT, ATRG, trg_convcrit, btrg_convcrit, hotrg_convcrit, atrg_convcrit
+export TRGScheme, TRG, BTRG, HOTRG, GILT, ATRG, trg_convcrit, btrg_convcrit, hotrg_convcrit,
+       atrg_convcrit
 export run!
 
 # models
