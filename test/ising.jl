@@ -65,3 +65,19 @@ end
     relerror = abs((fs - fs_onsager) / fs_onsager)
     @test relerror < 6e-7
 end
+
+# ATRG
+@testset "ATRG - Ising Model" begin
+    scheme = ATRG(T)
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 2.0^(1 - i)
+    end
+
+    fs = lnz * -1 / Ising_βc
+
+    relerror = abs((fs - fs_onsager) / fs_onsager)
+    @test relerror < 1e-5
+end
