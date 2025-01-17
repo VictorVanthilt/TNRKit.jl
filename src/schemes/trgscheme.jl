@@ -33,5 +33,6 @@ end
 function run!(scheme::TRGScheme, trscheme::TensorKit.TruncationScheme;
               finalize_beginning=true, verbosity=1)
     # default maxiter criterion of 100 iterations
-    return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning, verbosity=verbosity)
+    return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,
+                verbosity=verbosity)
 end
