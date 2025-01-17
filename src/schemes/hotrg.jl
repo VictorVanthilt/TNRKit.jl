@@ -46,6 +46,28 @@ function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
     @tensor L[-1; -2] := ML[-1; 1 2 3]*MLd[1 2 3; -2]
     UL, SL, _, _ = tsvd(L; trunc = trunc)
 
-    MR = permute(M, )
+    MR = permute(M, (1,2,4),(3,))
+    MRd = adjoint(MR)
+    @tensor R[-1,-2] := MRd[-1, 1 2 3]*MR[1 2 3; -2]
+    _,SR, UR,_ = tsvd(R; trunc = trunc)
+
+    L1 = @tensor SL[1;1]
+    L2 = @tensor SR[1;1]
+
+    if L1 < L2
+        PL= UL
+        PR = adjoint(UL)
+    else 
+        PL = adjoint(UR)
+        PR = UR
+    end
+
+    @tensor scheme.T[-1 -2; -3 -4] := PL[-1; 1]*M[1 -2; 2 -4]*PR[2; -3]
+
+
+    #HOTRG along vertical
+    
+
+    
 
 end
