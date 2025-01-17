@@ -33,3 +33,11 @@ end
         end
     end
 end
+
+@testset "ATRG - spaces" begin
+    for T in models
+        @eval begin
+            @test isa(run!(ATRG($(T)), truncdim(7), maxiter(100)), Any)
+        end
+    end
+end
