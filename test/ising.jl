@@ -69,7 +69,7 @@ end
 # ATRG
 @testset "ATRG - Ising Model" begin
     scheme = ATRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
     for (i, d) in enumerate(data)
@@ -79,5 +79,5 @@ end
     fs = lnz * -1 / Ising_βc
 
     relerror = abs((fs - fs_onsager) / fs_onsager)
-    @test relerror < 1e-5
+    @test relerror < 3e-6
 end
