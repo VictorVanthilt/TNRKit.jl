@@ -53,3 +53,9 @@ function finalize!(scheme::ATRG)
 end
 
 atrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
+
+function Base.show(io::IO, scheme::ATRG)
+    println(io, "ATRG - Anisotropic TRG")
+    println(io, "  * T: $(summary(scheme.T))")
+    return nothing
+end
