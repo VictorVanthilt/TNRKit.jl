@@ -14,7 +14,7 @@ end
 # Default implementation using the optimal value for k
 BTRG(T::TensorMap; kwargs...) = BTRG(T, -0.5; kwargs...)
 
-function pseudopow(t::AbstractTensorMap, a::Real; tol=eps(scalartype(t))^(3 / 4))
+function pseudopow(t::DiagonalTensorMap, a::Real; tol=eps(scalartype(t))^(3 / 4))
     t′ = copy(t)
     for (c, b) in blocks(t′)
         @inbounds for I in LinearAlgebra.diagind(b)
