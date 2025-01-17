@@ -42,7 +42,7 @@ function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function finalize!(scheme::HOTRG_robust)
+function finalize!(scheme::ATRG)
     n = norm(@tensor scheme.T[1 2; 1 2])
     scheme.T /= n
 
