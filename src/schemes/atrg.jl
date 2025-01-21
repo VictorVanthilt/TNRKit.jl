@@ -42,16 +42,6 @@ function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function finalize!(scheme::ATRG)
-    n = norm(@tensor scheme.T[1 2; 1 2])
-    scheme.T /= n
-
-    # turn the tensor by 90 degrees
-    scheme.T = permute(scheme.T, ((2, 3), (4, 1)))
-
-    return n
-end
-
 atrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 
 function Base.show(io::IO, scheme::ATRG)
