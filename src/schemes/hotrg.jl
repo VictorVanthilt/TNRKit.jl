@@ -25,16 +25,6 @@ function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function finalize!(scheme::HOTRG)
-    n = norm(@tensor scheme.T[1 2; 1 2])
-    scheme.T /= n
-
-    # turn the tensor by 90 degrees
-    scheme.T = permute(scheme.T, ((2, 3), (4, 1)))
-
-    return n
-end
-
 # example convcrit function
 hotrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 

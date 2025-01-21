@@ -31,12 +31,6 @@ function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function finalize!(scheme::TRG)
-    n = norm(@tensor scheme.T[1 2; 1 2])
-    scheme.T /= n
-    return n
-end
-
 # example convcrit function
 trg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 

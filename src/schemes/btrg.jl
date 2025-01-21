@@ -63,12 +63,6 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function finalize!(scheme::BTRG)
-    n = norm(@tensor scheme.T[1 2; 3 4] * scheme.S1[4; 2] * scheme.S2[3; 1])
-    scheme.T /= n
-    return n
-end
-
 # example convcrit function
 btrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 
