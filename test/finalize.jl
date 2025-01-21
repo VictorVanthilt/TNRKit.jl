@@ -2,21 +2,9 @@ println("---------------------")
 println(" two by two finalize ")
 println("---------------------")
 
-# Onsager solution
-function onsager_integrand(θ, T)
-    k = 1 / sinh(2 / T)^(2)
-    integrand = 1 / (2π) * log(cosh(2 / T)^2 + 1 / k * sqrt(1 + k^2 - 2k * cos(2 * θ)))
-    return integrand
-end
-
-function onsager_free_energy(β)
-    return -(quadgk(θ -> onsager_integrand(θ, 1 / β), 0, π)[1] + log(2) / 2) / β
-end
-
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
 T = classical_ising_symmetric(Ising_βc)
-f_onsager = onsager_free_energy(Ising_βc)
 
 # TRG
 @testset "TRG - Ising Model" begin

@@ -2,8 +2,6 @@ println("-------------")
 println(" Ising Model ")
 println("-------------")
 
-# Onsager solution
-
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
 T = classical_ising_symmetric(Ising_βc)
