@@ -1,6 +1,8 @@
 const Ising_βc = log(1.0 + sqrt(2)) / 2.0
 Potts_βc(q) = log(1.0 + sqrt(q))
 
+const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
+
 function classical_ising(β::Number; h=0)
     function σ(i::Int64)
         return 2i - 3

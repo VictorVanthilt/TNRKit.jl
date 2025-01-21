@@ -16,7 +16,7 @@ end
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
 T = classical_ising_symmetric(Ising_βc)
-fs_onsager = onsager_free_energy(Ising_βc)
+f_onsager = onsager_free_energy(Ising_βc)
 
 # TRG
 @testset "TRG - Ising Model" begin
@@ -30,7 +30,7 @@ fs_onsager = onsager_free_energy(Ising_βc)
 
     fs = lnz * -1 / Ising_βc
 
-    relerror = abs((fs - fs_onsager) / fs_onsager)
+    relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 2e-6
 end
 
@@ -46,7 +46,7 @@ end
 
     fs = lnz * -1 / Ising_βc
 
-    relerror = abs((fs - fs_onsager) / fs_onsager)
+    relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-8
 end
 
@@ -62,7 +62,7 @@ end
 
     fs = lnz * -1 / Ising_βc
 
-    relerror = abs((fs - fs_onsager) / fs_onsager)
+    relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-7
 end
 
@@ -78,6 +78,6 @@ end
 
     fs = lnz * -1 / Ising_βc
 
-    relerror = abs((fs - fs_onsager) / fs_onsager)
+    relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
 end
