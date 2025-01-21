@@ -33,7 +33,7 @@ end
 
 function finalize_two_by_two!(scheme::turning_scheme)
     n = norm(@tensor scheme.T[2 5; 1 7] * scheme.T[1 6; 2 8] * scheme.T[3 8; 4 6] *
-    scheme.T[4 7; 3 5])
+                     scheme.T[4 7; 3 5])
     scheme.T /= (n^(1 / 4))
 
     # turn the tensor by 90 degrees
