@@ -8,7 +8,7 @@ B = classical_ising_symmetric(Ising_βc)
 C = gross_neveu_start(0, 1, 0)
 
 models = [A, B, C]
-schemes = [TRG, BTRG, HOTRG, ATRG, GILTTNR]
+schemes = [TRG, BTRG, HOTRG, ATRG, GILTTNR, SLoopTNR]
 
 # The tests below check that the schemes don't lead to spacemismatches
 for S in schemes
