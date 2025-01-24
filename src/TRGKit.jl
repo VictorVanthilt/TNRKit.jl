@@ -1,6 +1,7 @@
 module TRGKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
+using Zygote, OptimKit
 
 # stop criteria
 include("utility/stopping.jl")
@@ -15,6 +16,7 @@ include("schemes/hotrg.jl")
 include("schemes/gilt.jl")
 include("schemes/gilt-tnr.jl")
 include("schemes/atrg.jl")
+include("schemes/slooptnr.jl")
 
 export TRGScheme
 export TRG, trg_convcrit
@@ -22,6 +24,7 @@ export BTRG, btrg_convcrit
 export HOTRG, hotrg_convcrit
 export ATRG, atrg_convcrit
 export GILTTNR, gilttnr_convcrit
+export SLoopTNR
 
 export run!
 
