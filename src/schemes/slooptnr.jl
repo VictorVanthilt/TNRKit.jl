@@ -1,3 +1,4 @@
+# TODO: rewrite SLoopTNR contractions to work with symmetric tensors
 mutable struct SLoopTNR <: TRGScheme
     T::TensorMap
 
