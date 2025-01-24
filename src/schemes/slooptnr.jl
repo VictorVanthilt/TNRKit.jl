@@ -4,7 +4,9 @@ mutable struct SLoopTNR <: TRGScheme
 
     optimization_algorithm::OptimKit.OptimizationAlgorithm
     finalize!::Function
-    function SLoopTNR(T::TensorMap; optimization_algorithm=LBFGS(8; verbosity=1, maxiter=500, gradtol=1e-4), finalize=finalize!)
+    function SLoopTNR(T::TensorMap;
+                      optimization_algorithm=LBFGS(8; verbosity=1, maxiter=500,
+                                                   gradtol=1e-4), finalize=finalize!)
         @assert scalartype(T) <: Real "SLoopTNR only supports real-valued TensorMaps"
         return new(T, optimization_algorithm, finalize)
     end
