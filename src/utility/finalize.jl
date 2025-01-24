@@ -1,4 +1,4 @@
-const simple_scheme = Union{TRG,GILTTNR}
+const simple_scheme = Union{TRG,GILTTNR,SLoopTNR}
 const turning_scheme = Union{HOTRG,ATRG}
 
 # 1x1 unitcell finalize
