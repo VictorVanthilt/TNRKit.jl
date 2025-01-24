@@ -69,3 +69,19 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
 end
+
+# GILTTNR
+@testset "GILTTNR - Ising Model" begin
+    scheme = GILTTNR(T)
+    data = run!(scheme, truncdim(24), maxiter(25))
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 2.0^(1 - i)
+    end
+
+    fs = lnz * -1 / Ising_βc
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 2e-6
+end

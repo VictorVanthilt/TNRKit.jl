@@ -8,36 +8,15 @@ B = classical_ising_symmetric(Ising_βc)
 C = gross_neveu_start(0, 1, 0)
 
 models = [A, B, C]
+schemes = [TRG, BTRG, HOTRG, ATRG, GILTTNR]
 
 # The tests below check that the schemes don't lead to spacemismatches
-@testset "TRG - spaces" begin
-    for T in models
-        @eval begin
-            @test isa(run!(TRG($(T)), truncdim(7), maxiter(100)), Any)
-        end
-    end
-end
-
-@testset "BTRG - spaces" begin
-    for T in models
-        @eval begin
-            @test isa(run!(BTRG($(T)), truncdim(7), maxiter(100)), Any)
-        end
-    end
-end
-
-@testset "HOTRG - spaces" begin
-    for T in models
-        @eval begin
-            @test isa(run!(HOTRG($(T)), truncdim(7), maxiter(100)), Any)
-        end
-    end
-end
-
-@testset "ATRG - spaces" begin
-    for T in models
-        @eval begin
-            @test isa(run!(ATRG($(T)), truncdim(7), maxiter(100)), Any)
+for S in schemes
+    @testset "$(S) - spaces" begin
+        for T in models
+            @eval begin
+                @test isa(run!($S($(T)), truncdim(7), maxiter(100)), Any)
+            end
         end
     end
 end

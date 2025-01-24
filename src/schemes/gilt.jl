@@ -1,25 +1,16 @@
-# Graph Independent Local Truncation Hauru Delcamp
-
-mutable struct GILT <: TRGScheme
+mutable struct GILT
     T1::TensorMap
     T2::TensorMap
-    T3::TensorMap
-    T4::TensorMap
 
     ε::Float64
     function GILT(T::TensorMap; ε=5e-8)
-        return new(copy(T), copy(T), copy(T), copy(T), ε)
+        return new(copy(T), copy(T), ε)
     end
 end
 
-function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
+function _step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     # Environment: top leg broken
-    @tensor E[-1 -2 -3 -4 -5 -6 -7 -8; -9 -10] := scheme.T1[-2 1; -10 -1] *
-                                                  scheme.T2[-9 3; -7 -8] *
-                                                  scheme.T3[2 -5; -6 3] *
-                                                  scheme.T4[-3 -4; 2 1]
-    S², U = eigh(adjoint(E) * E)
-
+    S², U = environment_spectrum(scheme, Val{:N})
     @plansor t[-1] := U[1 1; -1]
 
     epsid = scheme.ε^2 * id(domain(S²))
@@ -31,16 +22,11 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
-    @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 -2; 1 -4] * U[1; 2] * sqrtS[2; -3]
-    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T2[2 -2; -3 -4]
+    @tensor scheme.T2[-1 -2; -3 -4] := scheme.T2[-1 -2; 1 -4] * U[1; 2] * sqrtS[2; -3]
+    @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T1[2 -2; -3 -4]
 
     # Environment: right leg broken
-    @tensor E[-1 -2 -3 -4 -5 -6 -7 -8; -9 -10] := scheme.T1[-4 2; 1 -3] *
-                                                  scheme.T2[1 -10; -1 -2] *
-                                                  scheme.T3[3 -7; -8 -9] *
-                                                  scheme.T4[-5 -6; 3 2]
-
-    S², U = eigh(adjoint(E) * E)
+    S², U = environment_spectrum(scheme, Val{:E})
 
     @plansor t[-1] := U[1 1; -1]
 
@@ -53,16 +39,11 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
-    @tensor scheme.T2[-1 -2; -3 -4] := scheme.T2[-1 1; -3 -4] * U[2; 1] * sqrtS[-2; 2]
-    @tensor scheme.T3[-1 -2; -3 -4] := sqrtS[2; -4] * V[1; 2] * scheme.T3[-1 -2; -3 1]
+    @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 1; -3 -4] * V[2; 1] * sqrtS[-2; 2]
+    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[2; -4] * U[1; 2] * scheme.T2[-1 -2; -3 1]
 
     # Environment: bottom leg broken
-    @tensor E[-1 -2 -3 -4 -5 -6 -7 -8; -9 -10] := scheme.T1[-6 3; 2 -5] *
-                                                  scheme.T2[2 1; -3 -4] *
-                                                  scheme.T3[-10 -1; -2 1] *
-                                                  scheme.T4[-7 -8; -9 3]
-
-    S², U = eigh(adjoint(E) * E)
+    S², U = environment_spectrum(scheme, Val{:S})
 
     @plansor t[-1] := U[1 1; -1]
 
@@ -75,16 +56,11 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
-    @tensor scheme.T3[-1 -2; -3 -4] := sqrtS[-1; 1] * U[1; 2] * scheme.T3[2 -2; -3 -4]
-    @tensor scheme.T4[-1 -2; -3 -4] := V[1; 2] * sqrtS[2; -3] * scheme.T4[-1 -2; 1 -4]
+    @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[1; -3] * U[2; 1] * scheme.T1[-1 -2; 2 -4]
+    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T2[2 -2; -3 -4]
 
     # Environment: left leg broken
-    @tensor E[-1 -2 -3 -4 -5 -6 -7 -8; -9 -10] := scheme.T1[-8 -9; 3 -7] *
-                                                  scheme.T2[3 2; -5 -6] *
-                                                  scheme.T3[1 -3; -4 2] *
-                                                  scheme.T4[-1 -2; 1 -10]
-
-    S², U = eigh(adjoint(E) * E)
+    S², U = environment_spectrum(scheme, Val{:W})
 
     @plansor t[-1] := U[1 1; -1]
 
@@ -96,8 +72,45 @@ function step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(R′; trunc=trunc)
     sqrtS = sqrt(S)
 
-    @tensor scheme.T4[-1 -2; -3 -4] := scheme.T4[-1 -2; -3 1] * U[1; 2] * sqrtS[2; -4]
-    @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[-2; 1] * V[1; 2] * scheme.T1[-1 2; -3 -4]
+    @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 -2; -3 1] * U[1; 2] * sqrtS[2; -4] # space mismatch
+    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-2; 1] * V[1; 2] * scheme.T2[-1 2; -3 -4]
 
-    return scheme
+    return scheme, R′
+end
+
+function environment_corners(scheme::GILT)
+    @tensor NW[-1 -2; -3 -4] := adjoint(scheme.T2)[-1 2; 1 -4] * scheme.T2[1 -2; -3 2]
+    @tensor NE[-1 -2; -3 -4] := scheme.T1[-1 -2; 1 2] * adjoint(scheme.T1)[1 2; -3 -4]
+    @tensor SE[-1 -2; -3 -4] := scheme.T2[-1 2; 1 -4] * adjoint(scheme.T2)[1 -2; -3 2]
+    @tensor SW[-1 -2; -3 -4] := adjoint(scheme.T1)[-1 -2; 1 2] * scheme.T1[1 2; -3 -4]
+    return NW, NE, SE, SW
+end
+
+function environment_spectrum(scheme::GILT, location::Type{Val{:N}})
+    NW, NE, SE, SW = environment_corners(scheme)
+    @tensor E[-1 -2; -3 -4] := NW[-3 2; -1 1] * NE[-2 6; -4 5] * SE[4 5; 3 6] * SW[3 1; 4 2]
+    return eigh(E)
+end
+function environment_spectrum(scheme::GILT, location::Type{Val{:E}})
+    NW, NE, SE, SW = environment_corners(scheme)
+    @tensor E[-1 -2; -3 -4] := NW[1 4; 2 3] * NE[2 -1; 1 -3] * SE[6 -4; 5 -2] * SW[5 3; 6 4]
+    return eigh(E)
+end
+function environment_spectrum(scheme::GILT, location::Type{Val{:S}})
+    NW, NE, SE, SW = environment_corners(scheme)
+    @tensor E[-1 -2; -3 -4] := NW[3 6; 4 5] * NE[4 2; 3 1] * SE[-1 1; -3 2] * SW[-4 5; -2 6]
+    return eigh(E)
+end
+function environment_spectrum(scheme::GILT, location::Type{Val{:W}})
+    NW, NE, SE, SW = environment_corners(scheme)
+    @tensor E[-1 -2; -3 -4] := NW[5 -2; 6 -4] * NE[6 4; 5 3] * SE[2 3; 1 4] * SW[1 -3; 2 -1]
+    return eigh(E)
+end
+
+function Base.show(io::IO, scheme::GILT)
+    println(io, "GILT - Graph Independent Local Truncation")
+    println(io, "  * T1: $(summary(scheme.T1))")
+    println(io, "  * T2: $(summary(scheme.T2))")
+    println(io, "  * ε: $(scheme.ε)")
+    return nothing
 end

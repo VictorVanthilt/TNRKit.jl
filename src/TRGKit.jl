@@ -5,6 +5,7 @@ using LoggingExtras, Printf
 # stop criteria
 include("utility/stopping.jl")
 export maxiter, convcrit
+export trivial_convcrit
 
 # schemes
 include("schemes/trgscheme.jl")
@@ -12,10 +13,16 @@ include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
 include("schemes/gilt.jl")
+include("schemes/gilt-tnr.jl")
 include("schemes/atrg.jl")
 
-export TRGScheme, TRG, BTRG, HOTRG, GILT, ATRG, trg_convcrit, btrg_convcrit, hotrg_convcrit,
-       atrg_convcrit
+export TRGScheme
+export TRG, trg_convcrit
+export BTRG, btrg_convcrit
+export HOTRG, hotrg_convcrit
+export ATRG, atrg_convcrit
+export GILTTNR, gilttnr_convcrit
+
 export run!
 
 # models

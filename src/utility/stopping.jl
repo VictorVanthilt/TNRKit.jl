@@ -37,3 +37,5 @@ end
 function stopping_info(crit::convcrit, steps::Int, data)
     return @sprintf "Convergence criterion reached: %.3e ≤ %.3e" crit.f(steps, data) crit.Δ
 end
+
+trivial_convcrit(Δ) = convcrit(Δ, (steps, data) -> last(data))

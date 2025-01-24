@@ -1,15 +1,16 @@
 using TensorKit, TRGKit
 
 T = randn(ComplexF64, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
-T = classical_ising_symmetric(0.1)
+T = classical_ising_symmetric(Ising_βc)
 T = gross_neveu_start(0, 1, 0)
 
-scheme = GILT(T; ε=5e-8);
+scheme = GILTTNR(T; ε=5e-8);
 
 TRGKit.step!(scheme, truncbelow(5e-8));
 
 scheme.T1
 scheme.T3
+scheme.T1 ≈ scheme.T3
 
 for _ in 1:100
     TRGKit.step!(scheme, truncbelow(scheme.ε))
