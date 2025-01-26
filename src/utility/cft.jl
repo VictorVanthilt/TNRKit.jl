@@ -1,4 +1,4 @@
-function cft_data(scheme::TRGScheme; v=1, unitcell=1)
+function cft_data(scheme::TNRScheme; v=1, unitcell=1)
     # make the indices
     indices = [[i, -i, i + 1, -(i + unitcell)] for i in 1:unitcell]
     indices[end][3] = 1
@@ -28,7 +28,7 @@ function cft_data(scheme::BTRG; v=1, unitcell=1)
     throw(NotImplementedError("BTRG requires extra care with the environment tensors, this method will be implemented later"))
 end
 
-function central_charge(scheme::TRGScheme, trunc::TensorKit.TruncationScheme,
+function central_charge(scheme::TNRScheme, trunc::TensorKit.TruncationScheme,
                         stop::stopcrit)
     data = run!(scheme, trunc, stop; finalize_beginning=true)
     @tensor M[-1; -2] := (scheme.T / data[end])[1 -1; 1 -2]
@@ -45,6 +45,6 @@ function central_charge(scheme::BTRG, trunc::TensorKit.TruncationScheme, stop::s
 end
 
 # default maxiter criterion of 15 iterations
-function central_charge(scheme::TRGScheme, trunc::TensorKit.TruncationScheme)
+function central_charge(scheme::TNRScheme, trunc::TensorKit.TruncationScheme)
     return central_charge(scheme, trunc, maxiter(15))
 end

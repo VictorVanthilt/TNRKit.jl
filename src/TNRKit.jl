@@ -1,4 +1,4 @@
-module TRGKit
+module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using Zygote, OptimKit
@@ -9,7 +9,7 @@ export maxiter, convcrit
 export trivial_convcrit
 
 # schemes
-include("schemes/trgscheme.jl")
+include("schemes/tnrscheme.jl")
 include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
@@ -18,7 +18,7 @@ include("schemes/gilt-tnr.jl")
 include("schemes/atrg.jl")
 include("schemes/slooptnr.jl")
 
-export TRGScheme
+export TNRScheme
 export TRG, trg_convcrit
 export BTRG, btrg_convcrit
 export HOTRG, hotrg_convcrit

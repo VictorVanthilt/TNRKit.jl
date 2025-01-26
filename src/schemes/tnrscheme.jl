@@ -1,9 +1,9 @@
-abstract type TRGScheme end
+abstract type TNRScheme end
 
 function step! end
 function finalize! end
 
-function run!(scheme::TRGScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
     data = []
 
@@ -30,7 +30,7 @@ function run!(scheme::TRGScheme, trscheme::TensorKit.TruncationScheme, criterion
     return data
 end
 
-function run!(scheme::TRGScheme, trscheme::TensorKit.TruncationScheme;
+function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme;
               finalize_beginning=true, verbosity=1)
     # default maxiter criterion of 100 iterations
     return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,

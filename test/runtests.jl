@@ -1,5 +1,5 @@
 using Test
-using TRGKit
+using TNRKit
 using TensorKit
 
 using QuadGK

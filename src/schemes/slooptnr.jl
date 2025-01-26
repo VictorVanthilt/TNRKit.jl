@@ -1,5 +1,5 @@
 # TODO: rewrite SLoopTNR contractions to work with symmetric tensors
-mutable struct SLoopTNR <: TRGScheme
+mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
     optimization_algorithm::OptimKit.OptimizationAlgorithm

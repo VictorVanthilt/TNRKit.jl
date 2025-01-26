@@ -1,4 +1,4 @@
-mutable struct GILTTNR <: TRGScheme
+mutable struct GILTTNR <: TNRScheme
     T::TensorMap
 
     ε::Float64

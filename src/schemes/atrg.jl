@@ -1,4 +1,4 @@
-mutable struct ATRG <: TRGScheme
+mutable struct ATRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function
