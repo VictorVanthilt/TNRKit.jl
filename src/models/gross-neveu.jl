@@ -55,6 +55,6 @@ function gross_neveu_start(μ::Number, m::Number, g::Number)
     @tensor T_fused[-1 -2; -3 -4] := T_unfused[1 2 3 4; 5 6 7 8] * U[-1; 1 2] * U[-2; 3 4] *
                                      Udg[5 6; -3] * Udg[7 8; -4]
 
-    # restore the TRGKit.jl convention
-    return permute(T_fused, (1, 2), (4, 3))
+    # restore the TNRKit.jl convention
+    return permute(T_fused, ((1, 2), (4, 3)))
 end

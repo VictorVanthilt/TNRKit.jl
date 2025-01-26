@@ -1,4 +1,4 @@
-mutable struct HOTRG <: TRGScheme
+mutable struct HOTRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function

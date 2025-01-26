@@ -1,6 +1,4 @@
-using Revise, TensorKit
-includet("../src/TRGKit.jl")
-using .TRGKit
+using Revise, TensorKit, TNRKit
 
 # criterion to determine convergence
 trg_f(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
