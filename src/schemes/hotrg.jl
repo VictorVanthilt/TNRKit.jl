@@ -8,20 +8,21 @@ mutable struct HOTRG <: TNRScheme
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
-    # Contract along the horizontal direction
-    @tensor M[-1 -2 -3; -4 -5 -6] := scheme.T[-1 1; -5 -6] * scheme.T[-2 -3; -4 1]
+    @tensor MMdag[-1 -2; -3 -4] := scheme.T[-1 5; 2 1] * scheme.T[-2 3; 4 5] *
+                                   adjoint(scheme.T)[4 6; -4 3] *
+                                   adjoint(scheme.T)[2 1; -3 6]
 
     # Get unitaries
-    U, _, _, εₗ = tsvd(M, ((1, 2), (3, 4, 5, 6)); trunc=trunc)
-    _, _, UR, εᵣ = tsvd(M, ((1, 2, 3, 6), (4, 5)); trunc=trunc)
+    U, _, _, εₗ = tsvd(MMdag; trunc=trunc)
+    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc=trunc)
 
     if εₗ > εᵣ
-        U = permute(adjoint(UR), ((2, 1), (3,)))
+        U = adjoint(Uᵣ)
     end
 
     # adjoint(U) on the left, U on the right
-    @tensor scheme.T[-1 -2; -3 -4] := adjoint(U)[-1; 1 2] * M[1 2 -2; 3 4 -4] * U[4 3; -3]
-
+    @tensor scheme.T[-1 -2; -3 -4] := adjoint(U)[-1; 1 2] * scheme.T[1 5; 4 -4] *
+                                      scheme.T[2 -2; 3 5] * U[4 3; -3]
     return scheme
 end
 
