@@ -27,7 +27,7 @@ function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
     end
 
     # @plansor complains here, not sure why
-    @tensor scheme.T[-1 -2; -3 -4] := D[-1 1; 4] * B[-2; 2 1] * C[2; 3 -3] * A[4 3; -4]
+    @tensor scheme.T[-1 -2; -3 -4] := D[-1 1; 4] * B[-2; 3 1] * C[3; 2 -3] * A[4 2; -4]
     return scheme
 end
 
