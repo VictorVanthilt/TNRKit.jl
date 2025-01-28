@@ -4,5 +4,12 @@ Is a Julia package that aims to implement as much tensor network renormalization
 It is built upon
 [TensorKit.jl](https://github.com/jutho/TensorKit.jl), which provides functionality for
 generic symmetries.
+The following schemes are currently implemented:
+- TRG (Levin and Nave's original formulation of a TNR scheme) 
+- BTRG (bond-weighted TRG)
+- ATRG (anisitropic TRG)
+- HOTRG (higher order TRG)
+- GILTTNR (graph independent local trunctation + TRG, this still needs some improvements)
+- SLoopTNR (experimental symmetric Loop TNR)
 
 The project is not registered (yet) and is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated.
