@@ -26,7 +26,7 @@ T = classical_ising_symmetric(Ising_βc) # partition function of classical Ising
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
 ```
-`data` now contains 26 norms of the tensor, 1 for every time the tensor was normalized. (By default there is a normalization step at the very beginning wich can be turned off by setting the kwarg `finalize_beginning=false` in `run!`)
+`data` now contains 26 norms of the tensor, 1 for every time the tensor was normalized. (By default there is a normalization step before the first coarse-graining step wich can be turned off by changing the kwarg `run!(...; finalize_beginning=false)`)
 
 Using these norms you could, for example, calculate the free energy of the critial classical Ising model:
 ```Julia
@@ -43,8 +43,14 @@ julia> abs((fs - f_onsager) / f_onsager)
 3.1e-07
 ```
 Pretty impressive for a calculation that takes about 0.3s on a modern laptop.
-
-### Leg-convention
+## Verbosity
+There are 3 levels of verbosity implemented in TNRKit:
+- Level 0: no TNRKit messages whatsoever.
+- Level 1: Info at beginning and end of the simulations (including information on why the simulation stopped, how long it took and how many iterations were performed).
+- Level 2: Level 1 + info at every iteration about the last generated finalize output and the iteration number.
+  
+to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
+## Leg-convention
 All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V₃⊗V₄` and that the legs are ordered in the following way:
 ```
      4
