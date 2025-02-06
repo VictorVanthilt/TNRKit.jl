@@ -1,3 +1,5 @@
+Potts_βc(q) = log(1+sqrt(q))
+
 function cft_data(scheme::TNRScheme; v=1, unitcell=1)
     # make the indices
     indices = [[i, -i, i + 1, -(i + unitcell)] for i in 1:unitcell]
