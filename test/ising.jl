@@ -72,7 +72,7 @@ end
 
 # GILTTNR
 @testset "GILTTNR - Ising Model" begin
-    scheme = GILTTNR(T)
+    scheme = GILTTNR(T; giltcrit=trivial_convcrit(1e-2) & maxiter(15))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0

@@ -4,7 +4,8 @@ mutable struct GILTTNR <: TNRScheme
     ε::Float64
     giltcrit::stopcrit
     finalize!::Function
-    function GILTTNR(T::TensorMap; ε=5e-8, giltcrit=maxiter(20), finalize=finalize!)
+    function GILTTNR(T::TensorMap; ε=5e-8, giltcrit=trivial_convcrit(1e-2) & maxiter(50),
+                     finalize=finalize!)
         return new(copy(T), ε, giltcrit, finalize)
     end
 end
@@ -14,25 +15,20 @@ function step!(scheme::GILTTNR, trunc::TensorKit.TruncationScheme)
     giltscheme = GILT(scheme.T; ε=scheme.ε)
 
     gilt_steps = 0
-    R = id(space(scheme.T, 4)')
     crit = true
-    n = Inf
+    ns = (0.0, 0.0, 0.0, 0.0)
 
     @infov 3 "Starting GILT\n$(giltscheme)\n"
     t = @elapsed while crit
-        _, R′ = _step!(giltscheme, truncbelow(scheme.ε))
+        _, ns = _step!(giltscheme, truncbelow(scheme.ε))
 
         gilt_steps += 1
-        if space(R) == space(R′)
-            n = norm(R - R′)
-        else
-            n = Inf
-        end
-        crit = scheme.giltcrit(gilt_steps, n)
-        @infov 4 "GILT step $gilt_steps, norm: $n"
-        R = R′
+
+        crit = scheme.giltcrit(gilt_steps, maximum(ns))
+        @infov 4 "GILT step $gilt_steps, norms: $ns"
     end
-    @infov 3 "GILT finished\n $(stopping_info(scheme.giltcrit, gilt_steps, n))\n Elapsed time: $(t)s\n Iterations: $gilt_steps"
+
+    @infov 3 "GILT finished\n $(stopping_info(scheme.giltcrit, gilt_steps, ns))\n Elapsed time: $(t)s\n Iterations: $gilt_steps"
 
     U, S, V, _ = tsvd(giltscheme.T1, ((1, 2), (3, 4)); trunc=trunc)
 
@@ -52,7 +48,7 @@ function step!(scheme::GILTTNR, trunc::TensorKit.TruncationScheme)
         D[-1 -2; -3] := sqrt(S)[-1; 1] * V[1 -2; -3]
     end
 
-    @tensor scheme.T[-1 -2; -3 -4] := D[-1 1; 4] * B[-2; 2 1] * C[2; 3 -3] * A[4 3; -4]
+    @tensor scheme.T[-1 -2; -3 -4] := D[-1 1; 4] * B[-2; 3 1] * C[3; 2 -3] * A[4 2; -4]
     return scheme
 end
 

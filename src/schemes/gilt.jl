@@ -9,6 +9,25 @@ mutable struct GILT
 end
 
 function _step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
+    # Environment: bottom leg broken
+    S², U = environment_spectrum(scheme, Val{:S})
+
+    @plansor t[-1] := U[1 1; -1]
+
+    epsid = scheme.ε^2 * id(domain(S²))
+
+    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
+
+    @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
+    R′ = transpose(R′)
+    U, S, V, _ = tsvd(R′; trunc=trunc)
+    sqrtS = sqrt(S)
+
+    @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[1; -3] * U[2; 1] * scheme.T1[-1 -2; 2 -4]
+    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T2[2 -2; -3 -4]
+
+    nS = maximum(abs.((S - id(domain(S))).data))
+
     # Environment: top leg broken
     S², U = environment_spectrum(scheme, Val{:N})
     @plansor t[-1] := U[1 1; -1]
@@ -24,6 +43,8 @@ function _step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
 
     @tensor scheme.T2[-1 -2; -3 -4] := scheme.T2[-1 -2; 1 -4] * U[1; 2] * sqrtS[2; -3]
     @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T1[2 -2; -3 -4]
+
+    nN = maximum(abs.((S - id(domain(S))).data))
 
     # Environment: right leg broken
     S², U = environment_spectrum(scheme, Val{:E})
@@ -42,22 +63,7 @@ function _step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 1; -3 -4] * V[2; 1] * sqrtS[-2; 2]
     @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[2; -4] * U[1; 2] * scheme.T2[-1 -2; -3 1]
 
-    # Environment: bottom leg broken
-    S², U = environment_spectrum(scheme, Val{:S})
-
-    @plansor t[-1] := U[1 1; -1]
-
-    epsid = scheme.ε^2 * id(domain(S²))
-
-    @tensor t′[-1] := t[1] * (S² * inv(epsid + S²))[1; -1]
-
-    @plansor R′[-1; -2] := adjoint(U)[1; -1 -2] * t′[1]
-    R′ = transpose(R′)
-    U, S, V, _ = tsvd(R′; trunc=trunc)
-    sqrtS = sqrt(S)
-
-    @tensor scheme.T1[-1 -2; -3 -4] := sqrtS[1; -3] * U[2; 1] * scheme.T1[-1 -2; 2 -4]
-    @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-1; 1] * V[1; 2] * scheme.T2[2 -2; -3 -4]
+    nE = maximum(abs.((S - id(domain(S))).data))
 
     # Environment: left leg broken
     S², U = environment_spectrum(scheme, Val{:W})
@@ -75,7 +81,9 @@ function _step!(scheme::GILT, trunc::TensorKit.TruncationScheme)
     @tensor scheme.T1[-1 -2; -3 -4] := scheme.T1[-1 -2; -3 1] * U[1; 2] * sqrtS[2; -4] # space mismatch
     @tensor scheme.T2[-1 -2; -3 -4] := sqrtS[-2; 1] * V[1; 2] * scheme.T2[-1 2; -3 -4]
 
-    return scheme, R′
+    nW = maximum(maximum(abs.((S - id(domain(S))).data)))
+
+    return scheme, (nS, nN, nE, nW)
 end
 
 function environment_corners(scheme::GILT)

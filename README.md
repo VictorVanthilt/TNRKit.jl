@@ -9,7 +9,7 @@ The following schemes are currently implemented:
 - BTRG (bond-weighted TRG)
 - ATRG (anisotropic TRG)
 - HOTRG (higher order TRG)
-- GILTTNR (graph independent local truncation + TRG, this still needs some improvements)
+- GILTTNR (graph independent local truncation + TRG)
 - SLoopTNR (experimental symmetric Loop TNR)
 
 The project is not registered (yet) and is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated.
