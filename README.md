@@ -22,13 +22,13 @@ The project is not registered (yet) and is under active development. The interfa
 
 For example:
 ```julia
-T = classical_ising_symmetric(Ising_βc) # partition function of classical Ising model at the critial point
+T = classical_ising_symmetric(Ising_βc) # partition function of classical Ising model at the critical point
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
 ```
 `data` now contains 26 norms of the tensor, 1 for every time the tensor was normalized. (By default there is a normalization step before the first coarse-graining step wich can be turned off by changing the kwarg `run!(...; finalize_beginning=false)`)
 
-Using these norms you could, for example, calculate the free energy of the critial classical Ising model:
+Using these norms you could, for example, calculate the free energy of the critical classical Ising model:
 ```Julia
 lnz = 0
 for (i, d) in enumerate(data)
