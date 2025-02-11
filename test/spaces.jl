@@ -3,11 +3,11 @@ println(" spaces ")
 println("--------")
 
 # stuff different kinds of spaces into the schemes (and do 100 steps)
-A = classical_ising(Ising_βc)
-B = classical_ising_symmetric(Ising_βc)
-C = gross_neveu_start(0, 1, 0)
-D = sixvertex(ComplexF64, U1Irrep)
-E = sixvertex(ComplexF64, CU1Irrep)
+A = ("Normal Ising", classical_ising(Ising_βc))
+B = ("Ising Symmetric", classical_ising_symmetric(Ising_βc))
+C = ("Gross Neveu", gross_neveu_start(0, 1, 0))
+D = ("Sixvertex U1", sixvertex(ComplexF64, U1Irrep))
+E = ("Sixvertex CU1", sixvertex(ComplexF64, CU1Irrep))
 
 models = [A, B, C, D, E]
 schemes = [TRG, BTRG, HOTRG, ATRG, GILTTNR]
@@ -17,7 +17,8 @@ for S in schemes
     @testset "$(S) - spaces" begin
         for T in models
             @eval begin
-                @test isa(run!($S($(T)), truncdim(7), maxiter(25)), Any)
+                println("--- $($(T[1])) ---")
+                @test isa(run!($S($(T[2])), truncdim(7), maxiter(25)), Any)
             end
         end
     end
