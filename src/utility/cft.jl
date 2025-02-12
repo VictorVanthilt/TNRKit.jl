@@ -1,4 +1,4 @@
-function cft_data(scheme::TNRScheme; v=1, unitcell=1)
+function cft_data(scheme::TNRScheme; v=1, unitcell=1, is_real=true)
     # make the indices
     indices = [[i, -i, i + 1, -(i + unitcell)] for i in 1:unitcell]
     indices[end][3] = 1
@@ -20,7 +20,11 @@ function cft_data(scheme::TNRScheme; v=1, unitcell=1)
         end
     end
 
-    data = reverse(sort(real.(filter(x -> real(x) > 0, data))))
+    data = filter(x -> real(x) > 0, data)
+    data = sort(data; by=x -> real(x), rev=true)
+    if is_real
+        data = real(data)
+    end
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
