@@ -20,8 +20,8 @@ function cft_data(scheme::TNRScheme; v=1, unitcell=1, is_real=true)
         end
     end
 
-    data = filter(x -> real(x) > 0, data)
-    data = sort(data; by=x -> real(x), rev=true)
+    data = filter(x -> abs(x) > 1e-12, data)
+    data = sort(data; by=x -> abs(x), rev=true)
     if is_real
         data = real(data)
     end
@@ -52,8 +52,8 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
             i += 1
         end
     end
-    data = filter(x -> real(x) > 0, data)
-    data = sort(data; by=x -> real(x), rev=true)
+    data = filter(x -> abs(x) > 1e-12, data)
+    data = sort(data; by=x -> abs(x), rev=true)
     if is_real
         data = real(data)
     end
