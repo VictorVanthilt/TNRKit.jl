@@ -17,6 +17,7 @@ include("schemes/gilt.jl")
 include("schemes/gilt-tnr.jl")
 include("schemes/atrg.jl")
 include("schemes/slooptnr.jl")
+include("schemes/looptnr.jl")
 
 export TNRScheme
 export TRG, trg_convcrit
@@ -25,6 +26,7 @@ export HOTRG, hotrg_convcrit
 export ATRG, atrg_convcrit
 export GILTTNR, gilttnr_convcrit
 export SLoopTNR
+export Loop_TNR
 
 export run!
 
