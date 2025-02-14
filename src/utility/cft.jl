@@ -60,16 +60,16 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-function cft_data(scheme::Loop_TNR, isreal = true)
-
-    @tensor opt=true T[-1 -2; -3 -4] := scheme.TA[-1 1; 2 5]*scheme.TB[2 3; -3 6]*scheme.TB[-2 5; 4 1]*scheme.TA[4 6; -4 3]
+function cft_data(scheme::Loop_TNR, isreal=true)
+    @tensor opt = true T[-1 -2; -3 -4] := scheme.TA[-1 1; 2 5] * scheme.TB[2 3; -3 6] *
+                                          scheme.TB[-2 5; 4 1] * scheme.TA[4 6; -4 3]
 
     D, V = eig(T)
     diag = []
-    for (i,d) in blocks(D)
+    for (i, d) in blocks(D)
         push!(diag, d...)
     end
-    data = sort!(diag; by=x -> abs(x), rev = true)
+    data = sort!(diag; by=x -> abs(x), rev=true)
 
     if is_real
         data = real(data)
