@@ -1,7 +1,7 @@
 module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
-using Zygote, OptimKit
+using Zygote, OptimKit, KrylovKit
 
 # stop criteria
 include("utility/stopping.jl")

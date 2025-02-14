@@ -101,3 +101,14 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 1e-5
 end
+
+@testset "LoopTNR - Ising Model" begin
+    scheme = Loop_TNR(classical_ising(Ising_βc), classical_ising(Ising_βc))
+    data = run!(scheme, truncdim(8), maxiter(4), 20, 1e-6; verbosity = 2)
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 2.0^(-i)
+    end
+    @test true
+end

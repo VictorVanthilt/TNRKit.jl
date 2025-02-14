@@ -22,37 +22,37 @@ end
 
 #Utility functions for QR decomp
 
-function QR_L(L::TensorMap, T::AbstractTensorMap{S,2,2}) where {S}
+function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
     @tensor temp[-1 -2; -3 -4] := L[-2; 1] * T[-1 1; -3 -4]
     _, Rt = leftorth(temp, (1, 2, 4), (3,))
     return Rt
 end
 
-function QR_R(R::TensorMap, T::AbstractTensorMap{S,2,2}) where {S}
+function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
     @tensor temp[-1 -2; -3 -4] := T[-1 -2; 1 -4] * R[1; -3]
     Lt, _ = rightorth(temp, (2,), (1, 3, 4))
     return Lt
 end
 
-function QR_L(L::TensorMap, T::AbstractTensorMap{S,1,3}) where {S}
+function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @tensor temp[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
     _, Rt = leftorth(temp, (1, 3, 4), (2,))
     return Rt
 end
 
-function QR_R(R::TensorMap, T::AbstractTensorMap{S,1,3}) where {S}
+function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @tensor temp[-1; -2 -3 -4] := T[-1; 1 -3 -4] * R[1; -2]
     Lt, _ = rightorth(temp, (1,), (2, 3, 4))
     return Lt
 end
 
-function QR_L(L::TensorMap, T::AbstractTensorMap{S,1,2}) where {S}
+function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @tensor temp[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
     _, Rt = leftorth(temp, (1, 3), (2,))
     return Rt
 end
 
-function QR_R(R::TensorMap, T::AbstractTensorMap{S,1,2}) where {S}
+function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @tensor temp[-1; -2 -3] := T[-1; 1 -3] * R[1; -2]
     Lt, _ = rightorth(temp, (1,), (2, 3))
     return Lt
@@ -162,7 +162,7 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
     return PR, PL
 end
 
-function SVD12(T::AbstractTensorMap{S,1,3},trunc::TensorKit.TruncationScheme) where {S}
+function SVD12(T::AbstractTensorMap{E,S,1,3},trunc::TensorKit.TruncationScheme) where {E,S}
     U, s, V, _ = tsvd(T, (1, 4), (2, 3); trunc=trunc)
     @tensor S1[-1; -2 -3] := U[-1 -3; 1] * sqrt(s)[1; -2]
     @tensor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
@@ -195,7 +195,7 @@ end
 function entanglement_filtering!(scheme::Loop_TNR, maxsteps::Int, minerror::Float64,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(Ψ, maxsteps, minerror, trunc)
+    PR_list, PL_list = find_projectors(ΨA, maxsteps, minerror, trunc)
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
@@ -270,11 +270,11 @@ function dWT(pos, psiA, psiB)
 end
 
 function cost_func(pos, psiA, psiB)
-    C = TRGKit.const_C(psiA)
+    C = const_C(psiA)
     tNt = TNT(pos, psiB)
     wdt = WdT(pos, psiA, psiB)
     dwt = dWT(pos, psiA, psiB)
-    
+
     return C + tNt - wdt - dwt
 end
 
@@ -395,4 +395,46 @@ function Base.show(io::IO, scheme::Loop_TNR)
     println(io, "  * TA: $(summary(scheme.TA))")
     println(io, "  * TB: $(summary(scheme.TB))")
     return nothing
+end
+
+function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme;
+    finalize_beginning=true, verbosity=1)
+# default maxiter criterion of 100 iterations
+return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,
+      verbosity=verbosity)
+end
+
+function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
+    loop_sweeps::Int, loop_error::Float64;
+    finalize_beginning=true, verbosity=1)
+data = []
+
+LoggingExtras.withlevel(; verbosity) do
+@infov 1 "Starting simulation\n $(scheme)\n"
+if finalize_beginning
+  push!(data, scheme.finalize!(scheme))
+end
+
+steps = 0
+crit = true
+
+t = @elapsed while crit
+  @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
+  step!(scheme, trscheme, 50, 1e-12, loop_sweeps, loop_error, verbosity)
+  push!(data, scheme.finalize!(scheme))
+  steps += 1
+  crit = criterion(steps, data)
+end
+
+@infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
+# @infov 1 "Elapsed time: $(t)s"
+end
+return data
+end
+
+function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme;
+    finalize_beginning=true, verbosity=1)
+return run!(scheme, trscheme, maxiter(9), 50, 1e-12;
+      finalize_beginning=finalize_beginning,
+      verbosity=verbosity)
 end
