@@ -130,7 +130,8 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     return PR, PL
 end
 
-function find_projectors(psi::Array, maxsteps::Int, minerror::Float64, trunc::TensorKit.TruncationScheme)
+function find_projectors(psi::Array, maxsteps::Int, minerror::Float64,
+                         trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
     n = length(psi)
@@ -162,7 +163,7 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
     return PR, PL
 end
 
-function SVD12(T::AbstractTensorMap{E,S,1,3},trunc::TensorKit.TruncationScheme) where {E,S}
+function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
     U, s, V, _ = tsvd(T, (1, 4), (2, 3); trunc=trunc)
     @tensor S1[-1; -2 -3] := U[-1 -3; 1] * sqrt(s)[1; -2]
     @tensor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
@@ -335,7 +336,8 @@ function opt_T(N, W, psi)
     return new_T
 end
 
-function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64, trunc::TensorKit.TruncationScheme, verbosity::Int)
+function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64,
+                   trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B(scheme, trunc)
 
@@ -372,7 +374,8 @@ function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64, t
     return scheme
 end
 
-function step!(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme, maxsteps::Int, minerror::Float64,
+function step!(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme, maxsteps::Int,
+               minerror::Float64,
                maxsteps_opt::Int, minerror_opt::Float64, verbosity::Int)
     entanglement_filtering!(scheme, maxsteps, minerror, trunc)
     loop_opt!(scheme, maxsteps_opt, minerror_opt, trunc, verbosity::Int)
@@ -398,43 +401,43 @@ function Base.show(io::IO, scheme::Loop_TNR)
 end
 
 function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme;
-    finalize_beginning=true, verbosity=1)
-# default maxiter criterion of 100 iterations
-return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,
-      verbosity=verbosity)
+              finalize_beginning=true, verbosity=1)
+    # default maxiter criterion of 100 iterations
+    return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,
+                verbosity=verbosity)
 end
 
 function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
-    loop_sweeps::Int, loop_error::Float64;
-    finalize_beginning=true, verbosity=1)
-data = []
+              loop_sweeps::Int, loop_error::Float64;
+              finalize_beginning=true, verbosity=1)
+    data = []
 
-LoggingExtras.withlevel(; verbosity) do
-@infov 1 "Starting simulation\n $(scheme)\n"
-if finalize_beginning
-  push!(data, scheme.finalize!(scheme))
-end
+    LoggingExtras.withlevel(; verbosity) do
+        @infov 1 "Starting simulation\n $(scheme)\n"
+        if finalize_beginning
+            push!(data, scheme.finalize!(scheme))
+        end
 
-steps = 0
-crit = true
+        steps = 0
+        crit = true
 
-t = @elapsed while crit
-  @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-  step!(scheme, trscheme, 50, 1e-12, loop_sweeps, loop_error, verbosity)
-  push!(data, scheme.finalize!(scheme))
-  steps += 1
-  crit = criterion(steps, data)
-end
+        t = @elapsed while crit
+            @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
+            step!(scheme, trscheme, 50, 1e-12, loop_sweeps, loop_error, verbosity)
+            push!(data, scheme.finalize!(scheme))
+            steps += 1
+            crit = criterion(steps, data)
+        end
 
-@infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
-# @infov 1 "Elapsed time: $(t)s"
-end
-return data
+        @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
+        # @infov 1 "Elapsed time: $(t)s"
+    end
+    return data
 end
 
 function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme;
-    finalize_beginning=true, verbosity=1)
-return run!(scheme, trscheme, maxiter(9), 50, 1e-12;
-      finalize_beginning=finalize_beginning,
-      verbosity=verbosity)
+              finalize_beginning=true, verbosity=1)
+    return run!(scheme, trscheme, maxiter(9), 50, 1e-12;
+                finalize_beginning=finalize_beginning,
+                verbosity=verbosity)
 end

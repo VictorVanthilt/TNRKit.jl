@@ -104,7 +104,7 @@ end
 
 @testset "LoopTNR - Ising Model" begin
     scheme = Loop_TNR(classical_ising(Ising_βc), classical_ising(Ising_βc))
-    data = run!(scheme, truncdim(8), maxiter(4), 20, 1e-6; verbosity = 2)
+    data = run!(scheme, truncdim(8), maxiter(4), 20, 1e-6; verbosity=2)
 
     lnz = 0
     for (i, d) in enumerate(data)
