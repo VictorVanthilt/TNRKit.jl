@@ -353,7 +353,7 @@ function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64,
         sweep += 1
         cost = cost_func(1, psi_A, psi_B)
         if verbosity > 1
-            @info "Sweep: $sweep, Cost: $cost"
+            @infov 3 "Sweep: $sweep, Cost: $cost"
         end
     end
     Ψ5 = permute(psi_B[5], (2,), (1, 3))
@@ -398,13 +398,6 @@ function Base.show(io::IO, scheme::Loop_TNR)
     println(io, "  * TA: $(summary(scheme.TA))")
     println(io, "  * TB: $(summary(scheme.TB))")
     return nothing
-end
-
-function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme;
-              finalize_beginning=true, verbosity=1)
-    # default maxiter criterion of 100 iterations
-    return run!(scheme, trscheme, maxiter(100); finalize_beginning=finalize_beginning,
-                verbosity=verbosity)
 end
 
 function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
