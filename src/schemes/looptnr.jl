@@ -69,11 +69,11 @@ end
 
 #Functions to find the left and right projectors
 
-function find_L(pos::Int, psi::Array, maxsteps::Int, minerror::Float64)
+function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
     L = id(space(psi[pos])[1])
     crit = true
     steps = 0
-    error = Inf
+    error = [Inf]
     n = length(psi)
     while crit
         new_L = copy(L)
@@ -83,22 +83,22 @@ function find_L(pos::Int, psi::Array, maxsteps::Int, minerror::Float64)
         new_L = new_L / maximumer(new_L)
 
         if space(new_L) == space(L)
-            error = abs(norm(new_L - L))
+            push!(error, abs(norm(new_L - L)))
         end
 
         L = new_L
         steps += 1
-        crit = steps < maxsteps && error > minerror
+        crit = entanglement_criterion(steps, error)
     end
 
     return L
 end
 
-function find_R(pos::Int, psi::Array, maxsteps::Int, minerror::Float64)
+function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
     R = id(space(psi[mod(pos - 2, 4) + 1])[2]')
     crit = true
     steps = 0
-    error = Inf
+    error = [Inf]
     n = length(psi)
     while crit
         new_R = copy(R)
@@ -109,11 +109,11 @@ function find_R(pos::Int, psi::Array, maxsteps::Int, minerror::Float64)
         new_R = new_R / maximumer(new_R)
 
         if space(new_R) == space(R)
-            error = abs(norm(new_R - R))
+            push!(error, abs(norm(new_R - R)))
         end
         R = new_R
         steps += 1
-        crit = steps < maxsteps && error > minerror
+        crit = entanglement_criterion(steps, error)
     end
 
     return R
@@ -130,15 +130,15 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     return PR, PL
 end
 
-function find_projectors(psi::Array, maxsteps::Int, minerror::Float64,
+function find_projectors(psi::Array, entanglement_criterion::stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
     n = length(psi)
     for i in 1:n
-        L = find_L(i, psi, maxsteps, minerror)
+        L = find_L(i, psi, entanglement_criterion)
 
-        R = find_R(i, psi, maxsteps, minerror)
+        R = find_R(i, psi, entanglement_criterion)
 
         pr, pl = P_decomp(R, L, trunc)
 
@@ -180,7 +180,9 @@ function Ψ_B(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme)
         push!(ΨB, s2)
     end
 
-    PR_list, PL_list = find_projectors(ΨB, 100, 1e-12, trunc)
+    ΨB_function(steps, data) = abs(data[end])
+    criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
+    PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
 
     ΨB_disentangled = []
     for i in 1:8
@@ -193,10 +195,10 @@ end
 
 #Entanglement Filtering 
 
-function entanglement_filtering!(scheme::Loop_TNR, maxsteps::Int, minerror::Float64,
+function entanglement_filtering!(scheme::Loop_TNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(ΨA, maxsteps, minerror, trunc)
+    PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
@@ -336,14 +338,15 @@ function opt_T(N, W, psi)
     return new_T
 end
 
-function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64,
+function loop_opt!(scheme::Loop_TNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B(scheme, trunc)
 
-    cost = Inf
+    cost = [Inf]
     sweep = 0
-    while abs(cost) > minerror_opt && sweep < maxsteps_opt
+    crit = true
+    while crit
         for i in 1:8
             N = tN(i, psi_B)
             W = tW(i, psi_A, psi_B)
@@ -351,10 +354,11 @@ function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64,
             psi_B[i] = new_T
         end
         sweep += 1
-        cost = cost_func(1, psi_A, psi_B)
+        push!(cost, cost_func(1, psi_A, psi_B))
         if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $cost"
+            @infov 3 "Sweep: $sweep, Cost: $cost[end]"
         end
+        crit = loop_criterion(sweep, cost)
     end
     Ψ5 = permute(psi_B[5], (2,), (1, 3))
     Ψ8 = permute(psi_B[8], (1,), (3, 2))
@@ -374,11 +378,11 @@ function loop_opt!(scheme::Loop_TNR, maxsteps_opt::Int, minerror_opt::Float64,
     return scheme
 end
 
-function step!(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme, maxsteps::Int,
-               minerror::Float64,
-               maxsteps_opt::Int, minerror_opt::Float64, verbosity::Int)
-    entanglement_filtering!(scheme, maxsteps, minerror, trunc)
-    loop_opt!(scheme, maxsteps_opt, minerror_opt, trunc, verbosity::Int)
+function step!(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme,
+               entanglement_criterion::stopcrit,
+               loop_criterion::stopcrit, verbosity::Int)
+    entanglement_filtering!(scheme, entanglement_criterion, trunc)
+    loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
     return scheme
 end
 
@@ -401,7 +405,8 @@ function Base.show(io::IO, scheme::Loop_TNR)
 end
 
 function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
-              loop_sweeps::Int, loop_error::Float64;
+              entanglement_criterion::stopcrit,
+              loop_criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
     data = []
 
@@ -416,7 +421,7 @@ function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion:
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, 50, 1e-12, loop_sweeps, loop_error, verbosity)
+            step!(scheme, trscheme, entanglement_criterion, loop_criterion, verbosity)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
@@ -428,9 +433,14 @@ function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion:
     return data
 end
 
+entanglement_function(steps, data) = abs(data[end])
+entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
+
+loop_criterion = maxiter(50) & convcrit(1e-10, entanglement_function)
+
 function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme;
               finalize_beginning=true, verbosity=1)
-    return run!(scheme, trscheme, maxiter(9), 50, 1e-12;
+    return run!(scheme, trscheme, maxiter(9), entanglement_criterion, loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
 end
