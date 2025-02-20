@@ -170,27 +170,48 @@ function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme)
     return S1, S2
 end
 
+# function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
+#     ΨA = Ψ_A(scheme)
+#     ΨB = []
+
+#     for i in 1:4
+#         s1, s2 = SVD12(ΨA[i], trunc)
+#         push!(ΨB, s1)
+#         push!(ΨB, s2)
+#     end
+
+#     ΨB_function(steps, data) = abs(data[end])
+#     criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
+#     PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
+
+#     ΨB_disentangled = []
+#     for i in 1:8
+#         @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; 2 -3] *
+#                                  PR_list[mod(i, 8) + 1][2; -2]
+#         push!(ΨB_disentangled, B1)
+#     end
+#     return ΨB_disentangled
+# end
+
 function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     ΨB = []
 
-    for i in 1:4
+    for i = 1:4
         s1, s2 = SVD12(ΨA[i], trunc)
-        push!(ΨB, s1)
-        push!(ΨB, s2)
-    end
+        phi = deepcopy(ΨA)
+        popat!(phi, i)
+        insert!(phi, i, s1)
+        insert!(phi, i + 1, s2)
 
-    ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
-    PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
+        pr, pl = one_loop_projector(phi, i, trunc)
 
-    ΨB_disentangled = []
-    for i in 1:8
-        @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; 2 -3] *
-                                 PR_list[mod(i, 8) + 1][2; -2]
-        push!(ΨB_disentangled, B1)
+        @tensor B1[-1; -2 -3] := s1[-1; 1 -3] * pr[1; -2]
+        @tensor B2[-1; -2 -3] := pl[-1; 1] * s2[1; -2 -3]
+        push!(ΨB, B1)
+        push!(ΨB, B2)
     end
-    return ΨB_disentangled
+    return ΨB
 end
 
 #Entanglement Filtering 
