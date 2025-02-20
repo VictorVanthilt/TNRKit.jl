@@ -103,7 +103,7 @@ end
 end
 
 @testset "LoopTNR - Ising Model" begin
-    scheme = Loop_TNR(classical_ising(Ising_βc), classical_ising(Ising_βc))
+    scheme = LoopTNR(classical_ising(Ising_βc))
     data = run!(scheme, truncdim(16); verbosity=2)
 
     lnz = 0
