@@ -95,11 +95,11 @@ function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
 end
 
 function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
-    R = id(space(psi[mod(pos - 2, 4) + 1])[2]')
+    n = length(psi)
+    R = id(space(psi[mod(pos - 2, n) + 1])[2]')
     crit = true
     steps = 0
     error = [Inf]
-    n = length(psi)
     while crit
         new_R = copy(R)
 
@@ -170,48 +170,27 @@ function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme)
     return S1, S2
 end
 
-# function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-#     ΨA = Ψ_A(scheme)
-#     ΨB = []
-
-#     for i in 1:4
-#         s1, s2 = SVD12(ΨA[i], trunc)
-#         push!(ΨB, s1)
-#         push!(ΨB, s2)
-#     end
-
-#     ΨB_function(steps, data) = abs(data[end])
-#     criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
-#     PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
-
-#     ΨB_disentangled = []
-#     for i in 1:8
-#         @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; 2 -3] *
-#                                  PR_list[mod(i, 8) + 1][2; -2]
-#         push!(ΨB_disentangled, B1)
-#     end
-#     return ΨB_disentangled
-# end
-
 function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     ΨB = []
 
-    for i = 1:4
+    for i in 1:4
         s1, s2 = SVD12(ΨA[i], trunc)
-        phi = deepcopy(ΨA)
-        popat!(phi, i)
-        insert!(phi, i, s1)
-        insert!(phi, i + 1, s2)
-
-        pr, pl = one_loop_projector(phi, i, trunc)
-
-        @tensor B1[-1; -2 -3] := s1[-1; 1 -3] * pr[1; -2]
-        @tensor B2[-1; -2 -3] := pl[-1; 1] * s2[1; -2 -3]
-        push!(ΨB, B1)
-        push!(ΨB, B2)
+        push!(ΨB, s1)
+        push!(ΨB, s2)
     end
-    return ΨB
+
+    ΨB_function(steps, data) = abs(data[end])
+    criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
+    PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
+
+    ΨB_disentangled = []
+    for i in 1:8
+        @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; 2 -3] *
+                                 PR_list[mod(i, 8) + 1][2; -2]
+        push!(ΨB_disentangled, B1)
+    end
+    return ΨB_disentangled
 end
 
 #Entanglement Filtering 
@@ -355,7 +334,8 @@ function opt_T(N, W, psi)
         return b
     end
 
-    new_T, info = linsolve(apply_f, W, psi)
+    new_T, info = linsolve(apply_f, W, psi; krylovdim=50, maxiter=150, tol=1e-12,
+                           verbosity=0)
     return new_T
 end
 
@@ -364,7 +344,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B(scheme, trunc)
 
-    cost = [Inf]
+    cost = ComplexF64[Inf]
     sweep = 0
     crit = true
     while crit
@@ -377,7 +357,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         sweep += 1
         push!(cost, cost_func(1, psi_A, psi_B))
         if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $cost[end]"
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
         end
         crit = loop_criterion(sweep, cost)
     end

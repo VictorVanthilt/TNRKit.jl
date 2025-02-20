@@ -15,9 +15,9 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 KrylovKit = "0.9.4"
 LoggingExtras = "1.1.0"
-OptimKit = "0.3.1"
+OptimKit = "0.4.0"
 TensorKit = "0.14"
-Zygote = "0.7.3"
+Zygote = "0.7.4"
 
 [extras]
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
