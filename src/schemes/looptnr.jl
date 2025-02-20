@@ -1,18 +1,18 @@
 
 #TODO: Make this work for Fermions
 #TODO: Add documentation
-mutable struct Loop_TNR <: TNRScheme
+mutable struct LoopTNR <: TNRScheme
     # data
     TA::TensorMap
     TB::TensorMap
 
     finalize!::Function
-    function Loop_TNR(TA::TensorMap, TB::TensorMap; finalize=finalize!)
+    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=finalize!)
         return new(TA, TB, finalize)
     end
 end
 
-function Ψ_A(scheme::Loop_TNR)
+function Ψ_A(scheme::LoopTNR)
     psi = AbstractTensorMap[permute(scheme.TA, (2,), (3, 4, 1)),
                             permute(scheme.TB, (1,), (2, 3, 4)),
                             permute(scheme.TA, (4,), (1, 2, 3)),
@@ -170,7 +170,7 @@ function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme)
     return S1, S2
 end
 
-function Ψ_B(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme)
+function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     ΨB = []
 
@@ -195,7 +195,7 @@ end
 
 #Entanglement Filtering 
 
-function entanglement_filtering!(scheme::Loop_TNR, entanglement_criterion::stopcrit,
+function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
@@ -338,7 +338,7 @@ function opt_T(N, W, psi)
     return new_T
 end
 
-function loop_opt!(scheme::Loop_TNR, loop_criterion::stopcrit,
+function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B(scheme, trunc)
@@ -378,7 +378,7 @@ function loop_opt!(scheme::Loop_TNR, loop_criterion::stopcrit,
     return scheme
 end
 
-function step!(scheme::Loop_TNR, trunc::TensorKit.TruncationScheme,
+function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, trunc)
@@ -388,7 +388,7 @@ end
 
 #2x2 finalise function
 
-function finalize!(scheme::Loop_TNR)
+function finalize!(scheme::LoopTNR)
     n = norm(@plansor opt = true scheme.TA[1 2; 3 4] * scheme.TB[3 5; 1 6] *
                                  scheme.TB[7 4; 8 2] * scheme.TA[8 6; 7 5])
 
@@ -397,14 +397,14 @@ function finalize!(scheme::Loop_TNR)
     return n^(1 / 4)
 end
 
-function Base.show(io::IO, scheme::Loop_TNR)
-    println(io, "Loop_TNR - Loop Tensor Network Renormalization")
+function Base.show(io::IO, scheme::LoopTNR)
+    println(io, "LoopTNR - Loop Tensor Network Renormalization")
     println(io, "  * TA: $(summary(scheme.TA))")
     println(io, "  * TB: $(summary(scheme.TB))")
     return nothing
 end
 
-function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit,
               loop_criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
@@ -438,7 +438,7 @@ entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
 loop_criterion = maxiter(50) & convcrit(1e-10, entanglement_function)
 
-function run!(scheme::Loop_TNR, trscheme::TensorKit.TruncationScheme;
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme;
               finalize_beginning=true, verbosity=1)
     return run!(scheme, trscheme, maxiter(9), entanglement_criterion, loop_criterion;
                 finalize_beginning=finalize_beginning,

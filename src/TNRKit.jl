@@ -26,7 +26,7 @@ export HOTRG, hotrg_convcrit
 export ATRG, atrg_convcrit
 export GILTTNR, gilttnr_convcrit
 export SLoopTNR
-export Loop_TNR, entanglement_filtering!, loop_opt!
+export LoopTNR, entanglement_filtering!, loop_opt!
 
 export run!
 
