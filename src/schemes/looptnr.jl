@@ -13,10 +13,10 @@ mutable struct LoopTNR <: TNRScheme
 end
 
 function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[permute(scheme.TA, (2,), (3, 4, 1)),
-                            permute(scheme.TB, (1,), (2, 3, 4)),
-                            permute(scheme.TA, (4,), (1, 2, 3)),
-                            permute(scheme.TB, (3,), (4, 1, 2))]
+    psi = AbstractTensorMap[permute(scheme.TA, ((2,), (3, 4, 1))),
+                            permute(scheme.TB, ((1,), (2, 3, 4))),
+                            permute(scheme.TA, ((4,), (1, 2, 3))),
+                            permute(scheme.TB, ((3,), (4, 1, 2)))]
     return psi
 end
 
@@ -24,37 +24,37 @@ end
 
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
     @tensor temp[-1 -2; -3 -4] := L[-2; 1] * T[-1 1; -3 -4]
-    _, Rt = leftorth(temp, (1, 2, 4), (3,))
+    _, Rt = leftorth(temp, ((1, 2, 4), (3,)))
     return Rt
 end
 
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
     @tensor temp[-1 -2; -3 -4] := T[-1 -2; 1 -4] * R[1; -3]
-    Lt, _ = rightorth(temp, (2,), (1, 3, 4))
+    Lt, _ = rightorth(temp, ((2,), (1, 3, 4)))
     return Lt
 end
 
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @tensor temp[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
-    _, Rt = leftorth(temp, (1, 3, 4), (2,))
+    _, Rt = leftorth(temp, ((1, 3, 4), (2,)))
     return Rt
 end
 
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @tensor temp[-1; -2 -3 -4] := T[-1; 1 -3 -4] * R[1; -2]
-    Lt, _ = rightorth(temp, (1,), (2, 3, 4))
+    Lt, _ = rightorth(temp, ((1,), (2, 3, 4)))
     return Lt
 end
 
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @tensor temp[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
-    _, Rt = leftorth(temp, (1, 3), (2,))
+    _, Rt = leftorth(temp, ((1, 3), (2,)))
     return Rt
 end
 
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @tensor temp[-1; -2 -3] := T[-1; 1 -3] * R[1; -2]
-    Lt, _ = rightorth(temp, (1,), (2, 3))
+    Lt, _ = rightorth(temp, ((1,), (2, 3)))
     return Lt
 end
 
@@ -121,7 +121,7 @@ end
 
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     @tensor temp[-1; -2] := L[-1; 1] * R[1; -2]
-    U, S, V, _ = tsvd(temp, (1,), (2,); trunc=trunc)
+    U, S, V, _ = tsvd(temp, ((1,), (2,)); trunc=trunc)
     re_sq = pseudopow(S, -0.5)
 
     @tensor PR[-1; -2] := R[-1; 1] * adjoint(V)[1; 2] * re_sq[2; -2]
@@ -164,7 +164,7 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
 end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T, (1, 4), (2, 3); trunc=trunc)
+    U, s, V, _ = tsvd(T, ((1, 4), (2, 3)); trunc=trunc)
     @tensor S1[-1; -2 -3] := U[-1 -3; 1] * sqrt(s)[1; -2]
     @tensor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
@@ -227,10 +227,10 @@ end
 function TNT(pos, psiB)
     @tensor tmp[-1 -2; -3 -4] := psiB[mod(pos, 8) + 1][-2; -1 1] *
                                  adjoint(psiB[mod(pos, 8) + 1])[-3 1; -4]
-    tmp = permute(tmp, (2, 1), (4, 3))
+    tmp = permute(tmp, ((2, 1), (4, 3)))
     for i in (pos + 1):(pos + 7)
-        ΨB = permute(psiB[mod(i, 8) + 1], (1,), (3, 2))
-        ΨBdag = permute(adjoint(psiB[mod(i, 8) + 1]), (1, 3), (2,))
+        ΨB = permute(psiB[mod(i, 8) + 1], ((1,), (3, 2)))
+        ΨBdag = permute(adjoint(psiB[mod(i, 8) + 1]), ((1, 3), (2,)))
         @tensor tmp[-1 -2; -3 -4] := tmp[-1 1; -3 2] * ΨB[1; 3 -2] * ΨBdag[-4 2; 3]
     end
     return @tensor tmp[1 1; 2 2]
@@ -242,11 +242,11 @@ function WdT(pos, psiA, psiB)
 
     @tensor tmp[-2 -1; -4 -3] := psiA[next_a][-1; -2 1 2] * adjoint(psiB[next_b])[3 2; -3] *
                                  adjoint(psiB[next_b + 1])[-4 1; 3]
-    tmp = permute(tmp, (2, 1), (4, 3))
+    tmp = permute(tmp, ((2, 1), (4, 3)))
     for i in next_a:(next_a + 2)
-        ΨA = permute(psiA[mod(i, 4) + 1], (1,), (4, 3, 2))
-        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], (1,), (3, 2))
-        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], (1,), (3, 2))
+        ΨA = permute(psiA[mod(i, 4) + 1], ((1,), (4, 3, 2)))
+        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], ((1,), (3, 2)))
+        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], ((1,), (3, 2)))
         @tensor tmp[-1 -2; -3 -4] := tmp[-1 1; -3 4] * ΨA[1; 2 3 -2] * conj(ΨB1[4; 2 5]) *
                                      conj(ΨB2[5; 3 -4])
     end
@@ -260,11 +260,11 @@ function dWT(pos, psiA, psiB)
 
     @tensor tmp[-2 -1; -4 -3] := psiB[next_b][-1; 1 2] * psiB[next_b + 1][1; -2 3] *
                                  adjoint(psiA[next_a])[-4 3 2; -3]
-    tmp = permute(tmp, (2, 1), (4, 3))
+    tmp = permute(tmp, ((2, 1), (4, 3)))
     for i in next_a:(next_a + 2)
-        ΨA = permute(psiA[mod(i, 4) + 1], (1,), (4, 3, 2))
-        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], (1,), (3, 2))
-        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], (1,), (3, 2))
+        ΨA = permute(psiA[mod(i, 4) + 1], ((1,), (4, 3, 2)))
+        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], ((1,), (3, 2)))
+        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], ((1,), (3, 2)))
         @tensor tmp[-1 -2; -3 -4] := tmp[-1 1; -3 4] * ΨB1[1; 3 2] * ΨB2[2; 5 -2] *
                                      adjoint(ΨA)[3 5 -4; 4]
     end
@@ -286,10 +286,10 @@ end
 function tN(pos, psiB)
     @tensor tmp[-1 -2; -3 -4] := psiB[mod(pos, 8) + 1][-2; -1 1] *
                                  adjoint(psiB[mod(pos, 8) + 1])[-3 1; -4]
-    tmp = permute(tmp, (2, 1), (4, 3))
+    tmp = permute(tmp, ((2, 1), (4, 3)))
     for i in (pos + 1):(pos + 6)
-        ΨB = permute(psiB[mod(i, 8) + 1], (1,), (3, 2))
-        ΨBdag = permute(adjoint(psiB[mod(i, 8) + 1]), (1, 3), (2,))
+        ΨB = permute(psiB[mod(i, 8) + 1], ((1,), (3, 2)))
+        ΨBdag = permute(adjoint(psiB[mod(i, 8) + 1]), ((1, 3), (2,)))
         @tensor tmp[-1 -2; -3 -4] := tmp[-1 1; -3 2] * ΨB[1; 3 -2] * ΨBdag[-4 2; 3]
     end
     return tmp
@@ -301,25 +301,25 @@ function tW(pos, psiA, psiB)
 
     @tensor tmp[-2 -1; -4 -3] := psiA[next_a][-1; -2 1 2] * adjoint(psiB[next_b])[3 2; -3] *
                                  adjoint(psiB[next_b + 1])[-4 1; 3]
-    tmp = permute(tmp, (2, 1), (4, 3))
+    tmp = permute(tmp, ((2, 1), (4, 3)))
     for i in next_a:(next_a + 1)
-        ΨA = permute(psiA[mod(i, 4) + 1], (1,), (4, 3, 2))
-        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], (1,), (3, 2))
-        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], (1,), (3, 2))
+        ΨA = permute(psiA[mod(i, 4) + 1], ((1,), (4, 3, 2)))
+        ΨB1 = permute(psiB[2 * (mod(i, 4) + 1) - 1], ((1,), (3, 2)))
+        ΨB2 = permute(psiB[2 * (mod(i, 4) + 1)], ((1,), (3, 2)))
         @tensor tmp[-1 -2; -3 -4] := tmp[-1 1; -3 4] * ΨA[1; 2 3 -2] * conj(ΨB1[4; 2 5]) *
                                      conj(ΨB2[5; 3 -4])
     end
 
     if pos % 2 == 0
-        ΨA = permute(psiA[ceil(Int, pos / 2)], (4, 2, 1), (3,))
-        ΨB = permute(psiB[pos - 1], (2, 3), (1,))
-        tmp = permute(tmp, (3,), (4, 1, 2))
+        ΨA = permute(psiA[ceil(Int, pos / 2)], ((4, 2, 1), (3,)))
+        ΨB = permute(psiB[pos - 1], ((2, 3), (1,)))
+        tmp = permute(tmp, ((3,), (4, 1, 2)))
         @tensor W[-1; -2 -3] := tmp[-1; 1 2 3] * conj(ΨB[-2 4; 1]) * ΨA[4 2 3; -3]
-        W = permute(W, (2,), (1, 3))
+        W = permute(W, ((2,), (1, 3)))
     else
-        ΨA = permute(psiA[ceil(Int, pos / 2)], (3, 2, 1), (4,))
-        ΨB = permute(psiB[pos + 1], (1, 3), (2,))
-        tmp = permute(tmp, (4,), (3, 1, 2))
+        ΨA = permute(psiA[ceil(Int, pos / 2)], ((3, 2, 1), (4,)))
+        ΨB = permute(psiB[pos + 1], ((1, 3), (2,)))
+        tmp = permute(tmp, ((4,), (3, 1, 2)))
         @tensor W[-1; -2 -3] := tmp[-1; 1 2 3] * ΨA[4 2 3; -3] * conj(ΨB[-2 4; 1])
     end
 
@@ -328,9 +328,9 @@ end
 
 function opt_T(N, W, psi)
     function apply_f(x::TensorMap)
-        x = permute(x, (1,), (3, 2))
+        x = permute(x, ((1,), (3, 2)))
         @tensor b[-1; -2 -3] := N[1 2; -1 -2] * x[2; -3 1]
-        b = permute(b, (2,), (1, 3))
+        b = permute(b, ((2,), (1, 3)))
         return b
     end
 
@@ -361,21 +361,21 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
         crit = loop_criterion(sweep, cost)
     end
-    Ψ5 = permute(psi_B[5], (2,), (1, 3))
-    Ψ8 = permute(psi_B[8], (1,), (3, 2))
-    Ψ1 = permute(psi_B[1], (1, 2), (3,))
-    Ψ4 = permute(psi_B[4], (1,), (3, 2))
+    Ψ5 = permute(psi_B[5], ((2,), (1, 3)))
+    Ψ8 = permute(psi_B[8], ((1,), (3, 2)))
+    Ψ1 = permute(psi_B[1], ((1, 2), (3,)))
+    Ψ4 = permute(psi_B[4], ((1,), (3, 2)))
 
     @tensor T1[-1 -2; -3 -4] := Ψ5[-1; 4 1] * Ψ8[-2; 1 2] * Ψ1[2 -4; 3] * Ψ4[-3; 3 4]
-    scheme.TA = permute(T1, (1, 2), (4, 3))
+    scheme.TA = permute(T1, ((1, 2), (4, 3)))
 
-    Ψ2 = permute(psi_B[2], (1,), (3, 2))
-    Ψ3 = permute(psi_B[3], (2,), (1, 3))
-    Ψ6 = permute(psi_B[6], (1,), (3, 2))
-    Ψ7 = permute(psi_B[7], (1,), (3, 2))
+    Ψ2 = permute(psi_B[2], ((1,), (3, 2)))
+    Ψ3 = permute(psi_B[3], ((2,), (1, 3)))
+    Ψ6 = permute(psi_B[6], ((1,), (3, 2)))
+    Ψ7 = permute(psi_B[7], ((1,), (3, 2)))
 
     @tensor T2[-1 -2; -3 -4] := Ψ2[-1; 4 1] * Ψ3[-2; 1 2] * Ψ6[-4; 2 3] * Ψ7[3; 4 -3]
-    scheme.TB = permute(T2, (1, 2), (4, 3))
+    scheme.TB = permute(T2, ((1, 2), (4, 3)))
     return scheme
 end
 
@@ -439,9 +439,9 @@ entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
 loop_criterion = maxiter(50) & convcrit(1e-10, entanglement_function)
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme;
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
-    return run!(scheme, trscheme, maxiter(9), entanglement_criterion, loop_criterion;
+    return run!(scheme, trscheme, criterion, entanglement_criterion, loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
 end

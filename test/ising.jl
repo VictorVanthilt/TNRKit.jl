@@ -103,8 +103,8 @@ end
 end
 
 @testset "LoopTNR - Ising Model" begin
-    scheme = Loop_TNR(classical_ising(Ising_βc), classical_ising(Ising_βc))
-    data = run!(scheme, truncdim(16); verbosity=2)
+    scheme = LoopTNR(T, T)
+    data = run!(scheme, truncdim(8), maxiter(15); verbosity=2)
 
     lnz = 0
     for (i, d) in enumerate(data)
@@ -114,5 +114,5 @@ end
     fs = lnz * -1 / Ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-3
+    @test relerror < 1e-5
 end
