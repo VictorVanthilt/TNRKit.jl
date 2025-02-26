@@ -86,6 +86,6 @@ function Free_energy_Ising(β, bond_dim, max_iter)
     end
 
     fs = lnz * -1 / β
-    
+
     return fs
 end
