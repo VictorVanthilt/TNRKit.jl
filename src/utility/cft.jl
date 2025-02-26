@@ -71,7 +71,7 @@ function cft_data(scheme::LoopTNR, isreal=true)
     end
     data = sort!(diag; by=x -> abs(x), rev=true)
 
-    if is_real
+    if isreal
         data = real(data)
     end
     return (1 / (2π)) * log.(data[1] ./ data)

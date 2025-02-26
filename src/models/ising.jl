@@ -74,3 +74,18 @@ function classical_Clock(q::Int64, β::Float64)
     end
     return A_clock
 end
+
+function Free_energy_Ising(β, bond_dim, max_iter)
+    T = classical_ising_symmetric(β)
+    scheme = LoopTNR(T, T)
+    data = run!(scheme, truncdim(bond_dim), maxiter(max_iter); verbosity=2)
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 2.0^(1 - i)
+    end
+
+    fs = lnz * -1 / β
+    
+    return fs
+end
