@@ -22,7 +22,7 @@ function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
         D[-1; -2 -3] := sqrt(S)[-1; 1] * V[1; -2 -3]
     end
 
-    @plansor scheme.T[-1 -2; -3 -4] := D[-1; 3 1] * B[-2; 1 4] * C[2 4; -4] * A[3 2; -3]
+    @tensor scheme.T[-1 -2; -3 -4] := D[-1; 3 1] * B[-2; 1 4] * C[2 4; -4] * A[3 2; -3]
     return scheme
 end
 

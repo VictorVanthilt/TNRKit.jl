@@ -47,17 +47,14 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
         S2′[-1; -2] := S_b[-1; -2]
     end
 
-    S1 = scheme.S1
-    S2 = scheme.S2
-
-    @plansor scheme.T[-1 -2; -3 -4] := D[-1; 4 7] *
-                                       S1[1; 7] *
+    @tensor scheme.T[-1 -2; -3 -4] := D[-1; 4 7] *
+                                       scheme.S1[1; 7] *
                                        B[-2; 1 3] *
-                                       S2[3; 2] *
+                                       scheme.S2[3; 2] *
                                        C[8 2; -4] *
-                                       S1[8; 5] *
+                                       scheme.S1[8; 5] *
                                        A[6 5; -3] *
-                                       S2[4; 6]
+                                       scheme.S2[4; 6]
     scheme.S1 = S1′
     scheme.S2 = S2′
     return scheme
