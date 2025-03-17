@@ -3,15 +3,13 @@ const turning_scheme = Union{HOTRG,ATRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)
-    @plansor n = scheme.T[1 2; 4 3] * τ[2 1; 3 4]
-    n = norm(n)
+    n = norm(@tensor scheme.T[1 2; 2 1]) 
     scheme.T /= n
     return n
 end
 
 function finalize!(scheme::turning_scheme)
-    @plansor n = scheme.T[1 2; 4 3] * τ[2 1; 3 4]
-    n = norm(n)
+    n = norm(@tensor scheme.T[1 2; 4 3] * τ[2 1; 3 4])
     scheme.T /= n
 
     # turn the tensor by 90 degrees

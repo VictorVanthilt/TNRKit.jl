@@ -30,7 +30,7 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
 
-    @plansor begin
+    @tensor begin
         A[-1 -2; -3] := U[-1 -2; 1] * S_a[1; -3]
         B[-1; -2 -3] := S_a[-1; 1] * V[1; -2 -3]
         S1′[-1; -2] := S_b[-1; -2]
@@ -41,7 +41,7 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
 
-    @plansor begin
+    @tensor begin
         C[-1 -2; -3] := U[-1 -2; 1] * S_a[1; -3]
         D[-1; -2 -3] := S_a[-1; 1] * V[1; -2 -3]
         S2′[-1; -2] := S_b[-1; -2]
