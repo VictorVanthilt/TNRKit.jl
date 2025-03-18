@@ -8,10 +8,11 @@ mutable struct HOTRG <: TNRScheme
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
-    @plansor MMdag[-1 -2; -3 -4] := scheme.T[-1 5; 1 2] * scheme.T[-2 3; 5 4] *
-                                    conj(scheme.T[-3 6; 1 2]) * conj(scheme.T[-4 3; 6 4])
+    # join vertically
+    @tensor MMdag[-1 -2; -3 -4] := scheme.T[-1 5; 1 2] * scheme.T[-2 3; 5 4] *
+                                   conj(scheme.T[-3 6; 1 2]) * conj(scheme.T[-4 3; 6 4])
 
-    # Get unitaries
+    # get unitaries
     U, _, _, εₗ = tsvd(MMdag; trunc=trunc)
     _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc=trunc)
 
@@ -20,8 +21,25 @@ function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
     end
 
     # adjoint(U) on the left, U on the right
-    @plansor scheme.T[-1 -2; -3 -4] := scheme.T[1 5; -3 3] * conj(U[1 2; -1]) * U[3 4; -4] *
-                                       scheme.T[2 -2; 5 4]
+    @tensor scheme.T[-1 -2; -3 -4] := scheme.T[1 5; -3 3] * conj(U[1 2; -1]) * U[3 4; -4] *
+                                      scheme.T[2 -2; 5 4]
+
+    # join horizontally
+    @tensor MMdag[-1 -2; -3 -4] := scheme.T[1 -1; 2 5] * scheme.T[5 -2; 4 3] *
+                                   conj(scheme.T[1 -3; 2 6]) * conj(scheme.T[6 -4; 4 3])
+
+    # get unitaries
+    U, _, _, εₗ = tsvd(MMdag; trunc=trunc)
+    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc=trunc)
+
+    if εₗ > εᵣ
+        U = adjoint(Uᵣ)
+    end
+
+    # adjoint(U) on the bottom, U on top
+    @tensor scheme.T[-1 -2; -3 -4] := scheme.T[-1 1; 3 5] * scheme.T[5 2; 4 -4] *
+                                      conj(U[1 2; -2]) *
+                                      U[3 4; -3]
     return scheme
 end
 

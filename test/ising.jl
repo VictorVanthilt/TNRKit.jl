@@ -45,7 +45,7 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(1 - i)
+        lnz += log(d) * 4.0^(1 - i)
     end
 
     fs = lnz * -1 / Ising_βc
