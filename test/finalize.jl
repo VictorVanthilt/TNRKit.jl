@@ -4,7 +4,7 @@ println("---------------------")
 
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
-T = classical_ising_symmetric(Ising_βc)
+T = classical_ising_symmetric()
 
 # TRG
 @testset "TRG - Ising Model" begin
