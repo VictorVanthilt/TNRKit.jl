@@ -16,6 +16,7 @@ function classical_ising(β::Number; h=0)
 
     return T
 end
+classical_ising() = classical_ising(Ising_βc)
 
 function classical_ising_symmetric(β)
     V = Vect[Z2Irrep](0 => 1, 1 => 1)
@@ -39,6 +40,7 @@ function classical_ising_symmetric(β)
     end
     return TensorMap(Ising, V ⊗ V ← V ⊗ V)
 end
+classical_ising_symmetric() = classical_ising_symmetric(Ising_βc)
 
 function classical_Potts(q::Int64, β::Float64)
     V = ℂ^q
