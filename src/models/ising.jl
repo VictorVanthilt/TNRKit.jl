@@ -42,7 +42,7 @@ function classical_ising_symmetric(β)
 end
 classical_ising_symmetric() = classical_ising_symmetric(Ising_βc)
 
-function classical_Potts(q::Int64, β::Float64)
+function classical_Potts(q::Int, β::Float64)
     V = ℂ^q
     A_potts = TensorMap(zeros, V ⊗ V ← V ⊗ V)
 
@@ -58,6 +58,7 @@ function classical_Potts(q::Int64, β::Float64)
     end
     return A_potts
 end
+classical_Potts(q::Int) = classical_Potts(q, Potts_βc(q))
 
 function classical_Clock(q::Int64, β::Float64)
     V = ℂ^q
