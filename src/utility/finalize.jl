@@ -24,14 +24,14 @@ end
 
 function finalize_two_by_two!(scheme::BTRG) # TODO: update to new convention
     n′ = @tensor begin
-        scheme.T[3 7; 1 11] *
-        scheme.S2[1; 2] *
-        scheme.T[2 9; 3 12] *
-        scheme.S1[10; 9] *
-        scheme.T[5 12; 6 10] *
-        scheme.S2[4; 5] *
-        scheme.T[6 11; 4 8] *
-        scheme.S1[8; 7]
+        scheme.T[11 1; 9 8] *
+        scheme.S1[8; 2] *
+        scheme.T[2 6; 10 11] *
+        scheme.S2[3; 6] *
+        scheme.T[7 10; 3 12] *
+        scheme.S1[4; 7] *
+        scheme.T[12 9; 5 4] *
+        scheme.S2[5; 1]
     end
     n = norm(n′)
     scheme.T /= (n^(1 / 4))
