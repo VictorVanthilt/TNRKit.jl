@@ -1,4 +1,4 @@
-const Ising_βc = BigFloat(log(1.0 + sqrt(2)) / 2.0)
+const ising_βc = BigFloat(log(1.0 + sqrt(2)) / 2.0)
 function classical_ising(β::Number; h=0)
     function σ(i::Int64)
         return 2i - 3

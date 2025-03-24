@@ -1,5 +1,5 @@
-Potts_βc(q) = log(1.0 + sqrt(q))
-function classical_Potts(q::Int, β::Float64)
+potts_βc(q) = log(1.0 + sqrt(q))
+function classical_potts(q::Int, β::Float64)
     V = ℂ^q
     A_potts = TensorMap(zeros, V ⊗ V ← V ⊗ V)
 
@@ -15,4 +15,4 @@ function classical_Potts(q::Int, β::Float64)
     end
     return A_potts
 end
-classical_Potts(q::Int) = classical_Potts(q, Potts_βc(q))
+classical_potts(q::Int) = classical_potts(q, potts_βc(q))
