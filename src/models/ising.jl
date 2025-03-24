@@ -25,6 +25,6 @@ function classical_ising_symmetric(β)
 
     return T
 end
-classical_ising_symmetric() = classical_ising_symmetric(Ising_βc)
+classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
