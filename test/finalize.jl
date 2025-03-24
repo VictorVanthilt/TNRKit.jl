@@ -16,7 +16,7 @@ T = classical_ising_symmetric()
         lnz += log(d) * 2.0^(-(i + 1))
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 2e-6
@@ -32,7 +32,7 @@ end
         lnz += log(d) * 2.0^(-(i + 1))
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-8
@@ -48,7 +48,7 @@ end
         lnz += log(d) * 4.0^(-(i + 1))
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-7
@@ -64,7 +64,7 @@ end
         lnz += log(d) * 2.0^(-(i + 1))
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
