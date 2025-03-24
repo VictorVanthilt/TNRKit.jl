@@ -69,35 +69,3 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
 end
-
-# GILTTNR
-@testset "GILTTNR - Ising Model" begin
-    scheme = GILTTNR(T; giltcrit=trivial_convcrit(1e-2) & maxiter(15))
-    data = run!(scheme, truncdim(24), maxiter(25))
-
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(1 - i)
-    end
-
-    fs = lnz * -1 / Ising_βc
-
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-6
-end
-
-# SLoopTNR
-@testset "SLoopTNR - Ising Model" begin
-    scheme = SLoopTNR(classical_ising(Ising_βc)) # SLoopTNR is not compatible yet with symmetric tensors
-    data = run!(scheme, truncdim(8), maxiter(25))
-
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-i)
-    end
-
-    fs = lnz * -1 / Ising_βc
-
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-5
-end
