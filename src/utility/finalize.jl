@@ -22,7 +22,7 @@ function finalize_two_by_two!(scheme::simple_scheme)
     return n^(1 / 4)
 end
 
-function finalize_two_by_two!(scheme::BTRG) # TODO: update to new convention
+function finalize_two_by_two!(scheme::BTRG)
     n′ = @tensor begin
         scheme.T[11 1; 9 8] *
         scheme.S1[8; 2] *
