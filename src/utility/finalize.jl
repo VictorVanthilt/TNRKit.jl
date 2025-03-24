@@ -1,4 +1,4 @@
-const simple_scheme = Union{TRG, ATRG, HOTRG}
+const simple_scheme = Union{TRG,ATRG,HOTRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)
@@ -35,5 +35,5 @@ function finalize_two_by_two!(scheme::BTRG)
     end
     n = norm(n′)
     scheme.T /= (n^(1 / 4))
-    return n ^ (1 / 4)
+    return n^(1 / 4)
 end

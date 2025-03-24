@@ -69,4 +69,3 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
 end
-
