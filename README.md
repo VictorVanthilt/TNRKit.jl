@@ -9,8 +9,6 @@ The following schemes are currently implemented:
 - BTRG (bond-weighted TRG)
 - ATRG (anisotropic TRG)
 - HOTRG (higher order TRG)
-- GILTTNR (graph independent local truncation + TRG)
-- SLoopTNR (experimental symmetric Loop TNR)
 
 The project is not registered (yet) and is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated.
 
@@ -22,7 +20,7 @@ The project is not registered (yet) and is under active development. The interfa
 
 For example:
 ```julia
-T = classical_ising_symmetric(Ising_βc) # partition function of classical Ising model at the critical point
+T = classical_ising_symmetric(ising_βc) # partition function of classical Ising model at the critical point
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
 ```
@@ -35,7 +33,7 @@ for (i, d) in enumerate(data)
     lnz += log(d) * 2.0^(1 - i)
 end
 
-f_ising = lnz * -1 / Ising_βc
+f_ising = lnz * -1 / ising_βc
 ```
 You could even compare to the exact value, as calculated by Onsager:
 ```julia-repl
@@ -53,11 +51,11 @@ to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 ## Leg-convention
 All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V₃⊗V₄` and that the legs are ordered in the following way:
 ```
-     4
+     3
      |
      v
      |
-1-<--┼--<-3
+1-<--┼--<-4
      |
      v
      |

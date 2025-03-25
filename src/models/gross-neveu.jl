@@ -56,5 +56,5 @@ function gross_neveu_start(μ::Number, m::Number, g::Number)
                                      Udg[5 6; -3] * Udg[7 8; -4]
 
     # restore the TNRKit.jl convention
-    return permute(T_fused, ((1, 2), (4, 3)))
+    return T_fused
 end
