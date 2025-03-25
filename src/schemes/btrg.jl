@@ -60,9 +60,6 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-# example convcrit function
-btrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
-
 function Base.show(io::IO, scheme::BTRG)
     println(io, "BTRG - Bond-weighted TRG")
     println(io, "  * T: $(summary(scheme.T))")

@@ -26,9 +26,6 @@ function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-# example convcrit function
-trg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
-
 function Base.show(io::IO, scheme::TRG)
     println(io, "TRG - Tensor Renormalization Group")
     println(io, "  * T: $(summary(scheme.T))")

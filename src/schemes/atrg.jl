@@ -50,8 +50,6 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     @tensor scheme.T[-1 -2; -3 -4] := G[-1; -3 1] * H[1 -2; -4]
 end
 
-atrg_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
-
 function Base.show(io::IO, scheme::ATRG)
     println(io, "ATRG - Anisotropic TRG")
     println(io, "  * T: $(summary(scheme.T))")
