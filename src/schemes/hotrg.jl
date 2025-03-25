@@ -43,7 +43,6 @@ function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-
 function Base.show(io::IO, scheme::HOTRG)
     println(io, "HOTRG - Higher Order TRG")
     println(io, "  * T: $(summary(scheme.T))")
