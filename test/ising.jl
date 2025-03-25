@@ -4,7 +4,7 @@ println("-------------")
 
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
-T = classical_ising_symmetric(Ising_βc)
+T = classical_ising_symmetric()
 
 # TRG
 @testset "TRG - Ising Model" begin
@@ -16,7 +16,7 @@ T = classical_ising_symmetric(Ising_βc)
         lnz += log(d) * 2.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 2e-6
@@ -32,7 +32,7 @@ end
         lnz += log(d) * 2.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-8
@@ -45,10 +45,10 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(1 - i)
+        lnz += log(d) * 4.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-7
@@ -61,43 +61,11 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(1 - i)
+        lnz += log(d) * 4.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
-end
-
-# GILTTNR
-@testset "GILTTNR - Ising Model" begin
-    scheme = GILTTNR(T; giltcrit=trivial_convcrit(1e-2) & maxiter(15))
-    data = run!(scheme, truncdim(24), maxiter(25))
-
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(1 - i)
-    end
-
-    fs = lnz * -1 / Ising_βc
-
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-6
-end
-
-# SLoopTNR
-@testset "SLoopTNR - Ising Model" begin
-    scheme = SLoopTNR(classical_ising(Ising_βc)) # SLoopTNR is not compatible yet with symmetric tensors
-    data = run!(scheme, truncdim(8), maxiter(25))
-
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-i)
-    end
-
-    fs = lnz * -1 / Ising_βc
-
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-5
 end

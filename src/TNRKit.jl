@@ -1,7 +1,6 @@
 module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
-using Zygote, OptimKit
 
 # stop criteria
 include("utility/stopping.jl")
@@ -13,24 +12,19 @@ include("schemes/tnrscheme.jl")
 include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
-include("schemes/gilt.jl")
-include("schemes/gilt-tnr.jl")
 include("schemes/atrg.jl")
-include("schemes/slooptnr.jl")
 
 export TNRScheme
-export TRG, trg_convcrit
-export BTRG, btrg_convcrit
-export HOTRG, hotrg_convcrit
-export ATRG, atrg_convcrit
-export GILTTNR, gilttnr_convcrit
-export SLoopTNR
+export TRG
+export BTRG
+export HOTRG
+export ATRG
 
 export run!
 
 # models
 include("models/ising.jl")
-export classical_ising, classical_ising_symmetric, Potts_βc, Ising_βc, f_onsager
+export classical_ising, classical_ising_symmetric, potts_βc, ising_βc, f_onsager
 
 include("models/gross-neveu.jl")
 export gross_neveu_start

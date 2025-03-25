@@ -4,7 +4,7 @@ println("---------------------")
 
 criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
-T = classical_ising_symmetric(Ising_βc)
+T = classical_ising_symmetric()
 
 # TRG
 @testset "TRG - Ising Model" begin
@@ -13,10 +13,10 @@ T = classical_ising_symmetric(Ising_βc)
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-(i + 1))
+        lnz += log(d) * 2.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 2e-6
@@ -29,10 +29,10 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-(i + 1))
+        lnz += log(d) * 2.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-8
@@ -45,10 +45,10 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-(i + 1))
+        lnz += log(d) * 4.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-7
@@ -61,27 +61,11 @@ end
 
     lnz = 0
     for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-(i + 1))
+        lnz += log(d) * 4.0^(1 - i)
     end
 
-    fs = lnz * -1 / Ising_βc
+    fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3e-6
-end
-
-# GILTTNR
-@testset "GILTTNR - Ising Model" begin
-    scheme = GILTTNR(T; finalize=finalize_two_by_two!)
-    data = run!(scheme, truncdim(24), maxiter(25); verbosity=2)
-
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 2.0^(-(i + 1))
-    end
-
-    fs = lnz * -1 / Ising_βc
-
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-6
 end
