@@ -1,7 +1,6 @@
 module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
-using Zygote, OptimKit
 
 # stop criteria
 include("utility/stopping.jl")
@@ -16,10 +15,10 @@ include("schemes/hotrg.jl")
 include("schemes/atrg.jl")
 
 export TNRScheme
-export TRG, trg_convcrit
-export BTRG, btrg_convcrit
-export HOTRG, hotrg_convcrit
-export ATRG, atrg_convcrit
+export TRG
+export BTRG
+export HOTRG
+export ATRG
 
 export run!
 
