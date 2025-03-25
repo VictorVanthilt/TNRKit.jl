@@ -20,6 +20,8 @@ The project is not registered (yet) and is under active development. The interfa
 
 For example:
 ```julia
+using TNRKit, TensorKit
+
 T = classical_ising_symmetric(ising_βc) # partition function of classical Ising model at the critical point
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
