@@ -58,6 +58,7 @@ TNRKit includes several common models out of the box.
 - Potts model: `classical_potts(q, β)`
 - Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
 
+If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
 ## Leg-convention
 All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V₃⊗V₄` and that the legs are ordered in the following way:
 ```
