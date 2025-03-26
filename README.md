@@ -51,6 +51,14 @@ There are 3 levels of verbosity implemented in TNRKit:
 - Level 2: Level 1 + info at every iteration about the last generated finalize output and the iteration number.
   
 to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
+
+## Included Models
+TNRKit includes several common models out of the box.
+- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a Z2 grading on each leg.
+- Potts model: `classical_potts(q, β)`
+- Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
+
+If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
 ## Leg-convention
 All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V₃⊗V₄` and that the legs are ordered in the following way:
 ```
