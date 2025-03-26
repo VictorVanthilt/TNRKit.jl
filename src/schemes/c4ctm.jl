@@ -1,24 +1,15 @@
-using TensorKit, MPSKit, PEPSKit
+using PEPSKit
+mutable struct c4CTM{A,S}
+    T::TensorMap{A,S,2,2}
+    C::TensorMap{A,S,1,1}
+    E::TensorMap{A,S,2,1}
 
-mutable struct c4CTM
-    T::AbstractTensorMap
-    C::AbstractTensorMap
-    E::AbstractTensorMap
-end
+    function c4CTM(T::TensorMap{A,S,2,2}) where {A,S}
+        C, E = c4CTM_init(T)
 
-c4CTM(T) = c4CTM(T, T, T)
-
-function run!(scheme::c4CTM, trunc::TensorKit.TruncationScheme)
-    C, E = CTM(scheme.T, trunc)
-    scheme.C = C
-    scheme.E = E
-    scheme.lnz = lnz(scheme)
-    return scheme
-end
-
-function lnz(scheme::c4CTM)
-    Z, env = tensor2env(scheme.T, scheme.C, scheme.E)
-    return real(log(network_value(Z, env)))
+        @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for c4CTM"
+        return new{A,S}(T, C, E)
+    end
 end
 
 # Below, I wrote a code with the following correspondence. (O,C,T) <=> (scheme.T, scheme.C, scheme.E)
@@ -35,101 +26,85 @@ end
     │               │           
 =#
 
-function flip_Vphy(A)
-    sp = space(A)
-    return TensorMap(A.data, sp[1] ⊗ sp[2]' ← sp[3]')
+function run!(scheme::c4CTM, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+              verbosity=1)
+    LoggingExtras.withlevel(; verbosity) do
+        steps = 0
+        crit = true
+        ε = Inf
+        S_prev = id(domain(scheme.C))
+
+        t = @elapsed while crit
+            @infov 2 "Step $(steps + 1), ε = $(ε)"
+
+            S = step!(scheme, trunc)
+
+            if space(S) == space(S_prev) && steps > 5
+                ε = norm(S^4 - S_prev^4)
+            end
+
+            S_prev = S
+
+            steps += 1
+            crit = criterion(steps, ε)
+        end
+
+        @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, ε))\n Elapsed time: $(t)s\n Iterations: $steps"
+    end
+    return lnz(scheme)
 end
 
-function build_corner_matrix(O, C, T)
-    @tensoropt mat[-1 -2; -3 -4] :=
-        C[1; 2] * flip_Vphy(T)[-1 3; 1] * T[2 4; -3] * O[3 -2; 4 -4]
+function step!(scheme::c4CTM, trunc)
+    mat, U, S = find_U_sym(scheme, trunc)
+
+    @tensor scheme.C[-1; -2] := mat[1 2; 3 4] * U[3 4; -2] * conj(U[1 2; -1])
+    @tensor scheme.E[-1 -2; -3] := scheme.E[1 5; 3] * scheme.T[2 -2; 5 4] *
+                                              U[3 4; -3] *
+                                              conj(U[1 2; -1])
+
+    scheme.C /= norm(scheme.C)
+    scheme.E /= norm(scheme.E)
+
+    return S
+end
+
+function lnz(scheme::c4CTM)
+    Z, env = tensor2env(scheme.T, scheme.C, scheme.E)
+    return real(log(network_value(Z, env)))
+end
+
+flip_Vphy(A) = flip(A, 2)
+
+function build_corner_matrix(scheme)
+    @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[1; 2] * flip_Vphy(scheme.E)[-1 3; 1] *
+                                            scheme.E[2 4; -3] *
+                                            scheme.T[3 -2; 4 -4]
     return mat
 end
 
-function find_U_sym(O, C, T, trunc; return_mat = true, symmetrize = true)
-    mat = build_corner_matrix(O, C, T)
-    # avoid the symmetry breaking due to the numerical accuracy
-    if symmetrize
-        mat = 0.5 * (mat + adjoint(mat))
-    end
-    # if !ishermitian(mat)
-    #     @error "Corner matrix is not hermitian"
-    # end
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1e-20))
-    if return_mat
-        return mat, U, S
-    else
-        return U
-    end
+function find_U_sym(scheme, trunc)
+    mat = build_corner_matrix(scheme)
+    # avoid symmetry breaking due to numerical accuracy
+    mat = 0.5 * (mat + adjoint(mat))
+
+    U, S, _ = tsvd(mat; trunc=trunc & truncbelow(1e-20))
+    return mat, U, S
 end
 
-function update_CTM(O, C, T, trunc; symmetrize = true)
-    mat, U, S = find_U_sym(O, C, T, trunc; symmetrize = symmetrize)
-    @tensoropt Cnew[-1; -2] := mat[1 2; 3 4] * U[3 4; -2] * conj(U[1 2; -1])
-    @tensoropt Tnew[-1 -2; -3] := T[1 5; 3] * O[2 -2; 5 4] * U[3 4; -3] * conj(U[1 2; -1])
-    S /= abs(tr(S^4))^0.25
-    Cnew /= abs(tr(Cnew^4))^0.25
-    Tnew /= norm(Tnew.data)
-    return Cnew, Tnew, S
-end
 
-function initialize_CT(O)
-    elt = typeof(O.data[1])
-    Vp = space(O)[3]'
-    C = TensorMap(ones, elt, oneunit(Vp) ← oneunit(Vp))
-    T = TensorMap(ones, elt, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    return C, T
-end
-
-function CTM(
-    O,
-    trunc;
-    maxiter = 1e4,
-    tol = 1e-12,
-    return_hist = false,
-    return_PEPSKit = false,
-    initial_CT = nothing,
-    symmetrize = true,
-)
-    if initial_CT == nothing
-        C, T = initialize_CT(O)
-    else
-        C, T = initial_CT
-    end
-    ϵ = 1.0
-    S = C
-    iter = 1
-    flag = false
-    ϵ_list = []
-    while iter < maxiter && ϵ > tol
-        C, T, S_next = update_CTM(O, C, T, trunc; symmetrize = symmetrize)
-        if space(S) == space(S_next) && iter > 5
-            ϵ = norm(S - S_next)
-            flag = true
-        end
-        S = S_next
-        @debug "iteration :$(iter) \t ϵ :$ϵ"
-        iter += 1
-        if flag
-            push!(ϵ_list, ϵ)
-        end
-    end
-    if iter == maxiter
-        @info "maxiteration has been reached"
-    else
-        @info "Converged"
-    end
-    @info "iteration: $(iter) \t error: $(ϵ)"
-    if return_hist
-        return C, T, ϵ_list
-    end
-    return C, T
+function c4CTM_init(T::TensorMap{A,S,2,2}) where {A,S}
+    S_type = scalartype(T)
+    Vp = space(T)[3]'
+    C = TensorMap(ones, S_type, oneunit(Vp) ← oneunit(Vp))
+    E = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    return C, E
 end
 
 function tensor2env(O, C, T)
     Z = InfinitePartitionFunction(O;)
     env = CTMRGEnv(Z, space(C)[1])
-    for i = 1:4
+    
+    for i in 1:4
         env.corners[i] = C
         env.edges[i] = T
     end
@@ -137,4 +112,12 @@ function tensor2env(O, C, T)
     env.edges[3] = flip_Vphy(T)
     env.edges[4] = flip_Vphy(T)
     return Z, env
+end
+
+function Base.show(io::IO, scheme::c4CTM)
+    println(io, "c4CTM - c4 symmetric Corner Transfer Matrix")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * C: $(summary(scheme.C))")
+    println(io, "  * E: $(summary(scheme.E))")
+    return nothing
 end
