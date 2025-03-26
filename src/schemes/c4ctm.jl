@@ -1,4 +1,3 @@
-using PEPSKit
 mutable struct c4CTM{A,S}
     T::TensorMap{A,S,2,2}
     C::TensorMap{A,S,1,1}
@@ -64,7 +63,6 @@ function step!(scheme::c4CTM, trunc)
 
     scheme.C /= norm(scheme.C)
     scheme.E /= norm(scheme.E)
-
     return S
 end
 
