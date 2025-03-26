@@ -39,7 +39,7 @@ function run!(scheme::c4CTM, trunc::TensorKit.TruncationScheme, criterion::stopc
 
             S = step!(scheme, trunc)
 
-            if space(S) == space(S_prev) && steps > 5
+            if space(S) == space(S_prev)
                 ε = norm(S^4 - S_prev^4)
             end
 
@@ -59,8 +59,8 @@ function step!(scheme::c4CTM, trunc)
 
     @tensor scheme.C[-1; -2] := mat[1 2; 3 4] * U[3 4; -2] * conj(U[1 2; -1])
     @tensor scheme.E[-1 -2; -3] := scheme.E[1 5; 3] * scheme.T[2 -2; 5 4] *
-                                              U[3 4; -3] *
-                                              conj(U[1 2; -1])
+                                   U[3 4; -3] *
+                                   conj(U[1 2; -1])
 
     scheme.C /= norm(scheme.C)
     scheme.E /= norm(scheme.E)
@@ -91,7 +91,6 @@ function find_U_sym(scheme, trunc)
     return mat, U, S
 end
 
-
 function c4CTM_init(T::TensorMap{A,S,2,2}) where {A,S}
     S_type = scalartype(T)
     Vp = space(T)[3]'
@@ -103,7 +102,7 @@ end
 function tensor2env(O, C, T)
     Z = InfinitePartitionFunction(O;)
     env = CTMRGEnv(Z, space(C)[1])
-    
+
     for i in 1:4
         env.corners[i] = C
         env.edges[i] = T
