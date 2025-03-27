@@ -10,6 +10,7 @@ The following schemes are currently implemented:
 - ATRG (anisotropic TRG)
 - HOTRG (higher order TRG)
 - c4CTM (c4 symmetric CTM)
+- rCTM (reflection symmetric CTM)
 
 The project is not registered (yet) and is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated.
 
