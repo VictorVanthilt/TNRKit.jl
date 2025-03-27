@@ -37,3 +37,15 @@ function finalize_two_by_two!(scheme::BTRG)
     scheme.T /= (n^(1 / 4))
     return n^(1 / 4)
 end
+
+# cft data finalize
+function finalize_cftdata!(scheme::TNRScheme)
+    finalize!(scheme)
+    return cft_data(scheme)
+end
+
+# central charge finalize
+function finalize_central_charge!(scheme::TNRScheme)
+    n = finalize!(scheme)
+    return central_charge(scheme, n)
+end
