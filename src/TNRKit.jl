@@ -40,5 +40,5 @@ include("utility/cft.jl")
 export cft_data, central_charge
 
 include("utility/finalize.jl")
-export finalize!, finalize_two_by_two!
+export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
 end
