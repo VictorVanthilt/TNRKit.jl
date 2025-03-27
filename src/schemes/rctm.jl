@@ -67,8 +67,8 @@ function step!(scheme::rCTM, trunc;)
     scheme.E1 /= norm(scheme.E1)
     scheme.E2 /= norm(scheme.E2)
     # symmetrization of the edges to avoid the breaking of reflection due to the numerical error
-    scheme.E1 = (scheme.E1 + flip(permute(scheme.E1, (3, 2), (1,)), (1, 3)) / 2)
-    scheme.E2 = (scheme.E2 + flip(permute(scheme.E1, (3, 2), (1,)), (1, 3)) / 2)
+    scheme.E1 = (scheme.E1 + flip(permute(scheme.E1, ((3, 2), (1,))), (1, 3)) / 2)
+    scheme.E2 = (scheme.E2 + flip(permute(scheme.E1, ((3, 2), (1,))), (1, 3)) / 2)
     return S
 end
 
