@@ -78,5 +78,16 @@ end
     fs = lz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 3e-7
+    @test relerror < 6e-8
+end
+
+# rCTM
+@testset "rCTM - Ising Model" begin
+    scheme = rCTM(T)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1e-9); verbosity=1)
+
+    fs = lz * -1 / ising_βc
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 6e-8
 end

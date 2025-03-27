@@ -17,17 +17,6 @@ The corner tensors are related by its mirror images.
                │  
                ▼  
 =#
-
-function rCTM_init(T)
-    elt = typeof(T.data[1])
-    Vp1 = space(T)[3]'
-    Vp2 = space(T)[4]'
-    C = TensorMap(ones, elt, oneunit(Vp1) ← oneunit(Vp2))
-    E1 = TensorMap(ones, elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
-    E2 = TensorMap(ones, elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
-    return C, E1, E2
-end
-
 mutable struct rCTM{A,S}
     T::TensorMap{A,S,2,2}
     C2::TensorMap{A,S,1,1}
@@ -38,9 +27,19 @@ mutable struct rCTM{A,S}
             @error "This scheme only support tensors with real numbers"
         end
         C, E1, E2 = rCTM_init(T)
-        @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for c4CTM"
+        @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
         return new{A,S}(T, C, E1, E2)
     end
+end
+
+function rCTM_init(T)
+    elt = typeof(T.data[1])
+    Vp1 = space(T)[3]'
+    Vp2 = space(T)[4]'
+    C = TensorMap(ones, elt, oneunit(Vp1) ← oneunit(Vp2))
+    E1 = TensorMap(ones, elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
+    E2 = TensorMap(ones, elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
+    return C, E1, E2
 end
 
 function rt_build_corner_matrix(scheme::rCTM)
@@ -78,13 +77,14 @@ function run!(scheme::rCTM,
               criterion::TNRKit.stopcrit;
               verbosity=1,)
     LoggingExtras.withlevel(; verbosity) do
+        @infov 1 "Starting simulation\n $(scheme)\n"
         steps = 0
         crit = true
         ε = Inf
         S_prev = id(domain(scheme.C2))
 
         t = @elapsed while crit
-            @info 2 "Step $(steps + 1), ε = $(ε)"
+            @infov 2 "Step $(steps + 1), ε = $(ε)"
 
             S = step!(scheme, trunc)
 
@@ -98,7 +98,7 @@ function run!(scheme::rCTM,
             crit = criterion(steps, ε)
         end
 
-        @info 1 "Simulation finished\n $(TNRKit.stopping_info(criterion, steps, ε))\n Elapsed time: $(t)s\n Iterations: $steps"
+        @infov 1 "Simulation finished\n $(TNRKit.stopping_info(criterion, steps, ε))\n Elapsed time: $(t)s\n Iterations: $steps"
     end
     return lnz(scheme)
 end
@@ -120,4 +120,13 @@ function tensor2env(T, C2, E1, E2)
     env.edges[3] = flip(env.edges[3], 2)
     env.edges[4] = flip(env.edges[4], 2)
     return Z, env
+end
+
+function Base.show(io::IO, scheme::rCTM)
+    println(io, "rCTM - reflection symmetric Corner Transfer Matrix")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * E1: $(summary(scheme.E1))")
+    println(io, "  * E2: $(summary(scheme.E2))")
+    println(io, "  * C: $(summary(scheme.C2))")
+    return nothing
 end

@@ -15,6 +15,7 @@ include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
 include("schemes/atrg.jl")
 include("schemes/c4ctm.jl")
+include("schemes/rctm.jl")
 
 export TNRScheme
 export TRG
@@ -22,6 +23,7 @@ export BTRG
 export HOTRG
 export ATRG
 export c4CTM
+export rCTM
 
 export run!
 
