@@ -1,5 +1,5 @@
 # TNRKit.jl
-![TNRKit Logo](https://github.com/VictorVanthilt/TNRKit.jl/tree/master/assets/tensorlogo-dark.svg#)
+![TNRKit Logo](https://github.com/VictorVanthilt/TNRKit.jl/tree/master/assets/tensorlogo-dark.svg)
 ---
 TNRKit.jl is a Julia package that aims to implement as much tensor network renormalization (TNR) schemes as possible.
 It is built upon
