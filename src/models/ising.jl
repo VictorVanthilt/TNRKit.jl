@@ -4,7 +4,7 @@ function classical_ising(β::Number; h=0)
         return 2i - 3
     end
 
-    T_array = Float64[exp(β * (σ(i)σ(j) + σ(j)σ(k) + σ(k)σ(l) + σ(l)σ(i)) +
+    T_array = Float64[exp(β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
                           h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l)))
                       for i in 1:2, j in 1:2, k in 1:2, l in 1:2]
 
