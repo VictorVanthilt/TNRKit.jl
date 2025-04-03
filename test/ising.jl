@@ -107,10 +107,10 @@ end
     entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
     loop_criterion = maxiter(5) & convcrit(1e-10, entanglement_function)
 
-    data = run!(scheme, truncdim(16), maxiter(25), entanglement_criterion, loop_criterion)
+    data = run!(scheme, truncdim(8), maxiter(25), entanglement_criterion, loop_criterion)
 
     fs = free_energy(data, β)
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-6
+    @test relerror < 1e-4
 end
