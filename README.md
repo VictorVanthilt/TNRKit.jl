@@ -12,6 +12,7 @@ The following schemes are currently implemented:
 - BTRG (bond-weighted TRG)
 - ATRG (anisotropic TRG)
 - HOTRG (higher order TRG)
+- LoopTNR (entanglement filtering + loop optimization)
 - c4CTM (c4 symmetric CTM)
 - rCTM (reflection symmetric CTM)
 
