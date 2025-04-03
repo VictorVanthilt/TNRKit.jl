@@ -36,6 +36,13 @@ function step!(scheme::CTMHOTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
+function Base.show(io::IO, scheme::CTMHOTRG)
+    println(io, "CTMHOTRG - Corner Transfer Matrix HOTRG")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * E: $(summary(scheme.E))")
+    return nothing
+end
+
 function Environment_tranfermatrix(env::CTMRGEnv, Z::InfinitePartitionFunction)
     C_NW = env.corners[1]
     C_NE = env.corners[2]

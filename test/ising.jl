@@ -124,8 +124,8 @@ end
     ctmalg = SequentialCTMRG(; maxiter=10000, tol=1e-8, verbosity=3)
     env, = leading_boundary(env0, Z, ctmalg)
     scheme = CTMHOTRG(Z, env;
-                      ctmalg=PEPSKit.SequentialCTMRG(; maxiter=50, tol=1e-8))
-    data = run!(scheme, truncdim(χ), maxiter(15))
+                      ctmalg=SequentialCTMRG(; maxiter=50, tol=1e-8))
+    data = run!(scheme, truncdim(χ), maxiter(25))
 
     lnz = 0
     for (i, d) in enumerate(data)
@@ -135,5 +135,5 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-4
+    @test relerror < 1e-6
 end

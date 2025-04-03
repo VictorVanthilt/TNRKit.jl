@@ -1,7 +1,7 @@
 using Test
 using TNRKit
 using TensorKit
-
+using PEPSKit: InfinitePartitionFunction, CTMRGEnv, SequentialCTMRG, leading_boundary
 using QuadGK
 
 include("spaces.jl") # do they give spacemismatches?
