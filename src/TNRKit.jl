@@ -18,6 +18,7 @@ include("schemes/atrg.jl")
 include("schemes/looptnr.jl")
 include("schemes/c4ctm.jl")
 include("schemes/rctm.jl")
+include("schemes/ctmhotrg.jl")
 
 export TNRScheme
 export TRG
@@ -27,6 +28,7 @@ export ATRG
 export LoopTNR
 export c4CTM
 export rCTM
+export CTMHOTRG
 
 export run!
 

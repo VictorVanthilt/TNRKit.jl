@@ -49,6 +49,15 @@ function finalize!(scheme::LoopTNR)
     return n^(1 / 4)
 end
 
+function finalize!(scheme::CTMHOTRG)
+    n = norm(@tensor scheme.T[1][1 2; 2 1])
+    scheme.T[1] = scheme.T[1] / n
+
+    scheme.T[1] = permute(scheme.T[1], ((3, 1), (4, 2)))
+    scheme.E = PEPSKit.rotate_north(scheme.E, 2)
+    return n
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::TNRScheme)
     finalize!(scheme)
@@ -59,4 +68,13 @@ end
 function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
     return central_charge(scheme, n)
+end
+
+function finalize_cftdata!(scheme::CTMHOTRG)
+    n = norm(@tensor scheme.T[1][1 2; 2 1])
+    scheme.T[1] = scheme.T[1] / n
+
+    scheme.T[1] = permute(scheme.T[1], ((3, 1), (4, 2)))
+    scheme.E = PEPSKit.rotate_north(scheme.E, 2)
+    return cft_data(TRG(scheme.T[1]); is_real=false)
 end
