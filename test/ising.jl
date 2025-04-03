@@ -6,6 +6,13 @@ criterion_f(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
 
 T = classical_ising_symmetric()
 
+function free_energy(data, β)
+    lnz = 0
+    for (i, z) in enumerate(data)
+        lnz += log(z) * 2.0^(1 - i)
+    end
+    return -lnz / β
+end
 # TRG
 @testset "TRG - Ising Model" begin
     scheme = TRG(T)
@@ -90,4 +97,20 @@ end
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 6e-8
+end
+
+#LoopTNR
+@testset "LoopTNR - Ising Model" begin
+    scheme = LoopTNR(T)
+
+    entanglement_function(steps, data) = abs(data[end])
+    entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
+    loop_criterion = maxiter(5) & convcrit(1e-10, entanglement_function)
+
+    data = run!(scheme, truncdim(8), maxiter(25), entanglement_criterion, loop_criterion)
+
+    fs = free_energy(data, ising_βc)
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 1e-4
 end

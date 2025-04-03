@@ -68,6 +68,24 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
+function cft_data(scheme::LoopTNR; is_real=true)
+    @tensor opt = true T[-1 -2; -3 -4] := scheme.TA[-1 1; 3 2] * scheme.TB[2 6; 4 -3] *
+                                          scheme.TB[-2 3; 1 5] * scheme.TA[5 4; 6 -4]
+
+    D, V = eig(T)
+    diag = []
+    for (i, d) in blocks(D)
+        push!(diag, d...)
+    end
+    diag = filter(x -> abs(x) > 1e-12, diag)
+    data = sort!(diag; by=x -> abs(x), rev=true)
+
+    if is_real
+        data = real(data)
+    end
+    return (1 / (2π)) * log.(data[1] ./ data)
+end
+
 """
     central_charge(scheme::TNRScheme, n::Number)
 
