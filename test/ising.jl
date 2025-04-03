@@ -109,7 +109,7 @@ end
 
     data = run!(scheme, truncdim(8), maxiter(25), entanglement_criterion, loop_criterion)
 
-    fs = free_energy(data, β)
+    fs = free_energy(data, ising_βc)
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 1e-4
