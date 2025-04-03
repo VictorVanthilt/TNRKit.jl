@@ -1,6 +1,7 @@
 module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
+using KrylovKit
 using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv # for c4CTM
 
 # stop criteria
