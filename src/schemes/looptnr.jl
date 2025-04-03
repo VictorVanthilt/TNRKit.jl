@@ -363,10 +363,6 @@ function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
     return loop_opt!(scheme, loop_criterion, trunc, verbosity)
 end
 
-function my_inner(x, v1, v2)
-    return real(dot(v1, v2))
-end
-
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
