@@ -2,7 +2,7 @@ module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
-using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv # for c4CTM
+using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 
 # stop criteria
 include("utility/stopping.jl")
