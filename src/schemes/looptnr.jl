@@ -1,6 +1,5 @@
 #TODO: Add documentation
 mutable struct LoopTNR <: TNRScheme
-    # data
     TA::TensorMap
     TB::TensorMap
 
