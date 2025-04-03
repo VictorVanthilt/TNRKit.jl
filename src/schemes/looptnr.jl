@@ -379,46 +379,11 @@ function my_inner(x, v1, v2)
     return real(dot(v1, v2))
 end
 
-function loop_opt_var!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    psi_A = Ψ_A(scheme)
-
-    f(A) = cost_func(1, psi_A, A)
-    function fg(f, A)
-        f, g = Zygote.withgradient(f, A)
-        return f, g[1]
-    end
-
-    Zygote.refresh()
-
-    psi_B_0 = Ψ_B(scheme, trunc)
-
-    B_opt, _, _, _, _ = optimize(A -> fg(f, A), psi_B_0,
-                                 LBFGS(8; verbosity=3, maxiter=500, gradtol=1e-4);
-                                 inner=my_inner)
-
-    Ψ5 = B_opt[5]
-    Ψ8 = B_opt[8]
-    Ψ1 = B_opt[1]
-    Ψ4 = B_opt[4]
-
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ5[1; 2 -1] * Ψ8[-2; 2 3] * Ψ1[3; 4 -4] * Ψ4[-3; 4 1]
-
-    Ψ2 = B_opt[2]
-    Ψ3 = B_opt[3]
-    Ψ6 = B_opt[6]
-    Ψ7 = B_opt[7]
-
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ2[-1; 4 1] * Ψ3[1; 2 -2] * Ψ6[-4; 2 3] * Ψ7[3; 4 -3]
-
-    return scheme
-end
-
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, trunc)
     loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
-    #loop_opt_var!(scheme, trunc)
     return scheme
 end
 
