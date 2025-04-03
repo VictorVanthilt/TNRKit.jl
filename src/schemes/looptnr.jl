@@ -375,13 +375,6 @@ function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
     return scheme
 end
 
-function Base.show(io::IO, scheme::LoopTNR)
-    println(io, "LoopTNR - Loop Tensor Network Renormalization")
-    println(io, "  * TA: $(summary(scheme.TA))")
-    println(io, "  * TB: $(summary(scheme.TB))")
-    return nothing
-end
-
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit,
               loop_criterion::stopcrit;
@@ -415,4 +408,11 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::
     return run!(scheme, trscheme, criterion, entanglement_criterion, loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
+end
+
+function Base.show(io::IO, scheme::LoopTNR)
+    println(io, "LoopTNR - Loop Tensor Network Renormalization")
+    println(io, "  * TA: $(summary(scheme.TA))")
+    println(io, "  * TB: $(summary(scheme.TB))")
+    return nothing
 end
