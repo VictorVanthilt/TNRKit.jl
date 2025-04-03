@@ -47,15 +47,6 @@ function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     return Lt
 end
 
-#Maximum function that works for any TensorMap
-function maximumer(T::TensorMap)
-    maxi = []
-    for (_, d) in blocks(T)
-        push!(maxi, maximum(abs.(d)))
-    end
-    return maximum(maxi)
-end
-
 #Functions to find the left and right projectors
 
 function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
@@ -69,7 +60,7 @@ function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 1):(pos + n - 2)
             new_L = QR_L(new_L, psi[i % n + 1])
         end
-        new_L = new_L / maximumer(new_L)
+        new_L = new_L / maximum(new_L.data)
 
         if space(new_L) == space(L)
             push!(error, abs(norm(new_L - L)))
@@ -99,7 +90,7 @@ function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 2):-1:(pos - n - 1)
             new_R = QR_R(new_R, psi[mod(i, n) + 1])
         end
-        new_R = new_R / maximumer(new_R)
+        new_R = new_R / maximum(new_R.data)
 
         if space(new_R) == space(R)
             push!(error, abs(norm(new_R - R)))
@@ -213,6 +204,7 @@ end
 function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
+
 #cost functions
 
 function const_C(psiA)
