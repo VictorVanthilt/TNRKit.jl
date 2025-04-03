@@ -42,7 +42,7 @@ function finalize!(scheme::LoopTNR)
     T1 = permute(scheme.TA, ((1, 2), (4, 3)))
     T2 = permute(scheme.TB, ((1, 2), (4, 3)))
     n = norm(@tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
-                                 T2[7 4; 8 2] * T1[8 6; 7 5])
+                                T2[7 4; 8 2] * T1[8 6; 7 5])
 
     scheme.TA /= n^(1 / 4)
     scheme.TB /= n^(1 / 4)
