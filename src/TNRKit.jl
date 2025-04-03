@@ -2,7 +2,7 @@ module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
-using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv # for c4CTM
+using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 
 # stop criteria
 include("utility/stopping.jl")
@@ -18,6 +18,7 @@ include("schemes/atrg.jl")
 include("schemes/looptnr.jl")
 include("schemes/c4ctm.jl")
 include("schemes/rctm.jl")
+include("schemes/ctmhotrg.jl")
 
 export TNRScheme
 export TRG
@@ -27,6 +28,7 @@ export ATRG
 export LoopTNR
 export c4CTM
 export rCTM
+export CTMHOTRG
 
 export run!
 
