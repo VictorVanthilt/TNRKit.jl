@@ -109,8 +109,31 @@ end
 
     data = run!(scheme, truncdim(8), maxiter(25), entanglement_criterion, loop_criterion)
 
-    fs = free_energy(data, β)
+    fs = free_energy(data, ising_βc)
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 1e-4
+end
+
+# CTMHOTRG
+@testset "CTMHOTRG - Ising Model" begin
+    Z = InfinitePartitionFunction(T)
+    χ = 16
+    χenv = Z2Space(0 => χ / 2, 1 => χ / 2)
+    env0 = CTMRGEnv(Z, χenv)
+    ctmalg = SequentialCTMRG(; maxiter=10000, tol=1e-8, verbosity=3)
+    env, = leading_boundary(env0, Z, ctmalg)
+    scheme = CTMHOTRG(Z, env;
+                      ctmalg=SequentialCTMRG(; maxiter=50, tol=1e-8))
+    data = run!(scheme, truncdim(χ), maxiter(25))
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 2.0^(1 - i)
+    end
+
+    fs = lnz * -1 / ising_βc
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 1e-6
 end

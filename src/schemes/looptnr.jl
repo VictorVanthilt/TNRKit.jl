@@ -1,6 +1,5 @@
 #TODO: Add documentation
 mutable struct LoopTNR <: TNRScheme
-    # data
     TA::TensorMap
     TB::TensorMap
 
@@ -47,15 +46,6 @@ function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     return Lt
 end
 
-#Maximum function that works for any TensorMap
-function maximumer(T::TensorMap)
-    maxi = []
-    for (_, d) in blocks(T)
-        push!(maxi, maximum(abs.(d)))
-    end
-    return maximum(maxi)
-end
-
 #Functions to find the left and right projectors
 
 function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
@@ -69,7 +59,7 @@ function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 1):(pos + n - 2)
             new_L = QR_L(new_L, psi[i % n + 1])
         end
-        new_L = new_L / maximumer(new_L)
+        new_L = new_L / maximum(new_L.data)
 
         if space(new_L) == space(L)
             push!(error, abs(norm(new_L - L)))
@@ -99,7 +89,7 @@ function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 2):-1:(pos - n - 1)
             new_R = QR_R(new_R, psi[mod(i, n) + 1])
         end
-        new_R = new_R / maximumer(new_R)
+        new_R = new_R / maximum(new_R.data)
 
         if space(new_R) == space(R)
             push!(error, abs(norm(new_R - R)))
@@ -318,9 +308,7 @@ end
 
 function opt_T(N, W, psi)
     function apply_f(x::TensorMap)
-        #x = permute(x, ((1,), (3, 2)))
         @tensor b[-1; -2 -3] := N[-3 2; -1 1] * x[1; -2 2]
-        #b = permute(b, ((2,), (1, 3)))
         return b
     end
 
@@ -357,7 +345,6 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ1 = psi_B[1]
     Ψ4 = psi_B[4]
 
-    #@tensor scheme.TA[-1 -2; -3 -4] := Ψ5[1; 2 -1] * Ψ8[-2; 2 3] * Ψ1[3; 4 -4] * Ψ4[-3; 4 1]
     @tensor scheme.TA[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
     Ψ2 = psi_B[2]
@@ -365,7 +352,6 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ6 = psi_B[6]
     Ψ7 = psi_B[7]
 
-    #@tensor scheme.TB[-1 -2; -3 -4] := Ψ2[-1; 4 1] * Ψ3[1; 2 -2] * Ψ6[-4; 2 3] * Ψ7[3; 4 -3]
     @tensor scheme.TB[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
@@ -375,70 +361,12 @@ function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
     return loop_opt!(scheme, loop_criterion, trunc, verbosity)
 end
 
-function my_inner(x, v1, v2)
-    return real(dot(v1, v2))
-end
-
-function loop_opt_var!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    psi_A = Ψ_A(scheme)
-
-    f(A) = cost_func(1, psi_A, A)
-    function fg(f, A)
-        f, g = Zygote.withgradient(f, A)
-        return f, g[1]
-    end
-
-    Zygote.refresh()
-
-    psi_B_0 = Ψ_B(scheme, trunc)
-
-    B_opt, _, _, _, _ = optimize(A -> fg(f, A), psi_B_0,
-                                 LBFGS(8; verbosity=3, maxiter=500, gradtol=1e-4);
-                                 inner=my_inner)
-
-    Ψ5 = B_opt[5]
-    Ψ8 = B_opt[8]
-    Ψ1 = B_opt[1]
-    Ψ4 = B_opt[4]
-
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ5[1; 2 -1] * Ψ8[-2; 2 3] * Ψ1[3; 4 -4] * Ψ4[-3; 4 1]
-
-    Ψ2 = B_opt[2]
-    Ψ3 = B_opt[3]
-    Ψ6 = B_opt[6]
-    Ψ7 = B_opt[7]
-
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ2[-1; 4 1] * Ψ3[1; 2 -2] * Ψ6[-4; 2 3] * Ψ7[3; 4 -3]
-
-    return scheme
-end
-
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, trunc)
     loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
-    #loop_opt_var!(scheme, trunc)
     return scheme
-end
-
-#2x2 finalise function
-
-function finalize!(scheme::LoopTNR)
-    T1 = permute(scheme.TA, ((1, 2), (4, 3)))
-    T2 = permute(scheme.TB, ((1, 2), (4, 3)))
-    n = norm(@plansor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
-                                 T2[7 4; 8 2] * T1[8 6; 7 5])
-
-    scheme.TA /= n^(1 / 4)
-    scheme.TB /= n^(1 / 4)
-    return n^(1 / 4)
-end
-function Base.show(io::IO, scheme::LoopTNR)
-    println(io, "LoopTNR - Loop Tensor Network Renormalization")
-    println(io, "  * TA: $(summary(scheme.TA))")
-    println(io, "  * TB: $(summary(scheme.TB))")
-    return nothing
 end
 
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
@@ -465,7 +393,6 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::
         end
 
         @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
-        # @infov 1 "Elapsed time: $(t)s"
     end
     return data
 end
@@ -475,4 +402,11 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::
     return run!(scheme, trscheme, criterion, entanglement_criterion, loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
+end
+
+function Base.show(io::IO, scheme::LoopTNR)
+    println(io, "LoopTNR - Loop Tensor Network Renormalization")
+    println(io, "  * TA: $(summary(scheme.TA))")
+    println(io, "  * TB: $(summary(scheme.TB))")
+    return nothing
 end
