@@ -107,7 +107,7 @@ end
     entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
     loop_criterion = maxiter(5) & convcrit(1e-10, entanglement_function)
 
-    data = run!(scheme, truncdim(8), maxiter(25), entanglement_criterion, loop_criterion)
+    data = run!(scheme, truncdim(8), truncbelow(1e-12), maxiter(25), entanglement_criterion, loop_criterion)
 
     fs = free_energy(data, ising_βc)
 
