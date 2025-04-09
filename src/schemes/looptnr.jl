@@ -362,14 +362,16 @@ function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
 end
 
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+               truncentanglement::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
-    entanglement_filtering!(scheme, entanglement_criterion, trunc)
+    entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
     return scheme
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
+              truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit,
               loop_criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
@@ -386,7 +388,8 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, entanglement_criterion, loop_criterion, verbosity)
+            step!(scheme, trscheme, truncentanglement, entanglement_criterion,
+                  loop_criterion, verbosity)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
@@ -399,7 +402,8 @@ end
 
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
-    return run!(scheme, trscheme, criterion, entanglement_criterion, loop_criterion;
+    return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
+                loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
 end
