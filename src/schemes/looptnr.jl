@@ -4,10 +4,10 @@ mutable struct LoopTNR <: TNRScheme
     TB::TensorMap
 
     finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=finalize!)
+    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=(finalize!))
         return new(TA, TB, finalize)
     end
-    function LoopTNR(T::TensorMap; finalize=finalize!)
+    function LoopTNR(T::TensorMap; finalize=(finalize!))
         return new(T, copy(T), finalize)
     end
 end
@@ -59,7 +59,7 @@ function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 1):(pos + n - 2)
             new_L = QR_L(new_L, psi[i % n + 1])
         end
-        new_L = new_L / maximum(new_L.data)
+        new_L = new_L / maximum(abs.(new_L.data))
 
         if space(new_L) == space(L)
             push!(error, abs(norm(new_L - L)))
@@ -89,7 +89,7 @@ function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
         for i in (pos - 2):-1:(pos - n - 1)
             new_R = QR_R(new_R, psi[mod(i, n) + 1])
         end
-        new_R = new_R / maximum(new_R.data)
+        new_R = new_R / maximum(abs.(new_R.data))
 
         if space(new_R) == space(R)
             push!(error, abs(norm(new_R - R)))
@@ -203,7 +203,6 @@ end
 function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
-
 #cost functions
 
 function const_C(psiA)
@@ -363,14 +362,16 @@ function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
 end
 
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+               truncentanglement::TensorKit.TruncationScheme,
                entanglement_criterion::stopcrit,
                loop_criterion::stopcrit, verbosity::Int)
-    entanglement_filtering!(scheme, entanglement_criterion, trunc)
+    entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
     return scheme
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit,
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
+              truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit,
               loop_criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
@@ -387,7 +388,8 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, entanglement_criterion, loop_criterion, verbosity)
+            step!(scheme, trscheme, truncentanglement, entanglement_criterion,
+                  loop_criterion, verbosity)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
@@ -400,7 +402,8 @@ end
 
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
               finalize_beginning=true, verbosity=1)
-    return run!(scheme, trscheme, criterion, entanglement_criterion, loop_criterion;
+    return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
+                loop_criterion;
                 finalize_beginning=finalize_beginning,
                 verbosity=verbosity)
 end

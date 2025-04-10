@@ -5,7 +5,7 @@ mutable struct BTRG <: TNRScheme
     k::Float64
 
     finalize!::Function
-    function BTRG(T::TensorMap{E,S,2,2}, k::Number; finalize=finalize!) where {E,S}
+    function BTRG(T::TensorMap{E,S,2,2}, k::Number; finalize=(finalize!)) where {E,S}
         # Construct S1 and S2 as identity matrices.
         return new(T, id(space(T, 2)), id(space(T, 1)), k, finalize)
     end
