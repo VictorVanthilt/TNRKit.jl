@@ -8,7 +8,7 @@ T = classical_ising_symmetric()
 
 # TRG
 @testset "TRG - Ising Model" begin
-    scheme = TRG(T; finalize=finalize_two_by_two!)
+    scheme = TRG(T; finalize=(finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
@@ -24,7 +24,7 @@ end
 
 # BTRG
 @testset "BTRG - Ising Model" begin
-    scheme = BTRG(T, -0.5; finalize=finalize_two_by_two!)
+    scheme = BTRG(T, -0.5; finalize=(finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
@@ -40,7 +40,7 @@ end
 
 # HOTRG
 @testset "HOTRG - Ising Model" begin
-    scheme = HOTRG(T; finalize=finalize_two_by_two!)
+    scheme = HOTRG(T; finalize=(finalize_two_by_two!))
     data = run!(scheme, truncdim(16), maxiter(25))
 
     lnz = 0
@@ -56,7 +56,7 @@ end
 
 # ATRG
 @testset "ATRG - Ising Model" begin
-    scheme = ATRG(T; finalize=finalize_two_by_two!)
+    scheme = ATRG(T; finalize=(finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0

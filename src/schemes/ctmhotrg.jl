@@ -3,7 +3,7 @@ mutable struct CTMHOTRG <: TNRScheme
     E::CTMRGEnv
     finalize!::Function
     ctmalg::PEPSKit.CTMRGAlgorithm
-    function CTMHOTRG(T::InfinitePartitionFunction, E::CTMRGEnv; finalize=finalize!,
+    function CTMHOTRG(T::InfinitePartitionFunction, E::CTMRGEnv; finalize=(finalize!),
                       ctmalg=PEPSKit.SequentialCTMRG(; maxiter=20, tol=1e-8))
         return new(T, E, finalize, ctmalg)
     end

@@ -2,7 +2,7 @@ mutable struct TRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function TRG(T::TensorMap{E,S,2,2}; finalize=finalize!) where {E,S}
+    function TRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
         return new(T, finalize)
     end
 end

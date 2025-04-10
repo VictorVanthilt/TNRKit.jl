@@ -4,10 +4,10 @@ mutable struct LoopTNR <: TNRScheme
     TB::TensorMap
 
     finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=finalize!)
+    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=(finalize!))
         return new(TA, TB, finalize)
     end
-    function LoopTNR(T::TensorMap; finalize=finalize!)
+    function LoopTNR(T::TensorMap; finalize=(finalize!))
         return new(T, copy(T), finalize)
     end
 end
