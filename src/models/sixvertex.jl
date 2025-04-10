@@ -1,6 +1,6 @@
 # Taken from MPSKitModels.jl
 sixvertex(symmetry::Type{<:Sector}; kwargs...) = sixvertex(ComplexF64, symmetry; kwargs...)
-function sixvertex(elt::Type{<:Number}=ComplexF64, ::Type{Trivial}=Trivial; a=1.0, b=1.0,
+function sixvertex(elt::Type{<:Number}=ComplexF64, (::Type{Trivial})=Trivial; a=1.0, b=1.0,
                    c=1.0)
     d = elt[a 0 0 0
             0 c b 0
