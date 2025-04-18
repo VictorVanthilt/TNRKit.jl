@@ -59,9 +59,9 @@ function finalize!(scheme::CTMHOTRG)
 end
 
 # cft data finalize
-function finalize_cftdata!(scheme::TNRScheme)
+function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
-    return cft_data(scheme)
+    return cft_data(scheme; is_real=true)
 end
 
 # central charge finalize
