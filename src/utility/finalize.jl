@@ -64,6 +64,12 @@ function finalize_cftdata!(scheme::TNRScheme)
     return cft_data(scheme)
 end
 
+# cft data finalize
+function finalize_cftdata!(scheme::LoopTNR; is_real=true)
+    finalize!(scheme)
+    return cft_data(scheme; is_real)
+end
+
 # central charge finalize
 function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
