@@ -82,8 +82,10 @@ function cft_data(scheme::LoopTNR; is_real=true)
 
     if is_real
         data = real(data)
+        return (1 / (2π)) * log.(abs.(data[1] ./ data))
+    else
+        return (1 / (2π)) * log.(data[1] ./ data)
     end
-    return (1 / (2π)) * log.(data[1] ./ data)
 end
 
 """
