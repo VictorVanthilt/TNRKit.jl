@@ -135,7 +135,11 @@ end
 
 function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
     L = id(space(phi[1])[1])
-    R = id(space(phi[end])[4]')
+    if numin(psi[mod(pos - 2, n) + 1]) == 2
+        R = id(space(phi[mod(pos - 2, n) + 1])[3]')
+    else
+        R = id(space(phi[mod(pos - 2, n) + 1])[4]')
+    end
     for i in 1:pos
         L = QR_L(L, phi[i])
     end
@@ -158,7 +162,7 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     ΨB = []
 
     for i in 1:4
-        s1, s2 = SVD12(ΨA[i], trunc)
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
     end
@@ -174,6 +178,25 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
         push!(ΨB_disentangled, B1)
     end
     return ΨB_disentangled
+end
+
+function Ψ_B_oneloop(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
+    ΨA = Ψ_A(scheme)
+    ΨB = []
+
+    for i in 1:4
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
+        phi = copy(ΨA)
+        deleteat!(phi, i)
+        insert!(phi, i, s1)
+        insert!(phi, i + 1, s2)
+        PR, PL = one_loop_projector(phi, i, trunc)
+        @tensor B1[-1; -2 -3] := s1[-1; -2 1] * PR[1; -3]
+        @tensor B2[-1; -2 -3] := PL[-1; 1] * s2[1; -2 -3]
+        push!(ΨB, B1)
+        push!(ΨB, B2)
+    end
+    return ΨB
 end
 
 #Entanglement Filtering 
