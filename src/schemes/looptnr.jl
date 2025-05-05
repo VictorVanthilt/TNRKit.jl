@@ -135,6 +135,7 @@ end
 
 function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
     L = id(space(phi[1])[1])
+    n = length(phi)
     if numin(phi[mod(pos - 2, n) + 1]) == 2
         R = id(space(phi[mod(pos - 2, n) + 1])[3]')
     else
