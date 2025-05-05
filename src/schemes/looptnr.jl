@@ -136,10 +136,10 @@ end
 function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
     L = id(space(phi[1])[1])
     n = length(phi)
-    if numin(phi[mod(pos - 2, n) + 1]) == 2
-        R = id(space(phi[mod(pos - 2, n) + 1])[3]')
+    if numin(phi[n]) == 2
+        R = id(space(phi[n])[3]')
     else
-        R = id(space(phi[mod(pos - 2, n) + 1])[4]')
+        R = id(space(phi[n])[4]')
     end
     for i in 1:pos
         L = QR_L(L, phi[i])
