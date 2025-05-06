@@ -369,14 +369,14 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ1 = psi_B[1]
     Ψ4 = psi_B[4]
 
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+    @tensor scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
     Ψ2 = psi_B[2]
     Ψ3 = psi_B[3]
     Ψ6 = psi_B[6]
     Ψ7 = psi_B[7]
 
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
