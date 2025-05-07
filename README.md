@@ -3,7 +3,7 @@
 
 # TNRKit.jl
 
-TNRKit.jl is a Julia package that aims to implement as much tensor network renormalization (TNR) schemes as possible.
+TNRKit.jl is a Julia package that aims to implement as many tensor network renormalization (TNR) schemes as possible.
 It is built upon
 [TensorKit.jl](https://github.com/jutho/TensorKit.jl), which provides functionality for
 generic symmetries.
