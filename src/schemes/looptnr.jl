@@ -135,7 +135,12 @@ end
 
 function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
     L = id(space(phi[1])[1])
-    R = id(space(phi[end])[4]')
+    n = length(phi)
+    if numin(phi[n]) == 2
+        R = id(space(phi[n])[3]')
+    else
+        R = id(space(phi[n])[4]')
+    end
     for i in 1:pos
         L = QR_L(L, phi[i])
     end
@@ -158,7 +163,7 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     ΨB = []
 
     for i in 1:4
-        s1, s2 = SVD12(ΨA[i], trunc)
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
     end
@@ -174,6 +179,25 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
         push!(ΨB_disentangled, B1)
     end
     return ΨB_disentangled
+end
+
+function Ψ_B_oneloop(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
+    ΨA = Ψ_A(scheme)
+    ΨB = []
+
+    for i in 1:4
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
+        phi = copy(ΨA)
+        deleteat!(phi, i)
+        insert!(phi, i, s1)
+        insert!(phi, i + 1, s2)
+        PR, PL = one_loop_projector(phi, i, trunc)
+        @tensor B1[-1; -2 -3] := s1[-1; -2 1] * PR[1; -3]
+        @tensor B2[-1; -2 -3] := PL[-1; 1] * s2[1; -2 -3]
+        push!(ΨB, B1)
+        push!(ΨB, B2)
+    end
+    return ΨB
 end
 
 #Entanglement Filtering 
@@ -320,7 +344,7 @@ end
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
-    psi_B = Ψ_B(scheme, trunc)
+    psi_B = Ψ_B_oneloop(scheme, trunc)
 
     cost = ComplexF64[Inf]
     sweep = 0
@@ -345,14 +369,14 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ1 = psi_B[1]
     Ψ4 = psi_B[4]
 
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+    @tensor scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
     Ψ2 = psi_B[2]
     Ψ3 = psi_B[3]
     Ψ6 = psi_B[6]
     Ψ7 = psi_B[7]
 
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
