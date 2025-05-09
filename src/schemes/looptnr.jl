@@ -204,7 +204,7 @@ end
 entanglement_function(steps, data) = abs(data[end])
 entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
-loop_criterion = maxiter(50) & convcrit(1e-5, entanglement_function)
+loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 
 function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
