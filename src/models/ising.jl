@@ -34,12 +34,13 @@ function classical_ising_symmetric_3D(β)
     y = sinh(β / 2)
     W = [sqrt(x) sqrt(y); sqrt(x) -sqrt(y)]
     T_array = zeros(Float64, 2, 2, 2, 2, 2, 2)
-
-    for a in 1:2
-        # Outer product of W[a, :] with itself 6 times
-        T_array .+= W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :]
+    for (i, j, k, l, m, n) in Iterators.product([1:2 for _ in 1:6]...)
+        for a in 1:2
+            # Outer product of W[a, :] with itself 6 times
+            T_array[i, j, k, l, m, n] += W[a, i] * W[a, j] * W[a, k] * W[a, l] * W[a, m] *
+                                         W[a, n]
+        end
     end
-
     S = ℤ₂Space(0 => 1, 1 => 1)
     T = TensorMap(T_array, S ⊗ S ⊗ S ← S ⊗ S ⊗ S)
 

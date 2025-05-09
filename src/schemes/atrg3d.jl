@@ -44,7 +44,7 @@ function step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     @tensor Proj_4[-1; -2 -3] := inv_s2[-1; 1] * adjoint(U2)[1; 2] * R3[2; -2 -3]
 
     @tensor H[-1 -2; -3 -4] := YD[-1 -2; 1 2 3 4] * Proj_3[1 2; -3] * Proj_1[3 4; -4]
-    @tensor G[-1 -2; -3 -4] := AX[-1 -2; 1 2 3 4] * Proj_4[1 2; -3] * Proj_2[3 4; -4]
+    @tensor G[-1 -2; -3 -4] := AX[-1 -2; 1 2 3 4] * Proj_4[-3; 1 2] * Proj_2[-4; 3 4]
 
     @tensor scheme.T[-1 -2; -3 -4 -5 -6] := G[1 -2; -5 -6] * H[-1 1; -3 -4]
     return scheme
