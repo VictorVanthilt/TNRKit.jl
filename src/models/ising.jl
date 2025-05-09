@@ -47,6 +47,6 @@ function classical_ising_symmetric_3D(β)
     return T
 end
 
-ising_βc_3D = 4.51152469
+ising_βc_3D = 1/4.51152469
 
 classical_ising_symmetric_3D() = classical_ising_symmetric_3D(ising_βc_3D)
