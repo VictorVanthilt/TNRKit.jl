@@ -7,7 +7,7 @@ mutable struct ATRG_3D <: TNRScheme
     end
 end
 
-function step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
+function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(scheme.T, ((2, 5, 6), (3, 4, 1)); trunc=trunc)
     A = permute(U, ((4, 1), (2, 3)))
     D = permute(V, ((4, 1), (2, 3)))
@@ -50,6 +50,20 @@ function step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
+function step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
+    _step!(scheme, trunc)
+
+    scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
+
+    _step!(scheme, trunc)
+
+    scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
+
+    _step!(scheme, trunc)
+
+    return scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
+end
+
 function finalize!(scheme::ATRG_3D)
     n = norm(@tensor scheme.T[1 1; 2 3 2 3])
     scheme.T /= n
@@ -58,6 +72,12 @@ function finalize!(scheme::ATRG_3D)
     scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
 
     return n
+end
+
+function Base.show(io::IO, scheme::ATRG_3D)
+    println(io, "3D ATRG - Anisotropic TRG in 3D")
+    println(io, "  * T: $(summary(scheme.T))")
+    return nothing
 end
 
 ATRG_3D_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
