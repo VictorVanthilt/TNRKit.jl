@@ -28,3 +28,20 @@ end
 classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
+
+function classical_ising_symmetric_3D(β)
+    x = cosh(β / 2)
+    y = sinh(β / 2)
+    W = [sqrt(x) sqrt(y); sqrt(x) -sqrt(y)]
+    T_array = zeros(Float64, 2, 2, 2, 2, 2, 2)
+
+    for a in 1:2
+        # Outer product of W[a, :] with itself 6 times
+        T_array .+= W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :] ⊗ W[a, :]
+    end
+
+    S = ℤ₂Space(0 => 1, 1 => 1)
+    T = TensorMap(T_array, S ⊗ S ⊗ S ← S ⊗ S ⊗ S)
+
+    return T
+end
