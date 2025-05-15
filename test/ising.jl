@@ -138,3 +138,21 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 1e-6
 end
+
+# ATRG_3D
+@testset "ATRG_3D - Ising Model" begin
+    T_3D = classical_ising_symmetric_3D()
+    scheme = ATRG_3D(T_3D)
+    data = run!(scheme, truncdim(12), maxiter(25))
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d) * 8.0^(1 - i)
+    end
+
+    fs = lnz * -1 / ising_βc_3D
+    @show fs
+    f_benchmark = -3.515
+    relerror = abs((fs - f_benchmark) / f_benchmark)
+    @test relerror < 1e-3
+end
