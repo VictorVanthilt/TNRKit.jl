@@ -69,7 +69,7 @@ function finalize!(scheme::ATRG_3D)
     scheme.T /= n
 
     # turn the tensor by 90 degrees
-    scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
+    #scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
 
     return n
 end

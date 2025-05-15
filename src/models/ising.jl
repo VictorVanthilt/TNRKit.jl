@@ -30,8 +30,8 @@ classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
 
 function classical_ising_symmetric_3D(β)
-    x = cosh(β / 2)
-    y = sinh(β / 2)
+    x = cosh(β)
+    y = sinh(β)
     W = [sqrt(x) sqrt(y); sqrt(x) -sqrt(y)]
     T_array = zeros(Float64, 2, 2, 2, 2, 2, 2)
     for (i, j, k, l, m, n) in Iterators.product([1:2 for _ in 1:6]...)
@@ -47,8 +47,8 @@ function classical_ising_symmetric_3D(β)
     return permute(T, ((1, 4), (5, 6, 2, 3)))
 end
 
-function classical_ising_3D(; beta, J=1.0)
-    K = beta * J
+function classical_ising_3D(; β, J=1.0)
+    K = β * J
 
     # Boltzmann weights
     t = ComplexF64[exp(K) exp(-K); exp(-K) exp(K)]
