@@ -80,4 +80,4 @@ function Base.show(io::IO, scheme::ATRG_3D)
     return nothing
 end
 
-ATRG_3D_convcrit(steps::Int, data) = abs(log(data[end]) * 2.0^(1 - steps))
+ATRG_3D_convcrit(steps::Int, data) = abs(log(data[end]) * 8.0^(1 - steps))
