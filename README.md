@@ -11,6 +11,7 @@ The following schemes are currently implemented:
 - TRG (Levin and Nave's original formulation of a TNR scheme) 
 - BTRG (bond-weighted TRG)
 - ATRG (anisotropic TRG)
+- ATRG_3D (3D ATRG)
 - HOTRG (higher order TRG)
 - LoopTNR (entanglement filtering + loop optimization)
 - CTMHOTRG (Corner Transfer Matrix environment + HOTRG)

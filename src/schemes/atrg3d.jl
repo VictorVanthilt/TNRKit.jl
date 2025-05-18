@@ -64,16 +64,6 @@ function step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     return scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
 end
 
-function finalize!(scheme::ATRG_3D)
-    n = norm(@tensor scheme.T[1 1; 2 3 2 3])
-    scheme.T /= n
-
-    # turn the tensor by 90 degrees
-    #scheme.T = permute(scheme.T, ((4, 6), (2, 5, 1, 3)))
-
-    return n
-end
-
 function Base.show(io::IO, scheme::ATRG_3D)
     println(io, "3D ATRG - Anisotropic TRG in 3D")
     println(io, "  * T: $(summary(scheme.T))")
