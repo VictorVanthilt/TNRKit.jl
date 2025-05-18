@@ -32,13 +32,13 @@ function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     R4, _ = rightorth(AX, ((3, 4), (1, 2, 5, 6)))
 
     @tensor temp1[-1; -2] := R1[-1; 1 2] * R2[1 2; -2]
-    U1, S1, V1, _ = tsvd(temp1, (1,), (2,); trunc=trunc)
+    U1, S1, V1, _ = tsvd(temp1; trunc=trunc)
     inv_s1 = pseudopow(S1, -0.5)
     @tensor Proj_1[-1 -2; -3] := R2[-1 -2; 1] * adjoint(V1)[1; 2] * inv_s1[2; -3]
     @tensor Proj_2[-1; -2 -3] := inv_s1[-1; 1] * adjoint(U1)[1; 2] * R1[2; -2 -3]
 
     @tensor temp2[-1; -2] := R3[-1; 1 2] * R4[1 2; -2]
-    U2, S2, V2, _ = tsvd(temp2, (1,), (2,); trunc=trunc)
+    U2, S2, V2, _ = tsvd(temp2; trunc=trunc)
     inv_s2 = pseudopow(S2, -0.5)
     @tensor Proj_3[-1 -2; -3] := R4[-1 -2; 1] * adjoint(V2)[1; 2] * inv_s2[2; -3]
     @tensor Proj_4[-1; -2 -3] := inv_s2[-1; 1] * adjoint(U2)[1; 2] * R3[2; -2 -3]
