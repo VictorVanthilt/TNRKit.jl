@@ -47,7 +47,7 @@ function classical_ising_symmetric_3D(β)
     return permute(T, ((1, 4), (5, 6, 2, 3)))
 end
 
-function classical_ising_3D(; β, J=1.0)
+function classical_ising_3D(β; J=1.0)
     K = β * J
 
     # Boltzmann weights
@@ -69,4 +69,4 @@ end
 ising_βc_3D = 1 / 4.51152469
 
 classical_ising_symmetric_3D() = classical_ising_symmetric_3D(ising_βc_3D)
-classical_ising_3D() = classical_ising_3D(; β=ising_βc_3D)
+classical_ising_3D() = classical_ising_3D(ising_βc_3D)
