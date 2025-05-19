@@ -33,7 +33,7 @@ export LoopTNR, loop_opt!
 export c4CTM
 export rCTM
 export CTMHOTRG
-export EFBTRG, entanglement_filtering!
+export GBTRG, entanglement_filtering!
 export ATRG_3D
 
 export run!

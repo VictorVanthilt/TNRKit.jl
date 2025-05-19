@@ -44,8 +44,7 @@ function Ψ_A(scheme::GBTRG)
                             permute(scheme.S3, ((2,), (1,))),
                             permute(scheme.TA, ((3,), (4, 2, 1))),
                             permute(scheme.S2, ((2,), (1,))),
-                            permute(scheme.TB, ((4,), (2, 1, 3)))
-                            scheme.S1]
+                            permute(scheme.TB, ((4,), (2, 1, 3))), scheme.S1]
     return psi
 end
 
@@ -82,15 +81,17 @@ function entanglement_filtering!(scheme::GBTRG, entanglement_criterion::stopcrit
     return scheme
 end
 
-function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
+function entanglement_filtering!(scheme::GBTRG, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
 
-
-
 function Base.show(io::IO, scheme::GBTRG)
-    println(io, "LoopTNR - Loop Tensor Network Renormalization")
+    println(io, "GBTRG: generalised BTRG with entanglement filtering")
     println(io, "  * TA: $(summary(scheme.TA))")
     println(io, "  * TB: $(summary(scheme.TB))")
+    println(io, "  * S1: $(summary(scheme.S1))")
+    println(io, "  * S2: $(summary(scheme.S2))")
+    println(io, "  * S3: $(summary(scheme.S3))")
+    println(io, "  * S4: $(summary(scheme.S4))")
     return nothing
 end

@@ -66,8 +66,10 @@ function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
     n = length(psi)
     if numin(psi[mod(pos - 2, n) + 1]) == 2
         R = id(space(psi[mod(pos - 2, n) + 1])[3]')
-    else
+    elseif numin(psi[mod(pos - 2, n) + 1]) == 3
         R = id(space(psi[mod(pos - 2, n) + 1])[4]')
+    else 
+        R = id(space(psi[mod(pos - 2, n) + 1])[2]')
     end
     crit = true
     steps = 0
