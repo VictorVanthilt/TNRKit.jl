@@ -11,6 +11,7 @@ export trivial_convcrit
 
 # schemes
 include("schemes/tnrscheme.jl")
+include("utility/tnrutilities.jl")
 include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
@@ -19,16 +20,19 @@ include("schemes/looptnr.jl")
 include("schemes/c4ctm.jl")
 include("schemes/rctm.jl")
 include("schemes/ctmhotrg.jl")
+include("schemes/efbtrg.jl")
 
 export TNRScheme
+export QR_L, QR_R, find_L, find_R, P_decomp, SVD12, find_projectors, cost_func
 export TRG
 export BTRG
 export HOTRG
 export ATRG
-export LoopTNR
+export LoopTNR, loop_opt!
 export c4CTM
 export rCTM
 export CTMHOTRG
+export EFBTRG, entanglement_filtering!
 
 export run!
 
