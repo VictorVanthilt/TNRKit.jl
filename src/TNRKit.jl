@@ -21,6 +21,7 @@ include("schemes/c4ctm.jl")
 include("schemes/rctm.jl")
 include("schemes/ctmhotrg.jl")
 include("schemes/efbtrg.jl")
+include("schemes/atrg3d.jl")
 
 export TNRScheme
 export QR_L, QR_R, find_L, find_R, P_decomp, SVD12, find_projectors, cost_func
@@ -33,12 +34,14 @@ export c4CTM
 export rCTM
 export CTMHOTRG
 export EFBTRG, entanglement_filtering!
+export ATRG_3D
 
 export run!
 
 # models
 include("models/ising.jl")
-export classical_ising, classical_ising_symmetric, potts_βc, ising_βc, f_onsager
+export classical_ising, classical_ising_symmetric, potts_βc, ising_βc, f_onsager,
+       ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D
 
 include("models/gross-neveu.jl")
 export gross_neveu_start

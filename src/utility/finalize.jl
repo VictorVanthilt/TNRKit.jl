@@ -58,6 +58,12 @@ function finalize!(scheme::CTMHOTRG)
     return n
 end
 
+function finalize!(scheme::ATRG_3D)
+    n = norm(@tensor scheme.T[1 1; 2 3 2 3])
+    scheme.T /= n
+    return n
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
