@@ -85,3 +85,12 @@ end
 function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
+
+
+
+function Base.show(io::IO, scheme::GBTRG)
+    println(io, "LoopTNR - Loop Tensor Network Renormalization")
+    println(io, "  * TA: $(summary(scheme.TA))")
+    println(io, "  * TB: $(summary(scheme.TB))")
+    return nothing
+end
