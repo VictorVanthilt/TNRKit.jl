@@ -174,23 +174,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B_oneloop(scheme, trunc)
 
-    cost = ComplexF64[Inf]
-    sweep = 0
-    crit = true
-    while crit
-        for i in 1:8
-            N = tN(i, psi_B)
-            W = tW(i, psi_A, psi_B)
-            new_T = opt_T(N, W, psi_B[i])
-            psi_B[i] = new_T
-        end
-        sweep += 1
-        push!(cost, cost_func(1, psi_A, psi_B))
-        if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
-        end
-        crit = loop_criterion(sweep, cost)
-    end
+    psi_B = optimise_pmps(psi_A, psi_B, loop_criterion, verbosity)
 
     Ψ5 = psi_B[5]
     Ψ8 = psi_B[8]
@@ -206,6 +190,28 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
 
     @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
+end
+
+function optimise_pmps(Ψ_A, Ψ_B, loop_criterion::stopcrit, verbosity::Int)
+    cost = ComplexF64[Inf]
+    sweep = 0
+    crit = true
+    while crit
+        for i in 1:8
+            N = tN(i, Ψ_B)
+            W = tW(i, Ψ_A, Ψ_B)
+            new_T = opt_T(N, W, Ψ_B[i])
+            psi_B[i] = new_T
+        end
+        sweep += 1
+        push!(cost, cost_func(1, Ψ_A, Ψ_B))
+        if verbosity > 1
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
+        end
+        crit = loop_criterion(sweep, cost)
+    end
+
+    return Ψ_B
 end
 
 function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
