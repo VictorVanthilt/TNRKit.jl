@@ -81,6 +81,9 @@ function entanglement_filtering!(scheme::GBTRG, entanglement_criterion::stopcrit
     return scheme
 end
 
+function coarse_grain(scheme::GBTRG, trunc::TensorKit.TruncationScheme)
+end
+
 function entanglement_filtering!(scheme::GBTRG, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
