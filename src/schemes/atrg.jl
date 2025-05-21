@@ -1,3 +1,17 @@
+"""
+$(TYPEDEF)
+
+Anisotropic Tensor Renormalization Group
+
+$(FUNCTIONNAME)(T [, finalize=finalize!])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Adachi et. al. Phys. Rev. B 102 (2020)](@cite adachi_anisotropic_2020)
+"""
 mutable struct ATRG <: TNRScheme
     T::TensorMap
 
