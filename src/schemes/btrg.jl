@@ -3,7 +3,8 @@ $(TYPEDEF)
 
 Bond-weighted Tensor Renormalization Group
 
-    BTRG(T [, k=-1/2, finalize=finalize!])
+### Usage
+    $(FUNCTIONNAME)(T [, k=-1/2, finalize=finalize!])
 
 ### Fields
 

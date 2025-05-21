@@ -4,7 +4,7 @@ $(TYPEDEF)
 Tensor Renormalization Group
 
 ### Usage
-    TRG(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(T [, finalize=finalize!])
 
 ### Fields
 
