@@ -1,4 +1,21 @@
-#TODO: Add documentation
+"""
+$(TYPEDEF)
+
+Loop Optimization for Tensor Network Renormalization
+
+### Usage
+    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yang_loop_2017)
+
+"""
+
 mutable struct LoopTNR <: TNRScheme
     TA::TensorMap
     TB::TensorMap
