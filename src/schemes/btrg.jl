@@ -10,7 +10,7 @@ $(FUNCTIONNAME)(T [, k=-1/2, finalize=finalize!])
 $(TYPEDFIELDS)
 
 ### References
-* [Adachi et. al. Phys. Rev. B 105 (202)](@cite adachi_bond-weighted_2022)
+* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachi_bond-weighted_2022)
 """
 mutable struct BTRG <: TNRScheme
     T::TensorMap
