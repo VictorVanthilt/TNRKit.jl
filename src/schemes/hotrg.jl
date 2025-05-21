@@ -3,7 +3,7 @@ $(TYPEDEF)
 
 Higher-Order Tensor Renormalization Group
 
-$(FUNCTIONNAME)(T [, finalize=finalize!])
+    HOTRG(T [, finalize=finalize!])
 
 ### Fields
 

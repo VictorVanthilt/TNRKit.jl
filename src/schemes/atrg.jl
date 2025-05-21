@@ -3,7 +3,7 @@ $(TYPEDEF)
 
 Anisotropic Tensor Renormalization Group
 
-$(FUNCTIONNAME)(T [, finalize=finalize!])
+    ATRG(T [, finalize=finalize!])
 
 ### Fields
 
