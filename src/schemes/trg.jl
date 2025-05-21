@@ -1,10 +1,23 @@
-mutable struct TRG <: TNRScheme
+"""
+$(TYPEDEF)
+
+Tensor Renormalization Group
+
+## Fields
+
+$(TYPEDFIELDS)
+
+$(METHODLIST)
+
+## References
+* [Levin & Nave Phys. Rev. Letters 99(12) (2007)]
+"""
+@kwdef mutable struct TRG <: TNRScheme
+    "central tensor"
     T::TensorMap
 
-    finalize!::Function
-    function TRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
-        return new(T, finalize)
-    end
+    "finalization function"
+    finalize!::Function=finalize!
 end
 
 function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
