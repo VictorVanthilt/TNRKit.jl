@@ -1,3 +1,17 @@
+"""
+$(TYPEDEF)
+
+Bond-weighted Tensor Renormalization Group
+
+$(FUNCTIONNAME)(T [, k=-1/2, finalize=finalize!])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Adachi et. al. Phys. Rev. B 105 (202)](@cite adachi_bond-weighted_2022)
+"""
 mutable struct BTRG <: TNRScheme
     T::TensorMap
     S1::TensorMap
