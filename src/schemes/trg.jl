@@ -3,14 +3,14 @@ $(TYPEDEF)
 
 Tensor Renormalization Group
 
-## Usage
-$(FUNCTIONNAME)(T [, finalize])
+### Usage
+$(FUNCTIONNAME)(T [, finalize=finalize!])
 
-## Fields
+### Fields
 
 $(TYPEDFIELDS)
 
-## References
+### References
 * [Levin & Nave Phys. Rev. Letters 99(12) (2007)](@cite levin_tensor_2007)
 """
 mutable struct TRG <: TNRScheme
