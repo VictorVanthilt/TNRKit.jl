@@ -1,3 +1,18 @@
+"""
+$(TYPEDEF)
+
+Higher-Order Tensor Renormalization Group
+
+$(FUNCTIONNAME)(T [, finalize=finalize!])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Xie et. al. Phys. Rev. B 86 (2012)](@cite xie_coarse-graining_2012)
+
+"""
 mutable struct HOTRG <: TNRScheme
     T::TensorMap
 
