@@ -3,7 +3,7 @@ $(TYPEDEF)
 
 Loop Optimization for Tensor Network Renormalization
 
-### Usage
+### Constructors
     $(FUNCTIONNAME)(T [, finalize=finalize!])
     $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
 

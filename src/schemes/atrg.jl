@@ -3,8 +3,18 @@ $(TYPEDEF)
 
 Anisotropic Tensor Renormalization Group
 
-### Usage
+### Constructors
     $(FUNCTIONNAME)(T [, finalize=finalize!])
+
+### Running the algorithm
+    run!(::ATRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, verbosity=1])
+
+Each step rescales the lattice by a (linear) factor of √2
+
+!!! info "verbosity levels"
+    - 0: No output
+    - 1: Print information at start and end of the algorithm
+    - 2: Print information at each step
 
 ### Fields
 
