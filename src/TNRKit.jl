@@ -2,6 +2,7 @@ module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
+using OptimKit, Zygote
 using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 
 # stop criteria
@@ -25,6 +26,7 @@ include("schemes/ctmhotrg.jl")
 # Loop Methods
 include("schemes/looptnr.jl")
 include("schemes/symmetric_looptnr.jl")
+export classical_ising_inv # Ising model with all legs in codomain
 
 export TNRScheme
 

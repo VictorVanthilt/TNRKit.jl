@@ -2,9 +2,12 @@
 mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
+    gradalg::OptimKit.LBFGS
     finalize!::Function
-    function SLoopTNR(T::TensorMap; finalize=(finalize!))
-        return new(T, finalize)
+    function SLoopTNR(T::TensorMap;
+                      gradalg=LBFGS(10; verbosity=0, gradtol=6e-7, maxiter=40000),
+                      finalize=(finalize!))
+        return new(T, gradalg, finalize)
     end
 end
 
@@ -29,13 +32,6 @@ function trnorm_2x2(T)
 end
 
 ########## Cost function ##########
-function StoSS(S)
-    V = domain(S)[1]
-    b = isomorphism(V, V')
-    @tensor SS[-1 -2 -3 -4] := S[-1 -2; 1] * S[-3 -4; 2] * b[1 2]
-    return SS
-end
-
 function StoSS(S)
     V = domain(S)[1]
     b = isomorphism(V, V')
@@ -74,12 +70,11 @@ function fg(f, A)
     return f_out, g[1]
 end
 
-function optimize_S(S, T; gradtol=1e-6, optim_maxiter=20000, verbosity=1)
-    opt_fun(x) = cost_looptnr(x, T)
+function optimize_S(scheme, S)
+    opt_fun(x) = cost_looptnr(x, scheme.T)
     opt_fg(x) = fg(opt_fun, x)
     Sopt, fx, gx, numfg, normgradhistory = optimize(opt_fg, S,
-                                                    LBFGS(10; verbosity, gradtol,
-                                                          maxiter=optim_maxiter))
+                                                    scheme.gradalg)
     return Sopt
 end
 
@@ -160,15 +155,14 @@ function combine_4S(S)
 end
 
 ########## Main funcitons ##########
-function step!(scheme, trunc; gradtol=6e-7, optim_maxiter=40000, verbosity=2, oneloop=true,
-               return_norm=false)
+function step!(scheme, trunc; oneloop=true)
     scheme.T = entanglement_filtering(scheme.T)
     if oneloop == true
         S = ef_oneloop(scheme.T, trunc)
     else
         S = decompose_T(scheme.T, trunc)
     end
-    S = optimize_S(S, scheme.T; gradtol, optim_maxiter, verbosity)
+    S = optimize_S(scheme, S)
     scheme.T = combine_4S(S)
     return scheme
 end
@@ -194,11 +188,13 @@ function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
             crit = criterion(steps, data)
         end
     end
+    @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     return data
 end
 
 function Base.show(io::IO, scheme::SLoopTNR)
     println(io, "Symmetric LoopTNR - C4 and reflection symmetric scheme")
-    println(io, "  * TA: $(summary(scheme.T))")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * gradalg: $(summary(scheme.gradalg))")
     return nothing
 end
