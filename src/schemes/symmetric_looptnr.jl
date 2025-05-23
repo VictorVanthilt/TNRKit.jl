@@ -155,7 +155,7 @@ function combine_4S(S)
 end
 
 ########## Main funcitons ##########
-function step!(scheme, trunc; oneloop=true)
+function step!(scheme, trunc, oneloop)
     scheme.T = entanglement_filtering(scheme.T)
     if oneloop == true
         S = ef_oneloop(scheme.T, trunc)
@@ -168,7 +168,8 @@ function step!(scheme, trunc; oneloop=true)
 end
 
 function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit; finalize_beginning=true, verbosity=1)
+              criterion::TNRKit.stopcrit; finalize_beginning=true, oneloop=true,
+              verbosity=1)
     data = []
 
     LoggingExtras.withlevel(; verbosity) do
@@ -180,9 +181,9 @@ function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
         steps = 0
         crit = true
 
-        return t = @elapsed while crit
+        t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme)
+            step!(scheme, trscheme, oneloop)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
