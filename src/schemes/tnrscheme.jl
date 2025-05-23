@@ -25,7 +25,6 @@ function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion
         end
 
         @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
-        # @infov 1 "Elapsed time: $(t)s"
     end
     return data
 end
