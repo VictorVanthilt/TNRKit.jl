@@ -47,7 +47,7 @@ export run!
 
 # models
 include("models/ising.jl")
-export classical_ising, classical_ising_symmetric, potts_βc, ising_βc, f_onsager,
+export classical_ising, classical_ising_symmetric, ising_βc, f_onsager,
        ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D
 
 include("models/gross-neveu.jl")
@@ -55,6 +55,9 @@ export gross_neveu_start
 
 include("models/sixvertex.jl")
 export sixvertex
+
+include("models/potts.jl")
+export classical_potts, classical_potts_symmetric, potts_βc
 
 # utility functions
 include("utility/cft.jl")
