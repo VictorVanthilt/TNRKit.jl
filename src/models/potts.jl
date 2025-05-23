@@ -33,11 +33,9 @@ function weyl_heisenberg_matrices(Q::Int, elt=ComplexF64)
     return U, V, W / sqrt(Q)
 end
 
-
-
 function classical_potts_symmetric(q::Int64, β::Float64)
     V = ℂ^q
-    A_potts = TensorMap(zeros,Float64, V ⊗ V ← V ⊗ V)
+    A_potts = TensorMap(zeros, Float64, V ⊗ V ← V ⊗ V)
     for i in 1:q
         for j in 1:q
             for k in 1:q
@@ -48,10 +46,11 @@ function classical_potts_symmetric(q::Int64, β::Float64)
             end
         end
     end
-    Vp = Vect[ZNIrrep{q}](sector=>1 for sector in 0:q-1)
-    _,_,W = weyl_heisenberg_matrices(q)
-    P   = TensorMap(W,ℂ^q←ℂ^q)
-    A_potts = TensorMap(reshape(((P'⊗P')*A_potts*(P⊗P)).data,(q,q,q,q)), Vp⊗Vp  ←  Vp⊗Vp)
+    Vp = Vect[ZNIrrep{q}](sector => 1 for sector in 0:(q - 1))
+    _, _, W = weyl_heisenberg_matrices(q)
+    P = TensorMap(W, ℂ^q ← ℂ^q)
+    A_potts = TensorMap(reshape(((P' ⊗ P') * A_potts * (P ⊗ P)).data, (q, q, q, q)),
+                        Vp ⊗ Vp ← Vp ⊗ Vp)
     return A_potts
 end
 classical_potts_symmetric(q::Int) = classical_potts_symmetric(q, potts_βc(q))
