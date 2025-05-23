@@ -187,8 +187,8 @@ function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
             steps += 1
             crit = criterion(steps, data)
         end
+        @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     end
-    @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     return data
 end
 
