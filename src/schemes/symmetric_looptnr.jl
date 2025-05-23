@@ -1,7 +1,4 @@
-using TensorKit, TNRKit, Zygote, OptimKit, LoggingExtras
-
-# C4&inversion symmetric LoopTNR described in Fig. S6 of Phys. Rev. Lett. 118, 110504 (2017)
-
+# C4 & inversion symmetric LoopTNR described in Fig. S6 of Phys. Rev. Lett. 118, 110504 (2017)
 mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
@@ -12,7 +9,6 @@ mutable struct SLoopTNR <: TNRScheme
 end
 
 ########## Initial tensor ##########
-
 function classical_ising_inv(β)
     x = cosh(β)
     y = sinh(β)
@@ -24,33 +20,12 @@ function classical_ising_inv(β)
 
     return permute(T, (1, 2, 3, 4))
 end
+classical_ising_inv() = classical_ising_inv(ising_βc)
 
-########## finalize functions ##########
-
+########## utility functions ##########
 function trnorm_2x2(T)
     @tensor TT[-1 -2; -3 -4] := T[1 -1 2 -3] * conj(T[1 -2 2 -4])
     return sqrt(TTtoNorm(TT))
-end
-
-function finalize!(scheme::SLoopTNR)
-    tr_norm = trnorm_2x2(scheme.T)
-    scheme.T /= tr_norm^0.25
-    return tr_norm^0.25
-end
-
-function finalize_cft!(scheme::SLoopTNR; show_cft=true)
-    tr_norm = trnorm_2x2(scheme.T)
-    scheme.T /= tr_norm^0.25
-    Tflip = flip(scheme.T, (1, 2, 3, 4))
-    @tensoropt mat[-1 -2; -3 -4] := scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] *
-                                    Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
-    val, vec = eig(mat)
-    val = sort(real(val).data; rev=true)
-    data = -log.(abs.(val ./ val[1]))/2/π
-    if show_cft
-        @info data[1:6]
-    end
-    return data
 end
 
 ########## Cost function ##########
@@ -93,7 +68,6 @@ function cost_looptnr(S, T)
 end
 
 ########## Gradient Optimization ##########
-
 function fg(f, A)
     f_out, g = Zygote.withgradient(f, A)
 
@@ -110,7 +84,6 @@ function optimize_S(S, T; gradtol=1e-6, optim_maxiter=20000, verbosity=1)
 end
 
 ########## Entanglement filtering ##########
-
 function Ψ_center(T)
     Tflip = flip(T, (1, 2, 3, 4))
     psi = AbstractTensorMap[permute(T, ((2,), (1, 3, 4))),
@@ -150,7 +123,6 @@ function entanglement_filtering(T; trunc=truncbelow(1e-12))
 end
 
 ########## Initialization of loop optimizations ##########
-
 function decompose_T(T, trunc)
     u, s, vt = tsvd(T, (1, 2), (3, 4); trunc)
     return u*sqrt(s)
@@ -181,7 +153,6 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
 end
 
 ########## Updating the tensor ##########
-
 function combine_4S(S)
     Sflip = flip(S, (1, 2))
     @tensor Tnew[-1 -2 -3 -4] := S[1 2; -4] * Sflip[1 4; -3] * S[3 4; -1] * Sflip[3 2; -2]
@@ -189,7 +160,6 @@ function combine_4S(S)
 end
 
 ########## Main funcitons ##########
-
 function step!(scheme, trunc; gradtol=6e-7, optim_maxiter=40000, verbosity=2, oneloop=true,
                return_norm=false)
     scheme.T = entanglement_filtering(scheme.T)
@@ -224,7 +194,6 @@ function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
             crit = criterion(steps, data)
         end
 
-        # @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     end
     return data
 end
