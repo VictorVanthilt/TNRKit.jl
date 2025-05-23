@@ -2,6 +2,7 @@ module TNRKit
 using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
+using OptimKit, Zygote
 using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 
 # stop criteria
@@ -15,22 +16,32 @@ include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
 include("schemes/atrg.jl")
-include("schemes/looptnr.jl")
+include("schemes/atrg3d.jl")
+
+# CTM methods
 include("schemes/c4ctm.jl")
 include("schemes/rctm.jl")
 include("schemes/ctmhotrg.jl")
-include("schemes/atrg3d.jl")
+
+# Loop Methods
+include("schemes/looptnr.jl")
+include("schemes/symmetric_looptnr.jl")
+export classical_ising_inv # Ising model with all legs in codomain
 
 export TNRScheme
+
 export TRG
 export BTRG
 export HOTRG
 export ATRG
-export LoopTNR
+export ATRG_3D
+
 export c4CTM
 export rCTM
 export CTMHOTRG
-export ATRG_3D
+
+export LoopTNR
+export SLoopTNR
 
 export run!
 
