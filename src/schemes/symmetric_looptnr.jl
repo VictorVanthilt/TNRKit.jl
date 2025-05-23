@@ -45,16 +45,16 @@ end
 
 function TTtoNorm(TT)
     V = domain(TT)
-    b = isomorphism(V[1]⊗V[2], V[1]'⊗V[2]')
-    TTb = TT*b
+    b = isomorphism(V[1] ⊗ V[2], V[1]' ⊗ V[2]')
+    TTb = TT * b
     @tensor T4[-1 -2; -3 -4] := TT[-1 -2; 1 2] * TTb[-3 -4; 1 2]
     V = domain(T4)
-    b = isomorphism(V[1]⊗V[2], V[1]'⊗V[2]')
-    T4b = T4*b
+    b = isomorphism(V[1] ⊗ V[2], V[1]' ⊗ V[2]')
+    T4b = T4 * b
     @tensor T8[-1 -2; -3 -4] := T4[-1 -2; 1 2] * T4b[-3 -4; 1 2]
     V = domain(T8)
-    b = isomorphism(V[1]⊗V[2], V[1]'⊗V[2]')
-    return tr(T8*b)
+    b = isomorphism(V[1] ⊗ V[2], V[1]' ⊗ V[2]')
+    return tr(T8 * b)
 end
 
 function cost_looptnr(S, T)
@@ -64,7 +64,7 @@ function cost_looptnr(S, T)
     @tensor TSS[-1 -2; -3 -4] := T[1 -1 2 -3] * conj(SS[1 -2 2 -4])
     @tensor S4[-1 -2; -3 -4] := SS[1 -1 2 -3] * conj(SS[1 -2 2 -4])
     # T
-    return TTtoNorm(TT)+TTtoNorm(S4)-2*TTtoNorm(TSS)
+    return TTtoNorm(TT) + TTtoNorm(S4) - 2 * TTtoNorm(TSS)
 end
 
 ########## Gradient Optimization ##########
@@ -79,7 +79,7 @@ function optimize_S(S, T; gradtol=1e-6, optim_maxiter=20000, verbosity=1)
     opt_fg(x) = fg(opt_fun, x)
     Sopt, fx, gx, numfg, normgradhistory = optimize(opt_fg, S,
                                                     LBFGS(10; verbosity, gradtol,
-                                                          maxiter=optim_maxiter));
+                                                          maxiter=optim_maxiter))
     return Sopt
 end
 
@@ -109,11 +109,11 @@ function entanglement_filtering(T; trunc=truncbelow(1e-12))
     psi_center = Ψ_center(T)
     psi_corner = Ψ_corner(T)
 
-    PR_list, PL_list = TNRKit.find_projectors(psi_center, entanglement_criterion, trunc);
+    PR_list, PL_list = TNRKit.find_projectors(psi_center, entanglement_criterion, trunc)
     P_bottom = PL_list[1]
     P_right = PL_list[1]
 
-    PR_list, PL_list = TNRKit.find_projectors(psi_corner, entanglement_criterion, trunc);
+    PR_list, PL_list = TNRKit.find_projectors(psi_corner, entanglement_criterion, trunc)
     P_top = PL_list[3]
     P_left = PL_list[3]
 
@@ -125,7 +125,7 @@ end
 ########## Initialization of loop optimizations ##########
 function decompose_T(T, trunc)
     u, s, vt = tsvd(T, (1, 2), (3, 4); trunc)
-    return u*sqrt(s)
+    return u * sqrt(s)
 end
 
 function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
@@ -163,7 +163,7 @@ end
 function step!(scheme, trunc; gradtol=6e-7, optim_maxiter=40000, verbosity=2, oneloop=true,
                return_norm=false)
     scheme.T = entanglement_filtering(scheme.T)
-    if oneloop==true
+    if oneloop == true
         S = ef_oneloop(scheme.T, trunc)
     else
         S = decompose_T(scheme.T, trunc)
@@ -193,7 +193,6 @@ function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
             steps += 1
             crit = criterion(steps, data)
         end
-
     end
     return data
 end

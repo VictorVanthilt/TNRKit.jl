@@ -93,7 +93,7 @@ function finalize_cft!(scheme::SLoopTNR)
                                     Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
     val, vec = eig(mat)
     val = sort(real(val).data; rev=true)
-    data = -log.(abs.(val ./ val[1]))/2/π
+    data = -log.(abs.(val ./ val[1])) / 2 / π
     return data
 end
 
@@ -102,4 +102,3 @@ function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
     return central_charge(scheme, n)
 end
-
