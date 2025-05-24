@@ -116,6 +116,18 @@ end
     @test relerror < 1e-4
 end
 
+@testset "SLoopTNR - Ising Model" begin
+    T = classical_ising_inv()
+    scheme = SLoopTNR(T)
+
+    data = run!(scheme, truncdim(4), maxiter(25))
+
+    fs = free_energy(data, ising_βc)
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 1e-5
+end
+
 # CTMHOTRG
 @testset "CTMHOTRG - Ising Model" begin
     Z = InfinitePartitionFunction(T)

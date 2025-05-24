@@ -64,16 +64,16 @@ function finalize!(scheme::ATRG_3D)
     return n
 end
 
+function finalize!(scheme::SLoopTNR)
+    tr_norm = trnorm_2x2(scheme.T)
+    scheme.T /= tr_norm^0.25
+    return tr_norm^0.25
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
     return cft_data(scheme; is_real=true)
-end
-
-# central charge finalize
-function finalize_central_charge!(scheme::TNRScheme)
-    n = finalize!(scheme)
-    return central_charge(scheme, n)
 end
 
 function finalize_cftdata!(scheme::CTMHOTRG)
@@ -83,4 +83,22 @@ function finalize_cftdata!(scheme::CTMHOTRG)
     scheme.T[1] = permute(scheme.T[1], ((3, 1), (4, 2)))
     scheme.E = PEPSKit.rotate_north(scheme.E, 2)
     return cft_data(TRG(scheme.T[1]); is_real=false)
+end
+
+function finalize_cft!(scheme::SLoopTNR)
+    tr_norm = trnorm_2x2(scheme.T)
+    scheme.T /= tr_norm^0.25
+    Tflip = flip(scheme.T, (1, 2, 3, 4))
+    @tensoropt mat[-1 -2; -3 -4] := scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] *
+                                    Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
+    val, vec = eig(mat)
+    val = sort(real(val).data; rev=true)
+    data = -log.(abs.(val ./ val[1])) / 2 / π
+    return data
+end
+
+# central charge finalize
+function finalize_central_charge!(scheme::TNRScheme)
+    n = finalize!(scheme)
+    return central_charge(scheme, n)
 end
