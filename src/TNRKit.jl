@@ -19,9 +19,11 @@ include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
 
 # CTM methods
-include("schemes/c4ctm.jl")
-include("schemes/rctm.jl")
-include("schemes/ctmhotrg.jl")
+include("schemes/ctm/utility.jl")
+include("schemes/ctm/c4ctm.jl")
+include("schemes/ctm/rctm.jl")
+include("schemes/ctm/ctm_trg.jl")
+include("schemes/ctm/ctm_hotrg.jl")
 
 # Loop Methods
 include("schemes/looptnr.jl")
@@ -38,7 +40,8 @@ export ATRG_3D
 
 export c4CTM
 export rCTM
-export CTMHOTRG
+export ctm_TRG
+export ctm_HOTRG
 
 export LoopTNR
 export SLoopTNR
