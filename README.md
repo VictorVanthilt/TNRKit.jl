@@ -14,7 +14,9 @@ The following schemes are currently implemented:
 - ATRG_3D (3D ATRG)
 - HOTRG (higher order TRG)
 - LoopTNR (entanglement filtering + loop optimization)
-- CTMHOTRG (Corner Transfer Matrix environment + HOTRG)
+- SLoopTNR (C4 & inversion symmetric LoopTNR)
+- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
+- ctm_TRG (Corner Transfer Matrix environment + TRG)
 - c4CTM (c4 symmetric CTM)
 - rCTM (reflection symmetric CTM)
 
