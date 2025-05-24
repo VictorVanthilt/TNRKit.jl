@@ -1,6 +1,3 @@
-using TNRKit, TensorKit
-include("oblique_projector.jl")
-
 mutable struct ctm_TRG{A,S} <: TNRScheme
     T::TensorMap{A,S,2,2}
     C2::TensorMap{A,S,1,1}
@@ -27,15 +24,6 @@ mutable struct ctm_TRG{A,S} <: TNRScheme
     end
 end
 
-function tr_tensor(T; inv=false)
-    if inv
-        @tensoropt tr4 = T[1 2; 3 4] * conj(T[5 2; 3 6]) * conj(T[1 7; 8 4]) * T[5 7; 8 6]
-        return (abs(tr4))^(1 / 4)
-    else
-        return @tensor T[1 2; 2 1]
-    end
-end
-
 function corner_matrix(scheme::ctm_TRG)
     @tensor opt = true mat[-1 -2; -3 -4] := scheme.E1[-1 3; 1] * scheme.C2[1; 2] *
                                             scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
@@ -46,19 +34,6 @@ function find_UVt(scheme::ctm_TRG, trunc)
     mat = corner_matrix(scheme)
     U, S, Vt = tsvd(mat; trunc=trunc & truncbelow(1e-20))
     return mat, U, S, Vt
-end
-
-function rctm_step!(scheme; truc=truncdim(dim(scheme.C2.space.domain)))
-    mat, U, S, Vt = find_UVt(scheme, truncdim(16))
-    scheme.C2 = adjoint(U) * mat * adjoint(Vt)
-    @tensor opt = true scheme.E1[-1 -2; -3] := scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] *
-                                               U[3 4; -3] * conj(U[1 2; -1])
-    @tensor opt = true scheme.E2[-1 -2; -3] := scheme.E2[1 5; 3] * scheme.T[-2 4; 2 5] *
-                                               conj(Vt[-3; 3 4]) * Vt[-1; 1 2]
-    scheme.C2 /= norm(scheme.C2)
-    scheme.E1 /= norm(scheme.E1)
-    scheme.E2 /= norm(scheme.E2)
-    return S
 end
 
 function Levin_decomposition(T, trunc;)
@@ -93,7 +68,7 @@ end
 
 # find the projector for bundling two bonds in the vertical and horizontal directions
 # I checked the modified version provides the same accuracy for free energy. (and cheaper)
-# I persue this becuase this is compatible with entanglement filtering
+# I pursue this because this is compatible with entanglement filtering
 function hotrg_projector(scheme, trunc; modified=true)
     if modified
         return hotrg_projector_modified(scheme, trunc)
@@ -109,7 +84,7 @@ function hotrg_projector(scheme, trunc; modified=true)
 end
 
 function hotrg_projector_modified(scheme, trunc)
-    @tensor mat[-1; -2 -3] := scheme.E1[-1; -2 1]*scheme.C2[1; -3]
+    @tensor mat[-1; -2 -3] := scheme.E1[-1; -2 1] * scheme.C2[1; -3]
     math2 = adjoint(mat) * mat
     Ph1, Ph2 = find_P1P2(math2, adjoint(math2), (1, 3), (3, 1), trunc)
 
@@ -120,16 +95,16 @@ function hotrg_projector_modified(scheme, trunc)
 end
 
 function step!(scheme::ctm_TRG,
-               trunc;
+               trunc::TensorKit.TruncationScheme, ;
                sweep=30,
-               χenv=dim(scheme.C2.space.domain),
                enlarge=true,
                inv=false,
                modified=true,)
+    χenv = dim(scheme.C2.space.domain)
     S1, S2 = insert_PtoS(scheme, trunc; enlarge=enlarge)
     Pv1, Pv2, Ph1, Ph2 = hotrg_projector(scheme, trunc; modified)
-    # My apologies for the unreadable contraction
-    # It just conbines tensors and projectors to build the new tensor
+    # My apologies for the unreadable contraction ~ A.U.
+    # It just combines tensors and projectors to build the new tensor
     @tensoropt Tnew[-1 -2; -3 -4] := Pv1[2 3; -1] *
                                      S2[13; 1 3] *
                                      conj(S2[16; 1 2]) *
@@ -161,8 +136,8 @@ function step!(scheme::ctm_TRG,
 end
 
 function run!(scheme::ctm_TRG,
-              trunc,
-              criterion;
+              trunc::TensorKit.TruncationScheme,
+              criterion::maxiter;
               sweep=30,
               enlarge=true,
               return_cft=false,
@@ -173,7 +148,9 @@ function run!(scheme::ctm_TRG,
     lnz = 0.0
     cft = []
 
-    for i in 1:criterion.n
+    steps = 0
+    crit = true
+    while crit
         area *= 4.0
         tr_norm = step!(scheme, trunc; sweep=sweep, enlarge=enlarge, inv=inv, modified)
         lnz += log(tr_norm) / area
@@ -181,9 +158,11 @@ function run!(scheme::ctm_TRG,
             push!(cft, cft_data(scheme; unitcell=2))
         end
         if abs(log(abs(tr_norm)) / area) <= conv_criteria
-            @info "CTM-TRG converged after $i iterations!"
+            @info "CTM-TRG converged after $steps iterations"
             break
         end
+        steps += 1
+        crit = criterion(steps, nothing)
     end
     if return_cft
         return lnz, cft

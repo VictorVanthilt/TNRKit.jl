@@ -40,3 +40,25 @@ function oblique_projector(R1, R2, trunc; cutoff=1e-16)
     P2 = adjoint(adjoint(P2) / adjoint(sqrt(S)))
     return P1, P2
 end
+
+function tr_tensor(T; inv=false)
+    if inv
+        @tensoropt tr4 = T[1 2; 3 4] * conj(T[5 2; 3 6]) * conj(T[1 7; 8 4]) * T[5 7; 8 6]
+        return (abs(tr4))^(1 / 4)
+    else
+        return @tensor T[1 2; 2 1]
+    end
+end
+
+function rctm_step!(scheme; trunc=truncdim(dim(space(scheme.C2, 1))))
+    mat, U, S, Vt = find_UVt(scheme, trunc)
+    scheme.C2 = adjoint(U) * mat * adjoint(Vt)
+    @tensor opt = true scheme.E1[-1 -2; -3] := scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] *
+                                               U[3 4; -3] * conj(U[1 2; -1])
+    @tensor opt = true scheme.E2[-1 -2; -3] := scheme.E2[1 5; 3] * scheme.T[-2 4; 2 5] *
+                                               conj(Vt[-3; 3 4]) * Vt[-1; 1 2]
+    scheme.C2 /= norm(scheme.C2)
+    scheme.E1 /= norm(scheme.E1)
+    scheme.E2 /= norm(scheme.E2)
+    return S
+end
