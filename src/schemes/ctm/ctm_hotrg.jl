@@ -18,7 +18,7 @@ mutable struct ctm_HOTRG{A,S} <: TNRScheme
         @info "Finding the environment using rCTM..."
         run!(scheme_init,
              truncdim(χenv),
-             trivial_convcrit(ctm_tol) & maxiter(ctm_iter);
+             ctm_tol & ctm_iter;
              verbosity=0,)
         @info "rCTM finished"
         C2, E1, E2 = scheme_init.C2, scheme_init.E1, scheme_init.E2
@@ -132,4 +132,13 @@ function run!(scheme::ctm_HOTRG,
     else
         return lnz
     end
+end
+
+function Base.show(io::IO, scheme::ctm_HOTRG)
+    println(io, "ctm_HOTRG - Corner Transfer Matrix Environment + HOTRG")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * C: $(summary(scheme.C2))")
+    println(io, "  * E: $(summary(scheme.E1))")
+    println(io, "  * E: $(summary(scheme.E2))")
+    return nothing
 end

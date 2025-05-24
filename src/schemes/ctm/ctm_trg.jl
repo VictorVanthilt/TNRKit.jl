@@ -170,3 +170,12 @@ function run!(scheme::ctm_TRG,
         return lnz
     end
 end
+
+function Base.show(io::IO, scheme::ctm_TRG)
+    println(io, "ctm_TRG - Corner Transfer Matrix Environment + TRG")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * C: $(summary(scheme.C2))")
+    println(io, "  * E: $(summary(scheme.E1))")
+    println(io, "  * E: $(summary(scheme.E2))")
+    return nothing
+end
