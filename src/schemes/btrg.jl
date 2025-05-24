@@ -1,3 +1,28 @@
+"""
+$(TYPEDEF)
+
+Bond-weighted Tensor Renormalization Group
+
+### Constructors
+    $(FUNCTIONNAME)(T [, k=-1/2, finalize=finalize!])
+
+### Running the algorithm
+    run!(::BTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, verbosity=1])
+
+Each step rescales the lattice by a (linear) factor of √2
+
+!!! info "verbosity levels"
+    - 0: No output
+    - 1: Print information at start and end of the algorithm
+    - 2: Print information at each step
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachi_bond-weighted_2022)
+"""
 mutable struct BTRG <: TNRScheme
     T::TensorMap
     S1::TensorMap
