@@ -4,7 +4,7 @@ function ind_pair(T::AbstractTensorMap, p::Tuple)
 end
 
 # QR decomposition
-function R1R2(A1, A2, p1, p2; check_space = true)
+function R1R2(A1, A2, p1, p2; check_space=true)
     p, q1 = ind_pair(A1, p1)
     _, RA1 = leftorth(A1, q1, p1;)
     p, q2 = ind_pair(A2, p2)
@@ -26,19 +26,17 @@ end
    └──┘        └──┘   
 =#
 
-
-function find_P1P2(A1, A2, p1, p2, trunc; check_space = true)
-    R1, R2 = R1R2(A1, A2, p1, p2; check_space = check_space)
+function find_P1P2(A1, A2, p1, p2, trunc; check_space=true)
+    R1, R2 = R1R2(A1, A2, p1, p2; check_space=check_space)
     return oblique_projector(R1, R2, trunc)
 end
 
-function oblique_projector(R1, R2, trunc;cutoff = 1e-16)
+function oblique_projector(R1, R2, trunc; cutoff=1e-16)
     mat = R1 * R2
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(cutoff))
+    U, S, Vt = tsvd(mat; trunc=trunc & truncbelow(cutoff))
 
     P1 = R2 * adjoint(Vt) / sqrt(S)
     P2 = adjoint(U) * R1
     P2 = adjoint(adjoint(P2) / adjoint(sqrt(S)))
     return P1, P2
 end
-
