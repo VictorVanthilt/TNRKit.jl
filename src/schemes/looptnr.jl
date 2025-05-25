@@ -131,9 +131,10 @@ function find_L(psi::Array, entanglement_criterion::stopcrit)
     while crit
         last_L1 = L_list[1]
         for pos in 1:n
-            L_list[mod(pos,n)+1]= QR_L(L_list[pos], psi[pos])
+            pos_next = mod(pos,n)+1
+            L_list[pos_next]= QR_L(L_list[pos], psi[pos])
+            L_list[pos_next] = L_list[pos_next] / norm(L_list[pos_next],Inf)
         end
-        L_list[1] = L_list[1] / norm(L_list[1],Inf)
 
         if space(L_list[1]) == space(last_L1)
             push!(error, abs(norm(L_list[1] - last_L1)))
@@ -156,9 +157,10 @@ function find_R(psi::Array, entanglement_criterion::stopcrit)
     while crit
         last_Rend = R_list[end]
         for pos in 1:n
-            R_list[mod(pos-2,n)+1] = QR_R(R_list[pos], psi[pos])
+            pos_last = mod(pos-2,n)+1
+            R_list[pos_last] = QR_R(R_list[pos], psi[pos])
+            R_list[pos_last] = R_list[pos_last] / norm(R_list[pos_last],Inf)
         end
-        R_list[end] = R_list[end] / norm(R_list[end],Inf)
 
         if space(R_list[end]) == space(last_Rend)
             push!(error, abs(norm(R_list[end] - last_Rend)))
@@ -188,6 +190,8 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     PL_list = Vector(undef, n)
     L_list = find_L(psi, entanglement_criterion)
     R_list = find_R(psi, entanglement_criterion)
+
+    @show norm.(L_list)
 
     for i in 1:n
         PR_list[mod(i-2,n)+1], PL_list[i] = P_decomp(R_list[mod(i-2,4)+1], L_list[i], trunc)
@@ -272,7 +276,9 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
-    
+    @show norm(PL_list[1])
+    @show norm(PR_list[1])
+
     @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PL_list[1][-1; 1] * PR_list[1][2; -2] * PR_list[3][3; -3] * PL_list[3][-4; 4]
     @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PR_list[2][1; -1] *
                                        PL_list[4][-2; 2] * PL_list[2][-3; 3] *
