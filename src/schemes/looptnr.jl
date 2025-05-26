@@ -344,7 +344,7 @@ end
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
-    psi_B = Ψ_B_oneloop(scheme, trunc)
+    psi_B = Ψ_B(scheme, trunc)
 
     cost = ComplexF64[Inf]
     sweep = 0
