@@ -321,8 +321,7 @@ function to_number(tensor_list)
         cont = cont * tensor_list[i]
     end
 
-    @planar num = cont[d u; d u]
-    return num
+    return tr(cont)
 end
 
 function cost_func(psiApsiA, psiBpsiB, psiBpsiA)
