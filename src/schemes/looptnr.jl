@@ -344,50 +344,11 @@ function tN(pos, psiBpsiB)
     return BB
 end
 
-function to_W(loop_T_array, loop_S_array, loop_TSS_array, S_site::Int)
-    T_site = to_T_site(S_site)
-
-    site = next(T_site)
-
-    TSS = loop_TSS_array[site]
-    for i = 1:2
-        site = next(site)
-        @planar temp[ld lu; rd ru] := TSS[ld lu; md mu] * loop_TSS_array[site][md mu; rd ru]
-        TSS = temp
-    end
-
-    if S_site in (2, 4, 6, 8)
-        S_site_comp = S_site - 1
-        @planar TS[ld lu; rd r ru] := loop_T_array[T_site][ld l r rd] * loop_S_array[S_site_comp]'[(); lu l ru]
-        #---lu-S†-ru---
-        #      |   
-        #      |   |
-        #      l   r
-        #       \ /     
-        #---ld---T--rd----
-        @planar W[l u r] := TS[ld lu; md u l] * TSS[md r; ld lu]
-        
-    elseif S_site in (1, 3, 5, 7)
-        S_site_comp = S_site + 1
-        @planar TS[ld l lu; rd ru] := loop_T_array[T_site][ld l r rd] * loop_S_array[S_site_comp]'[(); lu r ru]
-        #    ---lu-S†-ru--
-        #          |   
-        #      |   |
-        #      l   r
-        #       \ /     
-        #----ld--T--rd----
-        @planar W[l u r] := TS[ld u r; md mu] * TSS[md mu; ld l]
-
-    end
-
-    return W
-end
-
 function tW(pos, psiA, psiB, psiBpsiA)
-    pos_psi_A = (pos-1)÷2+1
-    ΨA = psiA[pos_psi_A]
+    pos_psiA = (pos-1)÷2+1
+    ΨA = psiA[pos_psiA]
 
-    next_a = mod(pos_psi_A, 4) + 1
+    next_a = mod(pos_psiA, 4) + 1
     tmp = psiBpsiA[next_a]
     for i in 1:2
         site = mod(next_a,4) + 1
@@ -397,19 +358,21 @@ function tW(pos, psiA, psiB, psiBpsiA)
     if pos % 2 == 0
         ΨB = psiB[pos - 1]
         #--2---ΨB--1'-   --2'---------2--
-        #      |       |         t
-        #      4       3'        m
-        #       |     |          p
-        #        |   |           |
+        #      |       |         |
+        #      4       3'        t
+        #       |     |          m
+        #        |   |           p
+        #         | |            |
         #---3------ΨA------1----------3--
         @planar W[-1; -2 -3] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
         ΨB = psiB[pos + 1]
         #-1'--   --2'--ΨB--2----------1'-
-        #      |       |         t
-        #      3'      4         m
-        #       |     |          p
-        #        |   |           |
+        #      |       |         |
+        #      3'      4         t
+        #       |     |          m
+        #        |   |           p
+        #         | |            |
         #---3------ΨA------1----------3--
         @planar W[-1; -2 -3] := ΨB'[2 4; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
@@ -419,7 +382,7 @@ end
 
 function opt_T(N, W, psi)
     function apply_f(x::TensorMap)
-        @tensor b[-1; -2 -3] := N[-3 2; -1 1] * x[1; -2 2]
+        @tensor b[-1; -2 -3] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
     new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10, verbosity=0)
@@ -428,40 +391,50 @@ end
 
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
-    psi_A = Ψ_A(scheme)
-    psi_B = Ψ_B(scheme, trunc)
+    psiA = Ψ_A(scheme)
+    psiB = Ψ_B(scheme, trunc)
+    psiBpsiB = ΨBΨB(psiB)
+    psiBpsiA = ΨBΨA(psiB, psiA)
+    psiApsiA = ΨAΨA(psiA)
 
     cost = ComplexF64[Inf]
     sweep = 0
     crit = true
     while crit
         for i in 1:8
-            N = tN(i, psi_B)
-            W = tW(i, psi_A, psi_B)
-            new_T = opt_T(N, W, psi_B[i])
-            psi_B[i] = new_T
+            N = tN(i, psiBpsiB)
+            W = tW(i, psiA, psiB, psiBpsiA)
+            new_S = opt_T(N, W, psiB[i])
+            psiB[i] = new_S
+
+            @planar SS[-1 -2; -3 -4] := new_S[-2; 1 -4] * new_S'[1 -3; -1]
+            psiBpsiB[i] = SS
+
+            pos_psiA = (i-1)÷2+1
+            @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[-1; 1 3] * psiB[2*pos_psiA]'[3; 2 -3] * psiA[pos_psiA][-2; 1 2 -4]
+            psiBpsiA[pos_psiA] = TSS
         end
         sweep += 1
-        push!(cost, cost_func(1, psi_A, psi_B))
+        push!(cost, cost_func(psiApsiA, psiBpsiB, psiBpsiA))
         if verbosity > 1
             @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
         end
         crit = loop_criterion(sweep, cost)
     end
 
-    Ψ5 = psi_B[5]
-    Ψ8 = psi_B[8]
-    Ψ1 = psi_B[1]
-    Ψ4 = psi_B[4]
+    Ψ5 = psiB[5]
+    Ψ8 = psiB[8]
+    Ψ1 = psiB[1]
+    Ψ4 = psiB[4]
 
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+    @planar scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
-    Ψ2 = psi_B[2]
-    Ψ3 = psi_B[3]
-    Ψ6 = psi_B[6]
-    Ψ7 = psi_B[7]
+    Ψ2 = psiB[2]
+    Ψ3 = psiB[3]
+    Ψ6 = psiB[6]
+    Ψ7 = psiB[7]
 
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @planar scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
