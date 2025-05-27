@@ -63,7 +63,7 @@ function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
     temp = transpose(LT, (3,2,1), (4,))
     _, Rt = leftorth(temp,)
-    return Rt
+    return Rt/norm(Rt, Inf)
 end
 
 """
@@ -80,7 +80,7 @@ end
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
     Lt, _ = rightorth(TR,)
-    return Lt
+    return Lt/norm(Lt, Inf)
 end
 
 """
@@ -96,9 +96,9 @@ end
 """
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
-    temp = transpose(LT, (1, 2), (3,))
+    temp = transpose(LT, (2, 1), (3,))
     _, Rt = leftorth(temp,)
-    return Rt
+    return Rt/norm(Rt, Inf)
 end
 
 
@@ -116,7 +116,7 @@ end
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
     Lt, _ = rightorth(TR,)
-    return Lt
+    return Lt/norm(Lt, Inf)
 end
 
 #Functions to find the array of left and right projectors
@@ -129,15 +129,12 @@ function find_L(psi::Array, entanglement_criterion::stopcrit)
     steps = 0
     error = [Inf]
     while crit
-        last_L1 = L_list[1]
-        for pos in 1:n
-            pos_next = mod(pos,n)+1
-            L_list[pos_next]= QR_L(L_list[pos], psi[pos])
-            L_list[pos_next] = L_list[pos_next] / norm(L_list[pos_next],Inf)
-        end
+        pos_next = mod(pos,n)+1
+        L_last_time = L_list[pos_next]
+        L_list[pos_next]= QR_L(L_list[pos], psi[pos])
 
-        if space(L_list[1]) == space(last_L1)
-            push!(error, abs(norm(L_list[1] - last_L1)))
+        if space(L_list[pos_next]) == space(L_last_time)
+            push!(error, abs(norm(L_list[pos_next] - L_last_time)))
         end
 
         steps += 1
@@ -155,15 +152,12 @@ function find_R(psi::Array, entanglement_criterion::stopcrit)
     steps = 0
     error = [Inf]
     while crit
-        last_Rend = R_list[end]
-        for pos in 1:n
-            pos_last = mod(pos-2,n)+1
-            R_list[pos_last] = QR_R(R_list[pos], psi[pos])
-            R_list[pos_last] = R_list[pos_last] / norm(R_list[pos_last],Inf)
-        end
+        pos_last = mod(pos-2,n)+1
+        R_last_time = R_list[pos_last]
+        R_list[pos_last] = QR_R(R_list[pos], psi[pos])
 
-        if space(R_list[end]) == space(last_Rend)
-            push!(error, abs(norm(R_list[end] - last_Rend)))
+        if space(R_list[end]) == space(R_last_time)
+            push!(error, abs(norm(R_list[end] - R_last_time)))
         end
 
         steps += 1
@@ -191,7 +185,6 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     L_list = find_L(psi, entanglement_criterion)
     R_list = find_R(psi, entanglement_criterion)
 
-    @show norm.(L_list)
 
     for i in 1:n
         PR_list[mod(i-2,n)+1], PL_list[i] = P_decomp(R_list[mod(i-2,4)+1], L_list[i], trunc)
@@ -203,7 +196,7 @@ end
 
 function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
     L = id(codomain(phi[1])[1])
-    R = id(domain(phi[end]).spaces[end]')
+    R = id(domain(phi[end]).spaces[end])
     for i in 1:pos
         L = QR_L(L, phi[i])
     end
@@ -215,9 +208,10 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
 end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T, ((1, 2), (3, 4)); trunc=trunc)
-    @tensor S1[-1; -2 -3] := U[-1 -2; 1] * sqrt(s)[1; -3]
-    @tensor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
+    T_trans = transpose(T, (2,1), (3,4))
+    U, s, V, _ = tsvd(T_trans; trunc=trunc)
+    @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
+    @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 
@@ -235,30 +229,10 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
     PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
 
-    ΨB_disentangled = []
     for i in 1:8
-        @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
+        @planar B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
                                  PR_list[mod(i, 8) + 1][2; -3]
-        push!(ΨB_disentangled, B1)
-    end
-    return ΨB_disentangled
-end
-
-function Ψ_B_oneloop(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    ΨA = Ψ_A(scheme)
-    ΨB = []
-
-    for i in 1:4
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        phi = copy(ΨA)
-        deleteat!(phi, i)
-        insert!(phi, i, s1)
-        insert!(phi, i + 1, s2)
-        PR, PL = one_loop_projector(phi, i, trunc)
-        @tensor B1[-1; -2 -3] := s1[-1; -2 1] * PR[1; -3]
-        @tensor B2[-1; -2 -3] := PL[-1; 1] * s2[1; -2 -3]
-        push!(ΨB, B1)
-        push!(ΨB, B2)
+        ΨB[i] = B1
     end
     return ΨB
 end
@@ -276,8 +250,6 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
-    @show norm(PL_list[1])
-    @show norm(PR_list[1])
 
     @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PL_list[1][-1; 1] * PR_list[1][2; -2] * PR_list[3][3; -3] * PL_list[3][-4; 4]
     @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PR_list[2][1; -1] *
@@ -292,102 +264,154 @@ function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationSch
 end
 #cost functions
 
-function const_C(psiA)
-    @tensor tmp[-1 -2; -3 -4] := psiA[1][-2; 1 2 -4] * conj(psiA[1][-1; 1 2 -3])
-    for i in 2:4
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * psiA[i][2; 3 4 -4] *
-                                     conj(psiA[i][1; 3 4 -3])
+"""
+---1'--A--3'---
+      | |
+      1 2
+      | |
+---2'--A--4'---
+"""
+function ΨAΨA(psiA)
+    ΨAΨA_list = []
+    for i in 1:4
+        @planar tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
+        push!(ΨAΨA_list, temp)
     end
-    return @tensor tmp[1 2; 1 2]
+    return ΨAΨA_list
 end
 
-function TNT(pos, psiB)
-    @tensor tmp[-1 -2; -3 -4] := psiB[mod(pos, 8) + 1][-2; 1 -4] *
-                                 conj(psiB[mod(pos, 8) + 1][-1; 1 -3])
-    for i in (pos + 1):(pos + 7)
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * psiB[mod(i, 8) + 1][2; 3 -4] *
-                                     conj(psiB[mod(i, 8) + 1][1; 3 -3])
+"""
+---1'--B--3'---
+       |
+       1
+       |
+---2'--B--4'---
+"""
+function ΨBΨB(psiB)
+    ΨBΨB_list = []
+    for i in 1:8
+        @planar tmp[-1 -2; -3 -4] := psiB[i][-2; 1 -4] * psiB[i]'[1 -3; -1]
+        push!(ΨBΨB_list, tmp)
     end
-    return @tensor tmp[1 2; 1 2]
+    return ΨBΨB_list
 end
 
-function WdT(pos, psiA, psiB)
-    next_a = mod(ceil(Int, pos / 2), 4) + 1
-    next_b = mod(2 * ceil(Int, pos / 2) + 1, 8)
-
-    @tensor tmp[-1 -2; -3 -4] := psiA[next_a][-2; 1 2 -4] * conj(psiB[next_b][-1; 1 3]) *
-                                 conj(psiB[next_b + 1][3; 2 -3])
-    for i in next_a:(next_a + 2)
-        ΨA = psiA[mod(i, 4) + 1]
-        ΨB1 = psiB[2 * (mod(i, 4) + 1) - 1]
-        ΨB2 = psiB[2 * (mod(i, 4) + 1)]
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * ΨA[2; 3 4 -4] * conj(ΨB1[1; 3 5]) *
-                                     conj(ΨB2[5; 4 -3])
+"""
+---1'--B-3-B--3'---
+       |   |
+       1   2
+        | |
+---2'----A----4'---
+"""
+function ΨBΨA(psiB, psiA)
+    ΨBΨA_list = []
+    for i in 1:4
+        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[-1; 1 3] * psiB[2*i]'[3; 2 -3] * psiA[i][-2; 1 2 -4]
+        push!(ΨBΨA_list, temp)
     end
-
-    return @tensor tmp[1 2; 1 2]
+    return ΨBΨA_list
 end
 
-function dWT(pos, psiA, psiB)
-    next_a = mod(ceil(Int, pos / 2), 4) + 1
-    next_b = mod(2 * ceil(Int, pos / 2) + 1, 8)
-
-    @tensor tmp[-1 -2; -3 -4] := psiB[next_b][-2; 1 2] * psiB[next_b + 1][2; 3 -4] *
-                                 conj(psiA[next_a][-1; 1 3 -3])
-    for i in next_a:(next_a + 2)
-        ΨA = psiA[mod(i, 4) + 1]
-        ΨB1 = psiB[2 * (mod(i, 4) + 1) - 1]
-        ΨB2 = psiB[2 * (mod(i, 4) + 1)]
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * ΨB1[2; 3 4] * ΨB2[4; 5 -4] *
-                                     conj(ΨA[1; 3 5 -3])
+function to_number(tensor_list)
+    cont = tensor_list[1]
+    for i in 2:length(loop_array)
+        cont = cont * tensor_list[i]
     end
 
-    return @tensor tmp[1 2; 1 2]
+    @planar num = cont[d u; d u]
+    return num
 end
 
-function cost_func(pos, psiA, psiB)
-    C = const_C(psiA)
-    tNt = TNT(pos, psiB)
-    wdt = WdT(pos, psiA, psiB)
-    dwt = dWT(pos, psiA, psiB)
+function cost_func(psiApsiA, psiBpsiB, psiBpsiA)
+    C = to_number(psiApsiA)
+    tNt = to_number(psiBpsiB)
+    tdw = to_number(psiBpsiA)
+    wdt = conj(tdw)
 
-    return C + tNt - wdt - dwt
+    return (C + tNt - wdt - tdw)/C
 end
 
 #Optimisation functions
 
-function tN(pos, psiB)
-    @tensor tmp[-1 -2; -3 -4] := psiB[mod(pos, 8) + 1][-2; 1 -4] *
-                                 conj(psiB[mod(pos, 8) + 1][-1 1; -3])
-    for i in (pos + 1):(pos + 6)
-        ΨB = psiB[mod(i, 8) + 1]
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * ΨB[2; 3 -4] * conj(ΨB[1; 3 -3])
+function tN(pos, psiBpsiB)
+    n = length(psiBpsiB)
+    pos = mod(pos, n) + 1
+    BB = psiBpsiB[next_pos]
+    for i in 2:(n-1)
+        pos = mod(pos, 8) + 1
+        BB = BB * psiBpsiB[pos]
     end
-    return tmp
+    return BB
 end
 
-function tW(pos, psiA, psiB)
-    next_a = mod(ceil(Int, pos / 2), 4) + 1
-    next_b = mod(2 * ceil(Int, pos / 2) + 1, 8)
+function to_W(loop_T_array, loop_S_array, loop_TSS_array, S_site::Int)
+    T_site = to_T_site(S_site)
 
-    @tensor tmp[-1 -2; -3 -4] := psiA[next_a][-2; 1 2 -4] * conj(psiB[next_b][-1; 1 3]) *
-                                 conj(psiB[next_b + 1][3; 2 -3])
-    for i in next_a:(next_a + 1)
-        ΨA = psiA[mod(i, 4) + 1]
-        ΨB1 = psiB[2 * (mod(i, 4) + 1) - 1]
-        ΨB2 = psiB[2 * (mod(i, 4) + 1)]
-        @tensor tmp[-1 -2; -3 -4] := tmp[-1 -2; 1 2] * ΨA[2; 3 4 -4] * conj(ΨB1[1; 3 5]) *
-                                     conj(ΨB2[5; 4 -3])
+    site = next(T_site)
+
+    TSS = loop_TSS_array[site]
+    for i = 1:2
+        site = next(site)
+        @planar temp[ld lu; rd ru] := TSS[ld lu; md mu] * loop_TSS_array[site][md mu; rd ru]
+        TSS = temp
+    end
+
+    if S_site in (2, 4, 6, 8)
+        S_site_comp = S_site - 1
+        @planar TS[ld lu; rd r ru] := loop_T_array[T_site][ld l r rd] * loop_S_array[S_site_comp]'[(); lu l ru]
+        #---lu-S†-ru---
+        #      |   
+        #      |   |
+        #      l   r
+        #       \ /     
+        #---ld---T--rd----
+        @planar W[l u r] := TS[ld lu; md u l] * TSS[md r; ld lu]
+        
+    elseif S_site in (1, 3, 5, 7)
+        S_site_comp = S_site + 1
+        @planar TS[ld l lu; rd ru] := loop_T_array[T_site][ld l r rd] * loop_S_array[S_site_comp]'[(); lu r ru]
+        #    ---lu-S†-ru--
+        #          |   
+        #      |   |
+        #      l   r
+        #       \ /     
+        #----ld--T--rd----
+        @planar W[l u r] := TS[ld u r; md mu] * TSS[md mu; ld l]
+
+    end
+
+    return W
+end
+
+function tW(pos, psiA, psiB, psiBpsiA)
+    pos_psi_A = (pos-1)÷2+1
+    ΨA = psiA[pos_psi_A]
+
+    next_a = mod(pos_psi_A, 4) + 1
+    tmp = psiBpsiA[next_a]
+    for i in 1:2
+        site = mod(next_a,4) + 1
+        tmp = tmp * psiBpsiA[site]
     end
 
     if pos % 2 == 0
-        ΨA = psiA[ceil(Int, pos / 2)]
         ΨB = psiB[pos - 1]
-        @tensor W[-1; -2 -3] := tmp[-3 1; 2 3] * conj(ΨB[2 4; -1]) * ΨA[3; 4 -2 1]
+        #--2---ΨB--1'-   --2'---------2--
+        #      |       |         t
+        #      4       3'        m
+        #       |     |          p
+        #        |   |           |
+        #---3------ΨA------1----------3--
+        @planar W[-1; -2 -3] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
-        ΨA = psiA[ceil(Int, pos / 2)]
         ΨB = psiB[pos + 1]
-        @tensor W[-1; -2 -3] := tmp[1 2; -1 3] * ΨA[3; -2 4 2] * conj(ΨB[-3; 4 1])
+        #-1'--   --2'--ΨB--2----------1'-
+        #      |       |         t
+        #      3'      4         m
+        #       |     |          p
+        #        |   |           |
+        #---3------ΨA------1----------3--
+        @planar W[-1; -2 -3] := ΨB'[2 4; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
     return W
@@ -398,16 +422,14 @@ function opt_T(N, W, psi)
         @tensor b[-1; -2 -3] := N[-3 2; -1 1] * x[1; -2 2]
         return b
     end
-
-    new_T, info = linsolve(apply_f, W, psi; krylovdim=50, maxiter=150, tol=1e-12,
-                           verbosity=0)
+    new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10, verbosity=0)
     return new_T
 end
 
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
-    psi_B = Ψ_B_oneloop(scheme, trunc)
+    psi_B = Ψ_B(scheme, trunc)
 
     cost = ComplexF64[Inf]
     sweep = 0
