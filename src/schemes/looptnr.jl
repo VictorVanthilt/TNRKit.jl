@@ -122,6 +122,7 @@ end
 #Functions to find the array of left and right projectors
 
 function find_L(psi::Array, entanglement_criterion::stopcrit)
+    pos = 1
     type = eltype(psi[1])
     n = length(psi)
     L_list = map(pos->id(type, codomain(psi[pos])[1]), 1:n)
@@ -147,6 +148,7 @@ end
 function find_R(psi::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
+    pos = n
     R_list = map(pos->id(type, domain(psi[pos]).spaces[end]), 1:n)
     crit = true
     steps = 0
@@ -231,8 +233,9 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
 
     for i in 1:8
         @planar B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
-                                 PR_list[mod(i, 8) + 1][2; -3]
-        ΨB[i] = B1
+                                 PR_list[i][2; -3]
+        deleteat!(ΨB, i)
+        insert!(ΨB, i, B1)
     end
     return ΨB
 end
@@ -275,7 +278,7 @@ function ΨAΨA(psiA)
     ΨAΨA_list = []
     for i in 1:4
         @planar tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
-        push!(ΨAΨA_list, temp)
+        push!(ΨAΨA_list, tmp)
     end
     return ΨAΨA_list
 end
@@ -306,7 +309,7 @@ end
 function ΨBΨA(psiB, psiA)
     ΨBΨA_list = []
     for i in 1:4
-        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[-1; 1 3] * psiB[2*i]'[3; 2 -3] * psiA[i][-2; 1 2 -4]
+        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[1 3; -1] * psiA[i][-2; 1 2 -4] * psiB[2*i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
     end
     return ΨBΨA_list
@@ -314,7 +317,7 @@ end
 
 function to_number(tensor_list)
     cont = tensor_list[1]
-    for i in 2:length(loop_array)
+    for i in 2:length(tensor_list)
         cont = cont * tensor_list[i]
     end
 
@@ -336,7 +339,7 @@ end
 function tN(pos, psiBpsiB)
     n = length(psiBpsiB)
     pos = mod(pos, n) + 1
-    BB = psiBpsiB[next_pos]
+    BB = psiBpsiB[pos]
     for i in 2:(n-1)
         pos = mod(pos, 8) + 1
         BB = BB * psiBpsiB[pos]
@@ -364,7 +367,7 @@ function tW(pos, psiA, psiB, psiBpsiA)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @planar W[-1; -2 -3] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
+        @planar W[-1; -3 -2] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
         ΨB = psiB[pos + 1]
         #-1'--   --2'--ΨB--2----------1'-
@@ -374,7 +377,7 @@ function tW(pos, psiA, psiB, psiBpsiA)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @planar W[-1; -2 -3] := ΨB'[2 4; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
+        @planar W[-1; -3 -2] := ΨB'[4 2; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
     return W
@@ -382,7 +385,14 @@ end
 
 function opt_T(N, W, psi)
     function apply_f(x::TensorMap)
-        @tensor b[-1; -2 -3] := N[-2 2; -1 1] * x[1; -3 2]
+        #-----1'--   --2'------------1'--
+        #          |            |
+        #          3'           |
+        #          |            N
+        #          |            |
+        #          |            |
+        #---1------x-------2---------1---
+        @tensor b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
     new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10, verbosity=0)
@@ -401,6 +411,10 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     sweep = 0
     crit = true
     while crit
+        push!(cost, cost_func(psiApsiA, psiBpsiB, psiBpsiA))
+        if verbosity > 1
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
+        end
         for i in 1:8
             N = tN(i, psiBpsiB)
             W = tW(i, psiA, psiB, psiBpsiA)
@@ -411,14 +425,10 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
             psiBpsiB[i] = SS
 
             pos_psiA = (i-1)÷2+1
-            @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[-1; 1 3] * psiB[2*pos_psiA]'[3; 2 -3] * psiA[pos_psiA][-2; 1 2 -4]
+            @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] * psiA[pos_psiA][-2; 1 2 -4] * psiB[2*pos_psiA]'[2 -3; 3]
             psiBpsiA[pos_psiA] = TSS
         end
         sweep += 1
-        push!(cost, cost_func(psiApsiA, psiBpsiB, psiBpsiA))
-        if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
-        end
         crit = loop_criterion(sweep, cost)
     end
 
