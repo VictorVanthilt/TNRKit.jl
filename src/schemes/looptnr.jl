@@ -169,7 +169,7 @@ function Ψ_B(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     end
 
     ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
+    criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
     PR_list, PL_list = find_projectors(ΨB, criterion, trunc)
 
     ΨB_disentangled = []
