@@ -291,40 +291,14 @@ end
 function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
-#cost functions
-
-
-function cost_func(psiApsiA, psiBpsiB, psiBpsiA)
-    C = to_number(psiApsiA)
-    tNt = to_number(psiBpsiB)
-    tdw = to_number(psiBpsiA)
-    wdt = conj(tdw)
-
-    return (C + tNt - wdt - tdw)/C
-end
 
 #Optimisation functions
-function tN(pos, psiBpsiB)
-    n = length(psiBpsiB)
-    pos = mod(pos, n) + 1
-    BB = psiBpsiB[pos]
-    for i in 2:(n-1)
-        pos = mod(pos, 8) + 1
-        BB = BB * psiBpsiB[pos]
-    end
-    return BB
-end
+tN(SS_left, SS_right) = SS_right * SS_left
 
-function tW(pos, psiA, psiB, psiBpsiA)
-    pos_psiA = (pos-1)÷2+1
-    ΨA = psiA[pos_psiA]
+function tW(pos, psiA, psiB, TSS_left, TSS_right)
+    ΨA = psiA[(pos-1)÷2+1]
 
-    T_site = mod(pos_psiA, 4) + 1
-    tmp = psiBpsiA[T_site]
-    for i in 1:2
-        T_site = mod(T_site,4) + 1
-        tmp = tmp * psiBpsiA[T_site]
-    end
+    tmp = TSS_right * TSS_left
 
     if pos % 2 == 0
         ΨB = psiB[pos - 1]
@@ -367,6 +341,20 @@ function opt_T(N, W, psi)
     return new_T
 end
 
+function right_cache(tensor_list)
+    n = length(tensor_list)
+    cache = similar(tensor_list)
+    cache[end] = tensor_list[end]
+    
+    for i in (n-1):-1:1
+        cache[i] = tensor_list[i] * cache[i + 1]
+    end
+
+    push!(cache, id(domain(tensor_list[end]))) 
+    
+    return cache
+end
+
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psiA = Ψ_A(scheme)
@@ -379,25 +367,47 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     sweep = 0
     crit = true
     while crit
-        push!(cost, cost_func(psiApsiA, psiBpsiB, psiBpsiA))
-        if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end])"
-        end
+        t_start = time()
+        right_cache_BB = right_cache(psiBpsiB)
+        right_cache_BA = right_cache(psiBpsiA)
+        println("time for cache: $(time() - t_start)s")
+
+        C = to_number(psiApsiA)
+        tNt = tr(right_cache_BB[1])
+        tdw = tr(right_cache_BA[1])
+        wdt = conj(tdw)
+        cost_this = (C + tNt - wdt - tdw)/C
+        push!(cost, cost_this)
+
+        SS_left = id(codomain(psiBpsiB[1]))
+        TSS_left = id(codomain(psiBpsiA[1]))
         for i in 1:8
-            N = tN(i, psiBpsiB)
-            W = tW(i, psiA, psiB, psiBpsiA)
+            pos_psiA = (i-1)÷2+1
+
+            N = tN(SS_left, right_cache_BB[i+1])
+            W = tW(i, psiA, psiB, TSS_left, right_cache_BA[pos_psiA + 1])
+
+            time_before_opt = time()
             new_S = opt_T(N, W, psiB[i])
+            println("time for opt_T: $(time() - time_before_opt)s")
+
             psiB[i] = new_S
 
             @planar SS[-1 -2; -3 -4] := new_S[-2; 1 -4] * new_S'[1 -3; -1]
             psiBpsiB[i] = SS
+            SS_left = SS_left * SS
 
-            pos_psiA = (i-1)÷2+1
-            @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] * psiA[pos_psiA][-2; 1 2 -4] * psiB[2*pos_psiA]'[2 -3; 3]
-            psiBpsiA[pos_psiA] = TSS
+            if iseven(i)
+                @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] * psiA[pos_psiA][-2; 1 2 -4] * psiB[2*pos_psiA]'[2 -3; 3]
+                psiBpsiA[pos_psiA] = TSS
+                TSS_left = TSS_left * TSS
+            end
         end
         sweep += 1
         crit = loop_criterion(sweep, cost)
+        if verbosity > 1
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s"
+        end
     end
 
     Ψ5 = psiB[5]
