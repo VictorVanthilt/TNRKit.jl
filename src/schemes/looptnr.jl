@@ -196,19 +196,6 @@ end
 
 #Functions to construct Ψ_B
 
-function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
-    L = id(codomain(phi[1])[1])
-    R = id(domain(phi[end]).spaces[end])
-    for i in 1:pos
-        L = QR_L(L, phi[i])
-    end
-    for i in length(phi):-1:(pos + 1)
-        R = QR_R(R, phi[i])
-    end
-    PR, PL = P_decomp(R, L, trunc)
-    return PR, PL
-end
-
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
     T_trans = transpose(T, (2,1), (3,4))
     U, s, V, _ = tsvd(T_trans; trunc=trunc)
@@ -436,14 +423,14 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ1 = psiB[1]
     Ψ4 = psiB[4]
 
-    @planar scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+    @planar scheme.TA[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
     Ψ2 = psiB[2]
     Ψ3 = psiB[3]
     Ψ6 = psiB[6]
     Ψ7 = psiB[7]
 
-    @planar scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @planar scheme.TB[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
