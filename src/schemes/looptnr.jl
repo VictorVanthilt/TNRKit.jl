@@ -241,7 +241,8 @@ end
 function ΨBΨA(psiB, psiA)
     ΨBΨA_list = []
     for i in 1:4
-        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[1 3; -1] * psiA[i][-2; 1 2 -4] * psiB[2*i]'[2 -3; 3]
+        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
+                                      psiB[2*i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
     end
     return ΨBΨA_list
@@ -337,7 +338,8 @@ function opt_T(N, W, psi)
         @planar b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
-    new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10, verbosity=0)
+    new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10,
+                           verbosity=0)
     return new_T
 end
 
@@ -345,13 +347,13 @@ function right_cache(tensor_list)
     n = length(tensor_list)
     cache = similar(tensor_list)
     cache[end] = tensor_list[end]
-    
-    for i in (n-1):-1:1
+
+    for i in (n - 1):-1:1
         cache[i] = tensor_list[i] * cache[i + 1]
     end
 
-    push!(cache, id(domain(tensor_list[end]))) 
-    
+    push!(cache, id(domain(tensor_list[end])))
+
     return cache
 end
 
@@ -398,7 +400,9 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
             SS_left = SS_left * SS
 
             if iseven(i)
-                @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] * psiA[pos_psiA][-2; 1 2 -4] * psiB[2*pos_psiA]'[2 -3; 3]
+                @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
+                                             psiA[pos_psiA][-2; 1 2 -4] *
+                                             psiB[2*pos_psiA]'[2 -3; 3]
                 psiBpsiA[pos_psiA] = TSS
                 TSS_left = TSS_left * TSS
             end
