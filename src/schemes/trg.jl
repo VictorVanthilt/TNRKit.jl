@@ -1,6 +1,33 @@
+"""
+$(TYPEDEF)
+
+Tensor Renormalization Group
+
+### Constructors
+    $(FUNCTIONNAME)(T [, finalize=finalize!])
+
+### Running the algorithm
+    run!(::TRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, verbosity=1])
+
+Each step rescales the lattice by a (linear) factor of √2
+
+!!! info "verbosity levels"
+    - 0: No output
+    - 1: Print information at start and end of the algorithm
+    - 2: Print information at each step
+    
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Levin & Nave Phys. Rev. Letters 99(12) (2007)](@cite levin_tensor_2007)
+"""
 mutable struct TRG <: TNRScheme
+    "central tensor"
     T::TensorMap
 
+    "finalization function"
     finalize!::Function
     function TRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
         return new(T, finalize)

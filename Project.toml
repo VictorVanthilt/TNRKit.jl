@@ -4,6 +4,7 @@ authors = ["VictorVanthilt <victor.vanthilt@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 KrylovKit = "0b1a1467-8014-51b9-945f-bf0ae24f4b77"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
@@ -14,6 +15,7 @@ TensorKit = "07d1fe3e-3e46-537d-9eac-e9e13d0d4cec"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
+DocStringExtensions = "0.9.4"
 KrylovKit = "0.9.5"
 OptimKit = "0.4.0"
 PEPSKit = "0.5.0"
