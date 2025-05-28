@@ -360,7 +360,7 @@ function opt_T(N, W, psi)
         #          |            |
         #          |            |
         #---1------x-------2---------1---
-        @tensor b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
+        @planar b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
     new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10, verbosity=0)
@@ -400,17 +400,17 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         crit = loop_criterion(sweep, cost)
     end
 
-    Ψ5 = psi_B[5]
-    Ψ8 = psi_B[8]
-    Ψ1 = psi_B[1]
-    Ψ4 = psi_B[4]
+    Ψ5 = psiB[5]
+    Ψ8 = psiB[8]
+    Ψ1 = psiB[1]
+    Ψ4 = psiB[4]
 
     @tensor scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
-    Ψ2 = psi_B[2]
-    Ψ3 = psi_B[3]
-    Ψ6 = psi_B[6]
-    Ψ7 = psi_B[7]
+    Ψ2 = psiB[2]
+    Ψ3 = psiB[3]
+    Ψ6 = psiB[6]
+    Ψ7 = psiB[7]
 
     @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
