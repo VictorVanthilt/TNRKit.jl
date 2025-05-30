@@ -386,16 +386,20 @@ function opt_T(N, W, psi)
 end
 
 # Function to compute the right cache for the transfer matrices. Here we sweep from left to right. At the end we add the identity transfer matrix to the cache.
+# cache[1] = T2 * T3 * T4 * T5 * T6 * T7 * T8
+# cache[2] = T3 * T4 * T5 * T6 * T7 * T8
+# cache[3] = T4 * T5 * T6 * T7 * T8
+# ...
+# cache[7] = T8
+# cache[8] = I
 function right_cache(tensor_list)
     n = length(tensor_list)
     cache = similar(tensor_list)
-    cache[end] = tensor_list[end]
+    cache[end] = id(domain(tensor_list[end]))
 
     for i in (n - 1):-1:1
-        cache[i] = tensor_list[i] * cache[i + 1]
+        cache[i] = tensor_list[i + 1] * cache[i + 1]
     end
-
-    push!(cache, id(domain(tensor_list[end])))
 
     return cache
 end
@@ -415,47 +419,47 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     sweep = 0
     crit = true
     while crit
-        t_start = time()
         right_cache_BB = right_cache(psiBpsiB)
         right_cache_BA = right_cache(psiBpsiA)
+        left_BB = id(codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
+        left_BA = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
+
+        t_start = time()
+        for pos_psiB in 1:8
+            pos_psiA = (pos_psiB-1)÷2+1 # Position in the MPS Ψ_A
+
+            N = tN(left_BB, right_cache_BB[pos_psiB]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
+            W = tW(pos_psiB, psiA, psiB, left_BA, right_cache_BA[pos_psiA]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
+
+            new_psiB = opt_T(N, W, psiB[pos_psiB]) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
+
+            psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B 
+
+            @planar BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
+            psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
+            left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
+
+            if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
+                @planar BA_temp[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
+                                             psiA[pos_psiA][-2; 1 2 -4] *
+                                             psiB[2*pos_psiA]'[2 -3; 3]
+                psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
+                left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
+            end
+        end
+        sweep += 1
+        crit = loop_criterion(sweep, cost)
 
         C = to_number(psiApsiA)
-        tNt = tr(right_cache_BB[1])
-        tdw = tr(right_cache_BA[1])
+        tNt = tr(left_BB)
+        tdw = tr(left_BA)
         wdt = conj(tdw)
         cost_this = (C + tNt - wdt - tdw)/C
         push!(cost, cost_this)
 
         if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep, and the cost function with sweep 0
-        end
-
-        SS_left = id(codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
-        TSS_left = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
-        for i in 1:8
-            pos_psiA = (i-1)÷2+1 # Position in the MPS Ψ_A
-
-            N = tN(SS_left, right_cache_BB[i+1]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
-            W = tW(i, psiA, psiB, TSS_left, right_cache_BA[pos_psiA + 1]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
-
-            new_S = opt_T(N, W, psiB[i]) # Optimize the tensor T for the current position in the loop
-
-            psiB[i] = new_S # Update a single local tensor in the MPS Ψ_B 
-
-            @planar SS[-1 -2; -3 -4] := new_S[-2; 1 -4] * new_S'[1 -3; -1]
-            psiBpsiB[i] = SS # Update the transfer matrix for ΨBΨB
-            SS_left = SS_left * SS # Update the left transfer matrix for ΨBΨB
-
-            if iseven(i) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
-                                             psiA[pos_psiA][-2; 1 2 -4] *
-                                             psiB[2*pos_psiA]'[2 -3; 3]
-                psiBpsiA[pos_psiA] = TSS
-                TSS_left = TSS_left * TSS
-            end
-        end
-        sweep += 1
-        crit = loop_criterion(sweep, cost)
+        @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
+    end
     end
 
     Ψ5 = psiB[5]
