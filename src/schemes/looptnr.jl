@@ -297,15 +297,6 @@ function to_number(tensor_list)
     return tr(cont)
 end
 
-function cost_func(psiApsiA, psiBpsiB, psiBpsiA)
-    C = to_number(psiApsiA)
-    tNt = to_number(psiBpsiB)
-    tdw = to_number(psiBpsiA)
-    wdt = conj(tdw)
-
-    return (C + tNt - wdt - tdw)/C
-end
-
 #Entanglement Filtering 
 entanglement_function(steps, data) = abs(data[end])
 entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
