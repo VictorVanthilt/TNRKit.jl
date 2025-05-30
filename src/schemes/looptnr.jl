@@ -12,6 +12,7 @@ mutable struct LoopTNR <: TNRScheme
     end
 end
 
+# Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(scheme::LoopTNR)
     psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4))),
                             transpose(scheme.TB, ((1,), (3, 4, 2))),
@@ -22,17 +23,17 @@ end
 
 #Utility functions for QR decomp
 
-"""
-      |     |
-       2   3
-        v v
---L-1-<--T--<-4-----
-=
-      |     |
-       2   3
-        v v
-----1-<--Q--<-4--Rt-
-"""
+# A single step of the QR decomposition from the left with 3 in-coming legs
+#       |     |
+#        2   3
+#         v v
+# --L-1-<--T--<-4-----
+# =
+#       |     |
+#        2   3
+#         v v
+# ----1-<--Q--<-4--Rt-
+
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
     temp = transpose(LT, (3, 2, 1), (4,))
@@ -40,34 +41,34 @@ function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     return Rt/norm(Rt, Inf)
 end
 
-"""
-       |     |
-        2   3
-         v v
------1-<--T--<-4-R--
-=
-       |     |
-        2   3
-         v v
--Lt--1-<--Q--<-4----
-"""
+# A single step of the QR decomposition from the right with 3 in-coming legs
+#        |     |
+#         2   3
+#          v v
+# -----1-<--T--<-4-R--
+# =
+#        |     |
+#         2   3
+#          v v
+# -Lt--1-<--Q--<-4----
+
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
     Lt, _ = rightorth(TR)
     return Lt/norm(Lt, Inf)
 end
 
-"""
-         |
-         2
-         v
---L-1-<--T--<-3----
-=
-         | 
-         2
-         v
-----1-<--Q--<-3--Rt-
-"""
+# A single step of the QR decomposition from the left with 2 in-coming legs
+#          |
+#          2
+#          v
+# --L-1-<--T--<-3----
+# =
+#          | 
+#          2
+#          v
+# ----1-<--Q--<-3--Rt-
+
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
     temp = transpose(LT, (2, 1), (3,))
@@ -75,17 +76,16 @@ function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     return Rt/norm(Rt, Inf)
 end
 
-"""
-          |
-          2
-          v
------1-<--T--<-3-R--
-=
-          |
-          2
-          v
--Lt--1-<--Q--<-3----
-"""
+# A single step of the QR decomposition from the right with 2 in-coming legs
+#           |
+#           2
+#           v
+# -----1-<--T--<-3-R--
+# =
+#           |
+#           2
+#           v
+# -Lt--1-<--Q--<-3----
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
     Lt, _ = rightorth(TR)
@@ -94,6 +94,7 @@ end
 
 # Functions to find the left and right projectors
 
+# Function to find the list of left projectors L_list
 function find_L(psi::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
@@ -119,6 +120,7 @@ function find_L(psi::Array, entanglement_criterion::stopcrit)
     return L_list
 end
 
+# Function to find the list of right projectors R_list
 function find_R(psi::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
@@ -145,6 +147,7 @@ function find_R(psi::Array, entanglement_criterion::stopcrit)
     return R_list
 end
 
+# Function to find the projector P_L and P_R
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(L * R; trunc=trunc)
 
@@ -154,6 +157,7 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     return PR, PL
 end
 
+# Function to find the list of projectors
 function find_projectors(psi::Array, entanglement_criterion::stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
@@ -199,6 +203,7 @@ function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme)
     return S1, S2
 end
 
+# Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme)
     ΨB = []
 
@@ -240,13 +245,12 @@ function Ψ_B_oneloop(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     return ΨB
 end
 
-"""
----1'--A--3'---
-      | |
-      1 2
-      | |
----2'--A--4'---
-"""
+# Construct the list of transfer matrices for ΨAΨA
+# ---1'--A--3'---
+#       | |
+#       1 2
+#       | |
+# ---2'--A--4'---
 function ΨAΨA(psiA)
     ΨAΨA_list = []
     for i in 1:4
@@ -256,13 +260,13 @@ function ΨAΨA(psiA)
     return ΨAΨA_list
 end
 
-"""
----1'--B--3'---
-       |
-       1
-       |
----2'--B--4'---
-"""
+# Construct the list of transfer matrices for ΨBΨB
+# ---1'--B--3'---
+#        |
+#        1
+#        |
+# ---2'--B--4'---
+
 function ΨBΨB(psiB)
     ΨBΨB_list = []
     for i in 1:8
@@ -272,13 +276,13 @@ function ΨBΨB(psiB)
     return ΨBΨB_list
 end
 
-"""
----1'--B-3-B--3'---
-       |   |
-       1   2
-        | |
----2'----A----4'---
-"""
+# Construct the list of transfer matrices for ΨBΨA
+# ---1'--B-3-B--3'---
+#        |   |
+#        1   2
+#         | |
+# ---2'----A----4'---
+
 function ΨBΨA(psiB, psiA)
     ΨBΨA_list = []
     for i in 1:4
@@ -289,6 +293,7 @@ function ΨBΨA(psiB, psiA)
     return ΨBΨA_list
 end
 
+# Function to compute the trace of a list of transfer matrices
 function to_number(tensor_list)
     cont = tensor_list[1]
     for tensor in tensor_list[2:end]
@@ -303,6 +308,7 @@ entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
 loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 
+# Entanglement filtering function
 function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
@@ -326,14 +332,17 @@ function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationSch
 end
 
 #Optimisation functions
+
+# Function to compute the half of the matrix N by inputting the left and right SS transfer matrices
 tN(SS_left, SS_right) = SS_right * SS_left
 
+# Function to compute the vector W for a given position in the loop
 function tW(pos, psiA, psiB, TSS_left, TSS_right)
     ΨA = psiA[(pos-1)÷2+1]
 
     tmp = TSS_right * TSS_left
 
-    if pos % 2 == 0
+    if iseven(pos)
         ΨB = psiB[pos - 1]
         #--2---ΨB--1'-   --2'---------2--
         #      |       |         |
@@ -358,6 +367,7 @@ function tW(pos, psiA, psiB, TSS_left, TSS_right)
     return W
 end
 
+# Function to optimize the tensor T for a given position in the loop by the Krylov method
 function opt_T(N, W, psi)
     function apply_f(x::TensorMap)
         #-----1'--   --2'------------1'--
@@ -375,6 +385,7 @@ function opt_T(N, W, psi)
     return new_T
 end
 
+# Function to compute the right cache for the transfer matrices. Here we sweep from left to right. At the end we add the identity transfer matrix to the cache.
 function right_cache(tensor_list)
     n = length(tensor_list)
     cache = similar(tensor_list)
@@ -389,6 +400,9 @@ function right_cache(tensor_list)
     return cache
 end
 
+# Function to perform the optimization loop for the LoopTNR scheme. Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
+# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
+# The transfer matrix on the left is updated after each optimization step.
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psiA = Ψ_A(scheme)
@@ -412,23 +426,27 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         cost_this = (C + tNt - wdt - tdw)/C
         push!(cost, cost_this)
 
-        SS_left = id(codomain(psiBpsiB[1]))
-        TSS_left = id(codomain(psiBpsiA[1]))
+        if verbosity > 1
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep, and the cost function with sweep 0
+        end
+
+        SS_left = id(codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
+        TSS_left = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
         for i in 1:8
-            pos_psiA = (i-1)÷2+1
+            pos_psiA = (i-1)÷2+1 # Position in the MPS Ψ_A
 
-            N = tN(SS_left, right_cache_BB[i+1])
-            W = tW(i, psiA, psiB, TSS_left, right_cache_BA[pos_psiA + 1])
+            N = tN(SS_left, right_cache_BB[i+1]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
+            W = tW(i, psiA, psiB, TSS_left, right_cache_BA[pos_psiA + 1]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
 
-            new_S = opt_T(N, W, psiB[i])
+            new_S = opt_T(N, W, psiB[i]) # Optimize the tensor T for the current position in the loop
 
-            psiB[i] = new_S
+            psiB[i] = new_S # Update a single local tensor in the MPS Ψ_B 
 
             @planar SS[-1 -2; -3 -4] := new_S[-2; 1 -4] * new_S'[1 -3; -1]
-            psiBpsiB[i] = SS
-            SS_left = SS_left * SS
+            psiBpsiB[i] = SS # Update the transfer matrix for ΨBΨB
+            SS_left = SS_left * SS # Update the left transfer matrix for ΨBΨB
 
-            if iseven(i)
+            if iseven(i) # If the position is even, we also update the transfer matrix for ΨBΨA
                 @planar TSS[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
                                              psiA[pos_psiA][-2; 1 2 -4] *
                                              psiB[2*pos_psiA]'[2 -3; 3]
@@ -438,9 +456,6 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
         sweep += 1
         crit = loop_criterion(sweep, cost)
-        if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s"
-        end
     end
 
     Ψ5 = psiB[5]
