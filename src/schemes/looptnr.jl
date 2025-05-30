@@ -13,102 +13,144 @@ mutable struct LoopTNR <: TNRScheme
 end
 
 function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[permute(scheme.TA, ((2,), (1, 3, 4))),
-                            permute(scheme.TB, ((1,), (3, 4, 2))),
-                            permute(scheme.TA, ((3,), (4, 2, 1))),
-                            permute(scheme.TB, ((4,), (2, 1, 3)))]
+    psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4))),
+                            transpose(scheme.TB, ((1,), (3, 4, 2))),
+                            transpose(scheme.TA, ((3,), (4, 2, 1))),
+                            transpose(scheme.TB, ((4,), (2, 1, 3)))]
     return psi
 end
 
 #Utility functions for QR decomp
 
+"""
+      |     |
+       2   3
+        v v
+--L-1-<--T--<-4-----
+=
+      |     |
+       2   3
+        v v
+----1-<--Q--<-4--Rt-
+"""
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
-    @tensor temp[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
-    _, Rt = leftorth(temp, ((1, 2, 3), (4,)))
-    return Rt
+    @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
+    temp = transpose(LT, (3,2,1), (4,))
+    _, Rt = leftorth(temp,)
+    return Rt/norm(Rt, Inf)
 end
 
+"""
+       |     |
+        2   3
+         v v
+-----1-<--T--<-4-R--
+=
+       |     |
+        2   3
+         v v
+-Lt--1-<--Q--<-4----
+"""
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
-    @tensor temp[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
-    Lt, _ = rightorth(temp, ((1,), (2, 3, 4)))
-    return Lt
+    @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
+    Lt, _ = rightorth(TR,)
+    return Lt/norm(Lt, Inf)
 end
 
+"""
+         |
+         2
+         v
+--L-1-<--T--<-3----
+=
+         | 
+         2
+         v
+----1-<--Q--<-3--Rt-
+"""
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
-    @tensor temp[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
-    _, Rt = leftorth(temp, ((1, 2), (3,)))
-    return Rt
+    @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
+    temp = transpose(LT, (2, 1), (3,))
+    _, Rt = leftorth(temp,)
+    return Rt/norm(Rt, Inf)
 end
 
+
+"""
+          |
+          2
+          v
+-----1-<--T--<-3-R--
+=
+          |
+          2
+          v
+-Lt--1-<--Q--<-3----
+"""
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
-    @tensor temp[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
-    Lt, _ = rightorth(temp, ((1,), (2, 3)))
-    return Lt
+    @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
+    Lt, _ = rightorth(TR,)
+    return Lt/norm(Lt, Inf)
 end
 
-#Functions to find the left and right projectors
+# Functions to find the left and right projectors
 
-function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
-    L = id(space(psi[pos])[1])
+function find_L(psi::Array, entanglement_criterion::stopcrit)
+    type = eltype(psi[1])
+    n = length(psi)
+    L_list = map(x->id(type, codomain(psi[x])[1]), 1:n)
     crit = true
     steps = 0
     error = [Inf]
-    n = length(psi)
+    running_pos = 1
     while crit
-        new_L = copy(L)
-        for i in (pos - 1):(pos + n - 2)
-            new_L = QR_L(new_L, psi[i % n + 1])
-        end
-        new_L = new_L / maximum(abs.(new_L.data))
+        pos_next = mod(running_pos, n) + 1
+        L_last_time = L_list[pos_next]
+        L_list[pos_next]= QR_L(L_list[running_pos], psi[running_pos])
 
-        if space(new_L) == space(L)
-            push!(error, abs(norm(new_L - L)))
+        if space(L_list[pos_next]) == space(L_last_time)
+            push!(error, abs(norm(L_list[pos_next] - L_last_time)))
         end
 
-        L = new_L
+        running_pos = pos_next
         steps += 1
         crit = entanglement_criterion(steps, error)
     end
 
-    return L
+    return L_list
 end
 
-function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
+function find_R(psi::Array, entanglement_criterion::stopcrit)
+    type = eltype(psi[1])
     n = length(psi)
-    if numin(psi[mod(pos - 2, n) + 1]) == 2
-        R = id(space(psi[mod(pos - 2, n) + 1])[3]')
-    else
-        R = id(space(psi[mod(pos - 2, n) + 1])[4]')
-    end
+    R_list = map(x->id(type, domain(psi[x]).spaces[end]), 1:n)
     crit = true
     steps = 0
     error = [Inf]
+
+    running_pos = n
     while crit
-        new_R = copy(R)
+        pos_last = mod(running_pos-2,n)+1
+        R_last_time = R_list[pos_last]
+        R_list[pos_last] = QR_R(R_list[running_pos], psi[running_pos])
 
-        for i in (pos - 2):-1:(pos - n - 1)
-            new_R = QR_R(new_R, psi[mod(i, n) + 1])
+        if space(R_list[pos_last]) == space(R_last_time)
+            push!(error, abs(norm(R_list[pos_last] - R_last_time)))
         end
-        new_R = new_R / maximum(abs.(new_R.data))
-
-        if space(new_R) == space(R)
-            push!(error, abs(norm(new_R - R)))
-        end
-        R = new_R
+        
+        running_pos = pos_last
         steps += 1
         crit = entanglement_criterion(steps, error)
     end
 
-    return R
+    return R_list
 end
 
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
-    @tensor temp[-1; -2] := L[-1; 1] * R[1; -2]
-    U, S, V, _ = tsvd(temp, ((1,), (2,)); trunc=trunc)
-    re_sq = pseudopow(S, -0.5)
+    U, S, V, _ = tsvd(L * R; trunc=trunc)
 
-    @tensor PR[-1; -2] := R[-1; 1] * adjoint(V)[1; 2] * re_sq[2; -2]
-    @tensor PL[-1; -2] := re_sq[-1; 1] * adjoint(U)[1; 2] * L[2; -2]
+    PR = R * V' * inv(sqrt(S))
+    PL = inv(sqrt(S)) * U' * L
 
     return PR, PL
 end
@@ -117,13 +159,12 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
+    
     n = length(psi)
+    L_list = find_L(psi, entanglement_criterion)
+    R_list = find_R(psi, entanglement_criterion)
     for i in 1:n
-        L = find_L(i, psi, entanglement_criterion)
-
-        R = find_R(i, psi, entanglement_criterion)
-
-        pr, pl = P_decomp(R, L, trunc)
+        pr, pl = P_decomp(R_list[mod(i-2,n)+1], L_list[i], trunc)
 
         push!(PR_list, pr)
         push!(PL_list, pl)
@@ -152,9 +193,10 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
 end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T, ((1, 2), (3, 4)); trunc=trunc)
-    @tensor S1[-1; -2 -3] := U[-1 -2; 1] * sqrt(s)[1; -3]
-    @tensor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
+    T_trans = transpose(T, (2, 1), (3,4))
+    U, s, V, _ = tsvd(T_trans; trunc=trunc)
+    @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
+    @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 
@@ -173,7 +215,7 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme)
 
     ΨB_disentangled = []
     for i in 1:8
-        @tensor B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
+        @planar B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
                                  PR_list[mod(i, 8) + 1][2; -3]
         push!(ΨB_disentangled, B1)
     end
@@ -279,10 +321,10 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
 
-    @tensor scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
+    @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
                                        PL_list[1][-2; 2] * PR_list[2][4; -4] *
                                        PL_list[3][-3; 3]
-    @tensor scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
+    @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
                                        PR_list[3][2; -2] * PL_list[4][-4; 4] *
                                        PR_list[1][3; -3]
 
@@ -338,7 +380,7 @@ function opt_T(N, W, psi)
         @planar b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
-    new_T, info = linsolve(apply_f, W, psi; krylovdim=10, maxiter=100, tol=1e-10,
+    new_T, info = linsolve(apply_f, W, psi; krylovdim=20, maxiter=20, tol=1e-12,
                            verbosity=0)
     return new_T
 end
@@ -372,7 +414,6 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         t_start = time()
         right_cache_BB = right_cache(psiBpsiB)
         right_cache_BA = right_cache(psiBpsiA)
-        println("time for cache: $(time() - t_start)s")
 
         C = to_number(psiApsiA)
         tNt = tr(right_cache_BB[1])
@@ -389,9 +430,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
             N = tN(SS_left, right_cache_BB[i+1])
             W = tW(i, psiA, psiB, TSS_left, right_cache_BA[pos_psiA + 1])
 
-            time_before_opt = time()
             new_S = opt_T(N, W, psiB[i])
-            println("time for opt_T: $(time() - time_before_opt)s")
 
             psiB[i] = new_S
 
@@ -419,14 +458,14 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     Ψ1 = psiB[1]
     Ψ4 = psiB[4]
 
-    @tensor scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+    @planar scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
 
     Ψ2 = psiB[2]
     Ψ3 = psiB[3]
     Ψ6 = psiB[6]
     Ψ7 = psiB[7]
 
-    @tensor scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @planar scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
