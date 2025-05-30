@@ -441,8 +441,8 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
                 @planar BA_temp[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
-                                             psiA[pos_psiA][-2; 1 2 -4] *
-                                             psiB[2*pos_psiA]'[2 -3; 3]
+                                                 psiA[pos_psiA][-2; 1 2 -4] *
+                                                 psiB[2*pos_psiA]'[2 -3; 3]
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
                 left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
             end
@@ -458,8 +458,8 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         push!(cost, cost_this)
 
         if verbosity > 1
-        @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
-    end
+            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
+        end
     end
 
     Ψ5 = psiB[5]
