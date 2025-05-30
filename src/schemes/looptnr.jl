@@ -35,8 +35,8 @@ end
 """
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
-    temp = transpose(LT, (3,2,1), (4,))
-    _, Rt = leftorth(temp,)
+    temp = transpose(LT, (3, 2, 1), (4,))
+    _, Rt = leftorth(temp)
     return Rt/norm(Rt, Inf)
 end
 
@@ -53,7 +53,7 @@ end
 """
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
-    Lt, _ = rightorth(TR,)
+    Lt, _ = rightorth(TR)
     return Lt/norm(Lt, Inf)
 end
 
@@ -71,10 +71,9 @@ end
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
     temp = transpose(LT, (2, 1), (3,))
-    _, Rt = leftorth(temp,)
+    _, Rt = leftorth(temp)
     return Rt/norm(Rt, Inf)
 end
-
 
 """
           |
@@ -89,7 +88,7 @@ end
 """
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
-    Lt, _ = rightorth(TR,)
+    Lt, _ = rightorth(TR)
     return Lt/norm(Lt, Inf)
 end
 
@@ -106,7 +105,7 @@ function find_L(psi::Array, entanglement_criterion::stopcrit)
     while crit
         pos_next = mod(running_pos, n) + 1
         L_last_time = L_list[pos_next]
-        L_list[pos_next]= QR_L(L_list[running_pos], psi[running_pos])
+        L_list[pos_next] = QR_L(L_list[running_pos], psi[running_pos])
 
         if space(L_list[pos_next]) == space(L_last_time)
             push!(error, abs(norm(L_list[pos_next] - L_last_time)))
@@ -130,14 +129,14 @@ function find_R(psi::Array, entanglement_criterion::stopcrit)
 
     running_pos = n
     while crit
-        pos_last = mod(running_pos-2,n)+1
+        pos_last = mod(running_pos-2, n)+1
         R_last_time = R_list[pos_last]
         R_list[pos_last] = QR_R(R_list[running_pos], psi[running_pos])
 
         if space(R_list[pos_last]) == space(R_last_time)
             push!(error, abs(norm(R_list[pos_last] - R_last_time)))
         end
-        
+
         running_pos = pos_last
         steps += 1
         crit = entanglement_criterion(steps, error)
@@ -159,12 +158,12 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
-    
+
     n = length(psi)
     L_list = find_L(psi, entanglement_criterion)
     R_list = find_R(psi, entanglement_criterion)
     for i in 1:n
-        pr, pl = P_decomp(R_list[mod(i-2,n)+1], L_list[i], trunc)
+        pr, pl = P_decomp(R_list[mod(i-2, n)+1], L_list[i], trunc)
 
         push!(PR_list, pr)
         push!(PL_list, pl)
@@ -193,7 +192,7 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
 end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    T_trans = transpose(T, (2, 1), (3,4))
+    T_trans = transpose(T, (2, 1), (3, 4))
     U, s, V, _ = tsvd(T_trans; trunc=trunc)
     @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
