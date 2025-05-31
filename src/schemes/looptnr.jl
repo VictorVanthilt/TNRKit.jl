@@ -414,6 +414,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     psiBpsiB = ΨBΨB(psiB)
     psiBpsiA = ΨBΨA(psiB, psiA)
     psiApsiA = ΨAΨA(psiA)
+    C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
 
     cost = ComplexF64[Inf]
     sweep = 0
@@ -450,7 +451,6 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         sweep += 1
         crit = loop_criterion(sweep, cost)
 
-        C = to_number(psiApsiA)
         tNt = tr(left_BB)
         tdw = tr(left_BA)
         wdt = conj(tdw)
