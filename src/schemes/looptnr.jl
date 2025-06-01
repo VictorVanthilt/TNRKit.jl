@@ -149,7 +149,7 @@ end
 
 # Function to find the projector P_L and P_R
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(L * R; trunc=trunc)
+    U, S, V, _ = tsvd(L * R; trunc=trunc, alg=TensorKit.SVD())
 
     PR = R * V' * inv(sqrt(S))
     PL = inv(sqrt(S)) * U' * L
