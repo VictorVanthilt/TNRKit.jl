@@ -51,6 +51,7 @@ end
 function Base.show(io::IO, crit::Stopcrit)
     println(io, "Stopping criterion")
     print(io, "  * ", summary(crit))
+    return nothing
 end
 
 function Base.show(io::IO, crit::MultipleCrit)
