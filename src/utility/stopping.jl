@@ -14,6 +14,9 @@ struct MultipleCrit <: Stopcrit
 end
 
 Base.:&(a::Stopcrit, b::Stopcrit) = MultipleCrit([a, b])
+Base.:&(a::Stopcrit, b::MultipleCrit) = MultipleCrit([a; b.crits])
+Base.:&(a::MultipleCrit, b::Stopcrit) = MultipleCrit([a.crits; b])
+Base.:&(a::MultipleCrit, b::MultipleCrit) = MultipleCrit([a.crits; b.crits])
 
 (crit::maxiter)(steps::Int, data) = steps < crit.n
 (crit::convcrit)(steps::Int, data) = crit.Δ < crit.f(steps, data)
@@ -39,3 +42,24 @@ function stopping_info(crit::convcrit, steps::Int, data)
 end
 
 trivial_convcrit(Δ) = convcrit(Δ, (steps, data) -> last(data))
+
+# === Show methods ===
+function Base.summary(crit::maxiter)
+    return "Maximum iterations: $(crit.n)"
+end
+
+function Base.show(io::IO, crit::Stopcrit)
+    println(io, "Stopping criterion")
+    print(io, "  * ", summary(crit))
+end
+
+function Base.show(io::IO, crit::MultipleCrit)
+    print(io, "Multiple stopping criteria")
+    for c in crit.crits
+        print(io, "\n  * ", summary(c))
+    end
+end
+
+function Base.summary(crit::convcrit)
+    return "Convergence criterion: $(crit.f) <= $(crit.Δ)"
+end
