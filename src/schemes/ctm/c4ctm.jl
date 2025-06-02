@@ -25,7 +25,7 @@ end
     │               │           
 =#
 
-function run!(scheme::c4CTM, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+function run!(scheme::c4CTM, trunc::TensorKit.TruncationScheme, criterion::Stopcrit;
               verbosity=1)
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"

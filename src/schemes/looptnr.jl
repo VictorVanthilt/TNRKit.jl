@@ -48,7 +48,7 @@ end
 
 #Functions to find the left and right projectors
 
-function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
+function find_L(pos::Int, psi::Array, entanglement_criterion::Stopcrit)
     L = id(space(psi[pos])[1])
     crit = true
     steps = 0
@@ -73,7 +73,7 @@ function find_L(pos::Int, psi::Array, entanglement_criterion::stopcrit)
     return L
 end
 
-function find_R(pos::Int, psi::Array, entanglement_criterion::stopcrit)
+function find_R(pos::Int, psi::Array, entanglement_criterion::Stopcrit)
     n = length(psi)
     if numin(psi[mod(pos - 2, n) + 1]) == 2
         R = id(space(psi[mod(pos - 2, n) + 1])[3]')
@@ -113,7 +113,7 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     return PR, PL
 end
 
-function find_projectors(psi::Array, entanglement_criterion::stopcrit,
+function find_projectors(psi::Array, entanglement_criterion::Stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
@@ -206,7 +206,7 @@ entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
 loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 
-function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
+function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::Stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
@@ -341,7 +341,7 @@ function opt_T(N, W, psi)
     return new_T
 end
 
-function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
+function loop_opt!(scheme::LoopTNR, loop_criterion::Stopcrit,
                    trunc::TensorKit.TruncationScheme, verbosity::Int)
     psi_A = Ψ_A(scheme)
     psi_B = Ψ_B(scheme, trunc)
@@ -387,17 +387,17 @@ end
 
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                truncentanglement::TensorKit.TruncationScheme,
-               entanglement_criterion::stopcrit,
-               loop_criterion::stopcrit, verbosity::Int)
+               entanglement_criterion::Stopcrit,
+               loop_criterion::Stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, verbosity::Int)
     return scheme
 end
 
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
-              truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
-              entanglement_criterion::stopcrit,
-              loop_criterion::stopcrit;
+              truncentanglement::TensorKit.TruncationScheme, criterion::Stopcrit,
+              entanglement_criterion::Stopcrit,
+              loop_criterion::Stopcrit;
               finalize_beginning=true, verbosity=1)
     data = []
 
@@ -424,7 +424,7 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
     return data
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::Stopcrit;
               finalize_beginning=true, verbosity=1)
     return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
                 loop_criterion;

@@ -1,19 +1,19 @@
-abstract type stopcrit end
+abstract type Stopcrit end
 
-struct maxiter <: stopcrit
+struct maxiter <: Stopcrit
     n::Int
 end
 
-struct convcrit <: stopcrit
+struct convcrit <: Stopcrit
     Δ::Float64
     f::Function
 end
 
-struct MultipleCrit <: stopcrit
-    crits::Vector{stopcrit}
+struct MultipleCrit <: Stopcrit
+    crits::Vector{Stopcrit}
 end
 
-Base.:&(a::stopcrit, b::stopcrit) = MultipleCrit([a, b])
+Base.:&(a::Stopcrit, b::Stopcrit) = MultipleCrit([a, b])
 
 (crit::maxiter)(steps::Int, data) = steps < crit.n
 (crit::convcrit)(steps::Int, data) = crit.Δ < crit.f(steps, data)

@@ -168,7 +168,7 @@ function step!(scheme, trunc, oneloop)
 end
 
 function run!(scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit; finalize_beginning=true, oneloop=true,
+              criterion::TNRKit.Stopcrit; finalize_beginning=true, oneloop=true,
               verbosity=1)
     data = []
 
