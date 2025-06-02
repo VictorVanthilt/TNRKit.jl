@@ -14,10 +14,10 @@ end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4))),
-                            transpose(scheme.TB, ((1,), (3, 4, 2))),
-                            transpose(scheme.TA, ((3,), (4, 2, 1))),
-                            transpose(scheme.TB, ((4,), (2, 1, 3)))]
+    psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4)); copy = true),
+                            transpose(scheme.TB, ((1,), (3, 4, 2)); copy = true),
+                            transpose(scheme.TA, ((3,), (4, 2, 1)); copy = true),
+                            transpose(scheme.TB, ((4,), (2, 1, 3)); copy = true)]
     return psi
 end
 
@@ -36,7 +36,7 @@ end
 
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
-    temp = transpose(LT, (3, 2, 1), (4,))
+    temp = transpose(LT, (3, 2, 1), (4,); copy = true)
     _, Rt = leftorth(temp)
     return Rt/norm(Rt, Inf)
 end
@@ -71,7 +71,7 @@ end
 
 function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
-    temp = transpose(LT, (2, 1), (3,))
+    temp = transpose(LT, (2, 1), (3,); copy = true)
     _, Rt = leftorth(temp)
     return Rt/norm(Rt, Inf)
 end
@@ -196,7 +196,7 @@ function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationSch
 end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    T_trans = transpose(T, (2, 1), (3, 4))
+    T_trans = transpose(T, (2, 1), (3, 4); copy = true)
     U, s, V, _ = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
     @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
