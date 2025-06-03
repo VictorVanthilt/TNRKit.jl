@@ -174,7 +174,6 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     return PR_list, PL_list
 end
 
-
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
     T_trans = transpose(T, (2, 1), (3, 4); copy=true)
     U, s, V, _ = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
