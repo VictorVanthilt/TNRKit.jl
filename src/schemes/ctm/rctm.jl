@@ -74,7 +74,7 @@ end
 
 function run!(scheme::rCTM,
               trunc::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit;
+              criterion::TNRKit.Stopcrit;
               verbosity=1,)
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"

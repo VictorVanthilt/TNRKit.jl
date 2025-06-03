@@ -94,11 +94,8 @@ end
 
 # Functions to find the left and right projectors
 
-# Function to find the list of left projectors L_list
-function find_L(psi::Array, entanglement_criterion::stopcrit)
-    type = eltype(psi[1])
-    n = length(psi)
-    L_list = map(x->id(type, codomain(psi[x])[1]), 1:n)
+function find_L(pos::Int, psi::Array, entanglement_criterion::Stopcrit)
+    L = id(space(psi[pos])[1])
     crit = true
     steps = 0
     error = [Inf]
@@ -120,9 +117,7 @@ function find_L(psi::Array, entanglement_criterion::stopcrit)
     return L_list
 end
 
-# Function to find the list of right projectors R_list
-function find_R(psi::Array, entanglement_criterion::stopcrit)
-    type = eltype(psi[1])
+function find_R(pos::Int, psi::Array, entanglement_criterion::Stopcrit)
     n = length(psi)
     R_list = map(x->id(type, domain(psi[x]).spaces[end]), 1:n)
     crit = true
@@ -155,8 +150,7 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     return PR, PL
 end
 
-# Function to find the list of projectors
-function find_projectors(psi::Array, entanglement_criterion::stopcrit,
+function find_projectors(psi::Array, entanglement_criterion::Stopcrit,
                          trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
@@ -307,8 +301,7 @@ entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
 
 loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 
-# Entanglement filtering function
-function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
+function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::Stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
@@ -384,37 +377,10 @@ function opt_T(N, W, psi)
     return new_T
 end
 
-# Function to compute the right cache for the transfer matrices. Here we sweep from left to right. At the end we add the identity transfer matrix to the cache.
-# cache[1] = T2 * T3 * T4 * T5 * T6 * T7 * T8
-# cache[2] = T3 * T4 * T5 * T6 * T7 * T8
-# cache[3] = T4 * T5 * T6 * T7 * T8
-# ...
-# cache[7] = T8
-# cache[8] = I
-function right_cache(tensor_list)
-    n = length(tensor_list)
-    cache = similar(tensor_list)
-    cache[end] = id(domain(tensor_list[end]))
-
-    for i in (n - 1):-1:1
-        cache[i] = tensor_list[i + 1] * cache[i + 1]
-    end
-
-    return cache
-end
-
-# Function to perform the optimization loop for the LoopTNR scheme. Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
-# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
-# The transfer matrix on the left is updated after each optimization step.
-function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
-                   trunc::TensorKit.TruncationScheme,
-                   truncentanglement::TensorKit.TruncationScheme, verbosity::Int)
-    psiA = Ψ_A(scheme)
-    psiB = Ψ_B(psiA, trunc, truncentanglement)
-    psiBpsiB = ΨBΨB(psiB)
-    psiBpsiA = ΨBΨA(psiB, psiA)
-    psiApsiA = ΨAΨA(psiA)
-    C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
+function loop_opt!(scheme::LoopTNR, loop_criterion::Stopcrit,
+                   trunc::TensorKit.TruncationScheme, verbosity::Int)
+    psi_A = Ψ_A(scheme)
+    psi_B = Ψ_B(scheme, trunc)
 
     cost = ComplexF64[Inf]
     sweep = 0
@@ -485,17 +451,17 @@ end
 
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                truncentanglement::TensorKit.TruncationScheme,
-               entanglement_criterion::stopcrit,
-               loop_criterion::stopcrit, verbosity::Int)
+               entanglement_criterion::Stopcrit,
+               loop_criterion::Stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
     return scheme
 end
 
 function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
-              truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
-              entanglement_criterion::stopcrit,
-              loop_criterion::stopcrit;
+              truncentanglement::TensorKit.TruncationScheme, criterion::Stopcrit,
+              entanglement_criterion::Stopcrit,
+              loop_criterion::Stopcrit;
               finalize_beginning=true, verbosity=1)
     data = []
 
@@ -522,7 +488,7 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
     return data
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::Stopcrit;
               finalize_beginning=true, verbosity=1)
     return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
                 loop_criterion;
