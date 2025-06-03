@@ -150,8 +150,9 @@ end
 # Function to find the projector P_L and P_R
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
     U, S, V, _ = tsvd(L * R; trunc=trunc, alg=TensorKit.SVD())
-    PR = R * V' * inv(sqrt(S))
-    PL = inv(sqrt(S)) * U' * L
+    re_sq = pseudopow(S, -0.5)
+    PR = R * V' * re_sq
+    PL = re_sq * U' * L
     return PR, PL
 end
 
@@ -173,25 +174,6 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     return PR_list, PL_list
 end
 
-#Functions to construct Ψ_B
-
-function one_loop_projector(phi::Array, pos::Int, trunc::TensorKit.TruncationScheme)
-    L = id(space(phi[1])[1])
-    n = length(phi)
-    if numin(phi[n]) == 2
-        R = id(space(phi[n])[3]')
-    else
-        R = id(space(phi[n])[4]')
-    end
-    for i in 1:pos
-        L = QR_L(L, phi[i])
-    end
-    for i in length(phi):-1:(pos + 1)
-        R = QR_R(R, phi[i])
-    end
-    PR, PL = P_decomp(R, L, trunc)
-    return PR, PL
-end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
     T_trans = transpose(T, (2, 1), (3, 4); copy=true)
@@ -223,25 +205,6 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
         push!(ΨB_disentangled, B1)
     end
     return ΨB_disentangled
-end
-
-function Ψ_B_oneloop(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    ΨA = Ψ_A(scheme)
-    ΨB = []
-
-    for i in 1:4
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        phi = copy(ΨA)
-        deleteat!(phi, i)
-        insert!(phi, i, s1)
-        insert!(phi, i + 1, s2)
-        PR, PL = one_loop_projector(phi, i, trunc)
-        @tensor B1[-1; -2 -3] := s1[-1; -2 1] * PR[1; -3]
-        @tensor B2[-1; -2 -3] := PL[-1; 1] * s2[1; -2 -3]
-        push!(ΨB, B1)
-        push!(ΨB, B2)
-    end
-    return ΨB
 end
 
 # Construct the list of transfer matrices for ΨAΨA
