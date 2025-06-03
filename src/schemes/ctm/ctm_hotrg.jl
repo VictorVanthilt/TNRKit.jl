@@ -106,7 +106,7 @@ end
 
 function run!(scheme::ctm_HOTRG,
               trunc::TensorKit.TruncationScheme,
-              criterion::Stopcrit;
+              criterion::stopcrit;
               sweep=30,
               return_cft=false,
               inv=false,
