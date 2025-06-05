@@ -64,7 +64,7 @@ export classical_potts, classical_potts_symmetric, potts_βc
 
 # utility functions
 include("utility/cft.jl")
-export cft_data, central_charge
+export cft_data, central_charge, cft_data!
 
 include("utility/finalize.jl")
 export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!

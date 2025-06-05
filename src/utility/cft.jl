@@ -68,24 +68,70 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-function cft_data(scheme::LoopTNR; is_real=true)
-    @tensor opt = true T[-1 -2; -3 -4] := scheme.TA[-1 1; 3 2] * scheme.TB[2 6; 4 -3] *
-                                          scheme.TB[-2 3; 1 5] * scheme.TA[5 4; 6 -4]
+# Function to obtain the "canonical" normalization constant
+function shape_factor_2x2(A, B)
+    a_in = domain(A)[1]
+    b_in = domain(B)[1]
+    x0 = rand(a_in ⊗ b_in)
 
-    D, V = eig(T)
-    diag = []
-    for (i, d) in blocks(D)
-        push!(diag, d...)
+    function f0(x)
+        @planar fx[-1 -2] := A[c -1; 1 m] * x[1 2] * B[m -2; 2 c]
+        @planar ffx[-1 -2] := B[c -1; 1 m] * fx[1 2] * A[m -2; 2 c]
+        return ffx
     end
-    diag = filter(x -> abs(x) > 1e-12, diag)
-    data = sort!(diag; by=x -> abs(x), rev=true)
 
-    if is_real
-        data = real(data)
-        return (1 / (2π)) * log.(abs.(data[1] ./ data))
-    else
-        return (1 / (2π)) * log.(data[1] ./ data)
+    spec0, _, _ = eigsolve(f0, x0, 1, :LR; verbosity=0)
+
+    return abs(spec0[1])
+end
+
+# Computing the conformal spectrum via charge insertion
+#      |
+#      v
+#  ----|--<---
+# | ---|-->-- |
+# || xxxxxx  ||
+#  \-  \ / \ /^
+#   \   B   B |
+#    \ / \ / \|
+#     A   A  
+#    / \ / \
+function spec_2x4(A, B; Nh=10)
+    I = sectortype(A)
+    if BraidingStyle(I) != Bosonic()
+        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
+
+    spec_sector = Dict()
+    conformal_data = Dict()
+
+    for charge in values(I)
+        V = Vect[I](charge=>1)
+        x = rand(domain(B)⊗domain(B)←V)
+        function f(x)
+            @tensor fx[-1 -2 -3 -4; 5] := B[-1 -2; 1 2] * x[1 2 3 4; 5] * B[-3 -4; 3 4]
+            @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] * A[-1 -2; 4 1]
+            return permute(ffx, (2, 3, 4, 1), (5,))
+        end
+        spec, _, _ = eigsolve(f, x, Nh, :LR; verbosity=0)
+        spec_sector[charge] = abs.(spec)
+    end
+
+    norm_const_0 = spec_sector[one(I)][1]
+    conformal_data["c"] = -12/pi*log(norm_const_0)
+    for irr_center in values(I)
+        conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
+    end
+    return conformal_data
+end
+
+# The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
+function cft_data!(scheme::LoopTNR)
+    norm_const = shape_factor_2x2(scheme.TA, scheme.TB)
+    scheme.TA = scheme.TA/norm_const^(1/4)
+    scheme.TB = scheme.TB/norm_const^(1/4)
+    conformal_data = spec_2x4(scheme.TA, scheme.TB)
+    return conformal_data
 end
 
 """
