@@ -112,17 +112,22 @@ function spec_2x4(A, B; Nh=10, is_real=true)
     for charge in values(I)
         V = Vect[I](charge=>1)
         x = rand(domain(B)⊗domain(B)←V)
-        function f(x)
-            @tensor fx[-1 -2 -3 -4; 5] := B[-1 -2; 1 2] * x[1 2 3 4; 5] * B[-3 -4; 3 4]
-            @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] * A[-1 -2; 4 1]
-            return permute(ffx, (2, 3, 4, 1), (5,))
-        end
-        spec, _, _ = eigsolve(f, x, Nh, :LR; krylovdim=40, maxiter=100, tol=1e-12,
-                              verbosity=0)
-        if is_real
-            spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+        if dim(x) == 0
+            spec_sector[charge] = [0.0]
         else
-            spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+            function f(x)
+                @tensor fx[-1 -2 -3 -4; 5] := B[-1 -2; 1 2] * x[1 2 3 4; 5] * B[-3 -4; 3 4]
+                @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] *
+                                               A[-1 -2; 4 1]
+                return permute(ffx, (2, 3, 4, 1), (5,))
+            end
+            spec, _, _ = eigsolve(f, x, Nh, :LR; krylovdim=40, maxiter=100, tol=1e-12,
+                                  verbosity=0)
+            if is_real
+                spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+            else
+                spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+            end
         end
     end
 
