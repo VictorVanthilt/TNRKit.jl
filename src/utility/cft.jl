@@ -89,17 +89,7 @@ function shape_factor_2x2(A, B; is_real=true)
     end
 end
 
-# Computing the conformal spectrum via charge insertion
-#      |
-#      v
-#  ----|--<---
-# | ---|-->-- |
-# || xxxxxx  ||
-#  \-  \ / \ /^
-#   \   B   B |
-#    \ / \ / \|
-#     A   A  
-#    / \ / \
+# Fig.25 of https://arxiv.org/pdf/2311.18785
 function spec_2x4(A, B; Nh=10, is_real=true)
     I = sectortype(A)
     if BraidingStyle(I) != Bosonic()
