@@ -121,7 +121,7 @@ function spec_2x4(A, B; Nh=10, is_real=true)
                                                A[-1 -2; 4 1]
                 return permute(ffx, (2, 3, 4, 1), (5,))
             end
-            spec, _, _ = eigsolve(f, x, Nh, :LR; krylovdim=40, maxiter=100, tol=1e-12,
+            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
                                   verbosity=0)
             if is_real
                 spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
