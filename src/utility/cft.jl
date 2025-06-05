@@ -69,7 +69,7 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
 end
 
 # Function to obtain the "canonical" normalization constant
-function shape_factor_2x2(A, B)
+function shape_factor_2x2(A, B; is_real=true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
     x0 = rand(a_in ⊗ b_in)
@@ -82,7 +82,11 @@ function shape_factor_2x2(A, B)
 
     spec0, _, _ = eigsolve(f0, x0, 1, :LR; verbosity=0)
 
-    return abs(spec0[1])
+    if is_real
+        return real(spec0[1])
+    else
+        return spec0[1]
+    end
 end
 
 # Computing the conformal spectrum via charge insertion
@@ -96,7 +100,7 @@ end
 #    \ / \ / \|
 #     A   A  
 #    / \ / \
-function spec_2x4(A, B; Nh=10)
+function spec_2x4(A, B; Nh=10, is_real=true)
     I = sectortype(A)
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
@@ -113,8 +117,13 @@ function spec_2x4(A, B; Nh=10)
             @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] * A[-1 -2; 4 1]
             return permute(ffx, (2, 3, 4, 1), (5,))
         end
-        spec, _, _ = eigsolve(f, x, Nh, :LR; verbosity=0)
-        spec_sector[charge] = abs.(spec)
+        spec, _, _ = eigsolve(f, x, Nh, :LR; krylovdim=40, maxiter=100, tol=1e-12,
+                              verbosity=0)
+        if is_real
+            spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+        else
+            spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+        end
     end
 
     norm_const_0 = spec_sector[one(I)][1]
@@ -126,11 +135,11 @@ function spec_2x4(A, B; Nh=10)
 end
 
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
-function cft_data!(scheme::LoopTNR)
-    norm_const = shape_factor_2x2(scheme.TA, scheme.TB)
+function cft_data!(scheme::LoopTNR; is_real=true)
+    norm_const = shape_factor_2x2(scheme.TA, scheme.TB; is_real)
     scheme.TA = scheme.TA/norm_const^(1/4)
     scheme.TB = scheme.TB/norm_const^(1/4)
-    conformal_data = spec_2x4(scheme.TA, scheme.TB)
+    conformal_data = spec_2x4(scheme.TA, scheme.TB; is_real)
     return conformal_data
 end
 
