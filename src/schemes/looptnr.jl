@@ -368,7 +368,7 @@ end
 # Function to perform the optimization loop for the LoopTNR scheme. Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
 # Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
 # The transfer matrix on the left is updated after each optimization step.
-# The cache technique is from Chengfeng Bao's program, see http://hdl.handle.net/10012/14674
+# The cache technique is from Chengfeng Bao's program, see http://hdl.handle.net/10012/14674.
 function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
                    trunc::TensorKit.TruncationScheme,
                    truncentanglement::TensorKit.TruncationScheme, verbosity::Int)

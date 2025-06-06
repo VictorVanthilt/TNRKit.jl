@@ -89,7 +89,7 @@ function shape_factor_2x2(A, B; is_real=true)
     end
 end
 
-# Fig.25 of https://arxiv.org/pdf/2311.18785
+# Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chengfeng Bao's paper, see http://hdl.handle.net/10012/14674.
 function spec_2x4(A, B; Nh=10, is_real=true)
     I = sectortype(A)
     if BraidingStyle(I) != Bosonic()
