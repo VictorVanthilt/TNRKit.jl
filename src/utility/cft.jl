@@ -118,7 +118,7 @@ function spec_2x4(A, B; Nh=10, is_real=true)
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
                                   verbosity=0)
             if is_real
-                spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+                spec_sector[charge] = filter(x->abs(x)≥1e-12, abs.(spec))
             else
                 spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
             end
