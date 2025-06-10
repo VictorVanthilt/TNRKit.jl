@@ -138,11 +138,11 @@ function spec_2x4(A::AbstractTensorMap, B::AbstractTensorMap, τ::Complex; Nh=10
 end
 
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
-function cft_data!(scheme::LoopTNR; τ = im)
-    norm_const = shape_factor_2x2(scheme.TA, scheme.TB, τ)
+function cft_data!(scheme::LoopTNR)
+    norm_const = shape_factor_2x2(scheme.TA, scheme.TB, scheme.τ)
     scheme.TA = scheme.TA/norm_const^(1/4)
     scheme.TB = scheme.TB/norm_const^(1/4)
-    conformal_data = spec_2x4(scheme.TA, scheme.TB, τ)
+    conformal_data = spec_2x4(scheme.TA, scheme.TB, scheme.τ)
     return conformal_data
 end
 

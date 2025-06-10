@@ -2,13 +2,13 @@
 mutable struct LoopTNR <: TNRScheme
     TA::TensorMap
     TB::TensorMap
-
+    τ::Complex
     finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=(finalize!))
-        return new(TA, TB, finalize)
+    function LoopTNR(TA::TensorMap, TB::TensorMap; τ = im, finalize=(finalize!))
+        return new(TA, TB, τ, finalize)
     end
-    function LoopTNR(T::TensorMap; finalize=(finalize!))
-        return new(T, copy(T), finalize)
+    function LoopTNR(T::TensorMap; τ = im, finalize=(finalize!))
+        return new(T, copy(T), τ, finalize)
     end
 end
 
@@ -441,6 +441,7 @@ function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                loop_criterion::stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
+    scheme.τ = next_τ(scheme.τ)
     return scheme
 end
 
