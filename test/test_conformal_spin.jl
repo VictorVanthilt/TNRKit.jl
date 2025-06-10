@@ -34,7 +34,7 @@ println("x_σ = ", real(x_σ), "\n")
 spec_Lm1σ = [result[i][Irrep[ℤ₂](1)][2] for i = 1:9]
 
 # conformal spin of the first descendant. This can be accessed from the odd number of step.
-x_Lm1σ = real(spec_σ ./ imag(τ_list))
+x_Lm1σ = real(spec_Lm1σ ./ imag(τ_list))
 s_Lm1σ = imag(spec_Lm1σ[1:2:end] ./ real(τ_list[1:2:end]))
 println("x_L-1σ = ", x_Lm1σ, "\n")
 
