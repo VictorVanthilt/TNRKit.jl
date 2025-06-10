@@ -69,7 +69,7 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
 end
 
 # Function to obtain the "canonical" normalization constant
-function shape_factor_2x2(A, B; is_real=true)
+function shape_factor_2x2(A::AbstractTensorMap, B::AbstractTensorMap; is_real=true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
     x0 = rand(a_in ⊗ b_in)
@@ -90,7 +90,7 @@ function shape_factor_2x2(A, B; is_real=true)
 end
 
 # Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function spec_2x4(A, B; Nh=10, is_real=true)
+function spec_2x4(A::AbstractTensorMap, B::AbstractTensorMap; Nh=10, is_real=true)
     I = sectortype(A)
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
@@ -123,8 +123,8 @@ function spec_2x4(A, B; Nh=10, is_real=true)
 
     norm_const_0 = spec_sector[one(I)][1]
     conformal_data["c"] = -12/pi*log(norm_const_0)
-    for irr_center in values(I)
-        conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
+    for charge in values(I)
+        conformal_data[charge] = - 1/pi * log.(spec_sector[charge]/norm_const_0)
     end
     return conformal_data
 end
