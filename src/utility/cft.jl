@@ -126,7 +126,7 @@ function spec_2x4(A, B; Nh=10, is_real=true)
     end
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = -3/pi*log(norm_const_0)
+    conformal_data["c"] = -12/pi*log(norm_const_0)
     for irr_center in values(I)
         conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
     end
