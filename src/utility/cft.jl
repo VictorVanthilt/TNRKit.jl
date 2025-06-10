@@ -118,7 +118,7 @@ function spec_2x4(A, B; Nh=10, is_real=true)
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
                                   verbosity=0)
             if is_real
-                spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+                spec_sector[charge] = filter(x->abs(x)≥1e-12, abs.(spec))
             else
                 spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
             end
@@ -126,7 +126,7 @@ function spec_2x4(A, B; Nh=10, is_real=true)
     end
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = -12/pi*log(norm_const_0)
+    conformal_data["c"] = -3/pi*log(norm_const_0)
     for irr_center in values(I)
         conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
     end
