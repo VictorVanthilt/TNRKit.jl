@@ -1,4 +1,6 @@
 const ising_βc = BigFloat(log(1.0 + sqrt(2)) / 2.0)
+const ising_cft_exact = [1/8, 1, 9/8, 9/8, 2, 2, 2, 2, 17/8, 17/8, 17/8, 3, 3, 3, 3, 3,
+                         25/8, 25/8, 25/8, 25/8, 25/8, 25/8]
 function classical_ising(β::Number; h=0)
     function σ(i::Int64)
         return 2i - 3
