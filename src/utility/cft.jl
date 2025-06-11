@@ -96,6 +96,7 @@ end
 # Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
 function spec_2x4(A, B; Nh=10, is_real=true)
     I = sectortype(A)
+    𝔽 = field(A)
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
@@ -104,7 +105,11 @@ function spec_2x4(A, B; Nh=10, is_real=true)
     conformal_data = Dict()
 
     for charge in values(I)
-        V = Vect[I](charge=>1)
+        if I == Trivial
+            V = 𝔽^1
+        else
+            V = Vect[I](charge=>1)
+        end
         x = rand(domain(B)⊗domain(B)←V)
         if dim(x) == 0
             spec_sector[charge] = [0.0]
