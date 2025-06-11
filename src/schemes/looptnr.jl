@@ -425,8 +425,10 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
     end
 
-    @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] * psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
-    @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] * psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
+    @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
+                                       psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
+    @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
+                                       psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     return scheme
 end
 
