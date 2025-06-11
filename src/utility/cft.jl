@@ -73,7 +73,7 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
 end
 
 # Function to obtain the "canonical" normalization constant
-function shape_factor_2x2(A::AbstractTensorMap, B::AbstractTensorMap, τ::Complex)
+function shape_factor_2x2(A, B; is_real=true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
     x0 = rand(a_in ⊗ b_in)
@@ -86,7 +86,7 @@ function shape_factor_2x2(A::AbstractTensorMap, B::AbstractTensorMap, τ::Comple
 
     spec0, _, _ = eigsolve(f0, x0, 1, :LR; verbosity=0)
 
-    if abs(real(τ)) < 1e-12
+    if is_real
         return real(spec0[1])
     else
         return spec0[1]
@@ -94,8 +94,7 @@ function shape_factor_2x2(A::AbstractTensorMap, B::AbstractTensorMap, τ::Comple
 end
 
 # Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function spec_2x4(A::AbstractTensorMap, B::AbstractTensorMap, τ::Complex; Nh=10)
-    τp = (1+τ)/(1-τ)/2
+function spec_2x4(A, B; Nh=10, is_real=true)
     I = sectortype(A)
     𝔽 = field(A)
     if BraidingStyle(I) != Bosonic()
@@ -116,38 +115,35 @@ function spec_2x4(A::AbstractTensorMap, B::AbstractTensorMap, τ::Complex; Nh=10
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor fx[-1 -2 -3 -4; 5] := A[-1 -2; 1 2] * x[1 2 3 4; 5] * A[-3 -4; 3 4]
-                @tensor ffx[-1 -2 -3 -4; 5] := B[-3 -4; 2 3] * fx[1 2 3 4; 5] *
-                                               B[-1 -2; 4 1]
+                @tensor fx[-1 -2 -3 -4; 5] := B[-1 -2; 1 2] * x[1 2 3 4; 5] * B[-3 -4; 3 4]
+                @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] *
+                                               A[-1 -2; 4 1]
                 return permute(ffx, (2, 3, 4, 1), (5,))
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
                                   verbosity=0)
-            spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+            if is_real
+                spec_sector[charge] = filter(x->abs(x)≥1e-12, real.(spec))
+            else
+                spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+            end
         end
     end
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = 6/pi/imag(τp-τ)*log(norm_const_0)
-    for charge in values(I)
-         k = 1/(2*pi) * log.(Complex.((spec_sector[charge]/norm_const_0)))
-         hij = - real.(k)/imag(τp)
-         if abs(real(τp))<1e-12
-            sij = nothing
-         else
-            sij = imag.(k)/real(τp)
-         end
-         conformal_data[charge] = (hij, sij)
+    conformal_data["c"] = -12/pi*log(norm_const_0)
+    for irr_center in values(I)
+        conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
     end
     return conformal_data
 end
 
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
-function cft_data!(scheme::LoopTNR)
-    norm_const = shape_factor_2x2(scheme.TA, scheme.TB, scheme.τ)
+function cft_data!(scheme::LoopTNR; is_real=true)
+    norm_const = shape_factor_2x2(scheme.TA, scheme.TB; is_real)
     scheme.TA = scheme.TA/norm_const^(1/4)
     scheme.TB = scheme.TB/norm_const^(1/4)
-    conformal_data = spec_2x4(scheme.TA, scheme.TB, scheme.τ)
+    conformal_data = spec_2x4(scheme.TA, scheme.TB; is_real)
     return conformal_data
 end
 

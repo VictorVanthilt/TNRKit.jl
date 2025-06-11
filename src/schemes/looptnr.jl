@@ -2,22 +2,22 @@
 mutable struct LoopTNR <: TNRScheme
     TA::TensorMap
     TB::TensorMap
-    τ::Complex
+
     finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; τ = im, finalize=(finalize!))
-        return new(TA, TB, τ, finalize)
+    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=(finalize!))
+        return new(TA, TB, finalize)
     end
-    function LoopTNR(T::TensorMap; τ = im, finalize=(finalize!))
-        return new(T, copy(T), τ, finalize)
+    function LoopTNR(T::TensorMap; finalize=(finalize!))
+        return new(T, copy(T), finalize)
     end
 end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[transpose(scheme.TA, ((1,), (3, 4, 2)); copy=true),
-                            transpose(scheme.TB, ((3,), (4, 2, 1)); copy=true),
-                            transpose(scheme.TA, ((4,), (2, 1, 3)); copy=true),
-                            transpose(scheme.TB, ((2,), (1, 3, 4)); copy=true)]
+    psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4)); copy=true),
+                            transpose(scheme.TB, ((1,), (3, 4, 2)); copy=true),
+                            transpose(scheme.TA, ((3,), (4, 2, 1)); copy=true),
+                            transpose(scheme.TB, ((4,), (2, 1, 3)); copy=true)]
     return psi
 end
 
@@ -278,12 +278,12 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
 
-    @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][3; -3] *
-                                       PL_list[1][-1; 1] * PR_list[2][2; -2] *
-                                       PL_list[3][-4; 4]
-    @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-3; 3] *
-                                       PR_list[3][1; -1] * PL_list[4][-2; 2] *
-                                       PR_list[1][4; -4]
+    @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
+                                       PL_list[1][-2; 2] * PR_list[2][4; -4] *
+                                       PL_list[3][-3; 3]
+    @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
+                                       PR_list[3][2; -2] * PL_list[4][-4; 4] *
+                                       PR_list[1][3; -3]
 
     return scheme
 end
@@ -417,7 +417,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         tNt = tr(left_BB)
         tdw = tr(left_BA)
         wdt = conj(tdw)
-        cost_this = real((C + tNt - wdt - tdw)/C)
+        cost_this = (C + tNt - wdt - tdw)/C
         push!(cost, cost_this)
 
         if verbosity > 1
@@ -425,8 +425,19 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
     end
 
-    @planar scheme.TA[-1 -2; -3 -4] := psiB[1][d; r -2] * psiB[4][-4; r u] * psiB[5][u; l -3] * psiB[8][-1; l d]
-    @planar scheme.TB[-1 -2; -3 -4] := psiB[6][-2; d r] * psiB[7][r; u -4] * psiB[2][-3; u l] * psiB[3][l; d -1]
+    Ψ5 = psiB[5]
+    Ψ8 = psiB[8]
+    Ψ1 = psiB[1]
+    Ψ4 = psiB[4]
+
+    @planar scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
+
+    Ψ2 = psiB[2]
+    Ψ3 = psiB[3]
+    Ψ6 = psiB[6]
+    Ψ7 = psiB[7]
+
+    @planar scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
     return scheme
 end
 
@@ -441,7 +452,6 @@ function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                loop_criterion::stopcrit, verbosity::Int)
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
-    scheme.τ = next_τ(scheme.τ)
     return scheme
 end
 
