@@ -379,7 +379,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     psiApsiA = ΨAΨA(psiA)
     C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
 
-    cost = ComplexF64[Inf]
+    cost = Float64[Inf]
     sweep = 0
     crit = true
     while crit
@@ -417,7 +417,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         tNt = tr(left_BB)
         tdw = tr(left_BA)
         wdt = conj(tdw)
-        cost_this = (C + tNt - wdt - tdw)/C
+        cost_this = real((C + tNt - wdt - tdw)/C)
         push!(cost, cost_this)
 
         if verbosity > 1
@@ -425,19 +425,10 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
     end
 
-    Ψ5 = psiB[5]
-    Ψ8 = psiB[8]
-    Ψ1 = psiB[1]
-    Ψ4 = psiB[4]
-
-    @planar scheme.TB[-1 -2; -3 -4] := Ψ1[1; 2 -2] * Ψ4[-4; 2 3] * Ψ5[3; 4 -3] * Ψ8[-1; 4 1]
-
-    Ψ2 = psiB[2]
-    Ψ3 = psiB[3]
-    Ψ6 = psiB[6]
-    Ψ7 = psiB[7]
-
-    @planar scheme.TA[-1 -2; -3 -4] := Ψ6[-2; 1 2] * Ψ7[2; 3 -4] * Ψ2[-3; 3 4] * Ψ3[4; 1 -1]
+    @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
+                                       psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
+    @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
+                                       psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     return scheme
 end
 
