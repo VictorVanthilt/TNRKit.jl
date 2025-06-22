@@ -21,9 +21,11 @@ include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
 
 # CTM methods
-include("schemes/c4ctm.jl")
-include("schemes/rctm.jl")
-include("schemes/ctmhotrg.jl")
+include("schemes/ctm/utility.jl")
+include("schemes/ctm/c4ctm.jl")
+include("schemes/ctm/rctm.jl")
+include("schemes/ctm/ctm_trg.jl")
+include("schemes/ctm/ctm_hotrg.jl")
 
 # Loop Methods
 include("schemes/looptnr.jl")
@@ -40,7 +42,8 @@ export ATRG_3D
 
 export c4CTM
 export rCTM
-export CTMHOTRG
+export ctm_TRG
+export ctm_HOTRG
 
 export LoopTNR
 export SLoopTNR
@@ -61,13 +64,19 @@ export sixvertex
 include("models/potts.jl")
 export classical_potts, classical_potts_symmetric, potts_βc
 
+include("models/clock.jl")
+export classical_clock
+
 # utility functions
 include("utility/cft.jl")
-export cft_data, central_charge
+export cft_data, central_charge, cft_data!
 
 include("utility/finalize.jl")
 export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
 
 include("utility/cdl.jl")
 export cdl_tensor
+
+include("utility/blocking.jl")
+export block_tensors
 end

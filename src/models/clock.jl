@@ -1,4 +1,4 @@
-function classical_Clock(q::Int64, β::Float64)
+function classical_clock(q::Int64, β::Float64)
     V = ℂ^q
     A_clock = TensorMap(zeros, V ⊗ V ← V ⊗ V)
     clock(i, j) = -cos(2π / q * (i - j))

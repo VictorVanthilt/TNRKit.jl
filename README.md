@@ -14,11 +14,13 @@ The following schemes are currently implemented:
 - ATRG_3D (3D ATRG)
 - HOTRG (higher order TRG)
 - LoopTNR (entanglement filtering + loop optimization)
-- CTMHOTRG (Corner Transfer Matrix environment + HOTRG)
+- SLoopTNR (C4 & inversion symmetric LoopTNR)
+- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
+- ctm_TRG (Corner Transfer Matrix environment + TRG)
 - c4CTM (c4 symmetric CTM)
 - rCTM (reflection symmetric CTM)
 
-The project is not registered (yet) and is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated.
+This project is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated. The github discussions page is a great place to talk!
 
 # Quick Start Guide
 1. Choose a (TensorKit!) tensor that respects the leg-convention (see below)
@@ -50,7 +52,8 @@ You could even compare to the exact value, as calculated by Onsager:
 julia> abs((fs - f_onsager) / f_onsager)
 3.1e-07
 ```
-Pretty impressive for a calculation that takes about 0.3s on a modern laptop.
+Pretty impressive for a calculation that takes about 0.3s on a laptop.
+
 ## Verbosity
 There are 3 levels of verbosity implemented in TNRKit:
 - Level 0: no TNRKit messages whatsoever.
@@ -62,12 +65,13 @@ to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 ## Included Models
 TNRKit includes several common models out of the box.
 - Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a Z2 grading on each leg.
-- Potts model: `classical_potts(q, β)`
+- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a Zq grading on each leg.
 - Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
-
+- Clock model: `classical_clock`
 If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
+
 ## Leg-convention
-All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V₃⊗V₄` and that the legs are ordered in the following way:
+All the schemes assume that the input tensor lives in the space $V_1 \otimes V_2 \leftarrow V_3 \otimes V_4$ and that the legs are ordered in the following way:
 ```
      3
      |
@@ -79,3 +83,7 @@ All the schemes assume that the input tensor lives in the space `V₁⊗V₂←V
      |
      2
 ```
+
+The 3D scheme(s) assume that the input tensor lives in the space $V_{\text{D}} \otimes V_{\text{U}} \prime \leftarrow V_{\text{N}} \otimes V_{\text{E}} \otimes V_{\text{S}} \prime \otimes V_{\text{W}} \prime$.
+
+Where D, U, N, E, S, W stand for Down, Up, North, East, South and West.
