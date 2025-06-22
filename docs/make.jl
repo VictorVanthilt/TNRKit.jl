@@ -15,4 +15,4 @@ makedocs(
     plugins = [bib]
 )
 
-deploydocs(; repo="github.com/VictorVanthilt/TNRKit.jl.git")
+deploydocs(; repo="github.com/VictorVanthilt/TNRKit.jl.git", push_preview=true)
