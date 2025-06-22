@@ -62,6 +62,9 @@ export sixvertex
 include("models/potts.jl")
 export classical_potts, classical_potts_symmetric, potts_βc
 
+include("models/clock.jl")
+export classical_clock
+
 # utility functions
 include("utility/cft.jl")
 export cft_data, central_charge, cft_data!
