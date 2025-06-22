@@ -11,7 +11,6 @@ makedocs(
         "Home" => "index.md"
         "Library" => "lib/lib.md"
     ],
-    
     plugins = [bib]
 )
 
