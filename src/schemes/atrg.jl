@@ -7,7 +7,7 @@ Anisotropic Tensor Renormalization Group
     $(FUNCTIONNAME)(T [, finalize=finalize!])
 
 ### Running the algorithm
-    run!(::ATRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, verbosity=1])
+    run!(::ATRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 

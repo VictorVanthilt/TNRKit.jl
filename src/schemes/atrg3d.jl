@@ -7,7 +7,7 @@ $(TYPEDEF)
     $(FUNCTIONNAME)(T [, finalize=finalize!])
 
 ### Running the algorithm
-    run!(::ATRG_3D, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, verbosity=1])
+    run!(::ATRG_3D, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true,verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 

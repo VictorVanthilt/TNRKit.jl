@@ -7,6 +7,12 @@ Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(T [, finalize=finalize!])
     $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
 
+### Running the algorithm
+    run!(::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
+              entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+
+    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+
 ### Fields
 
 $(TYPEDFIELDS)
@@ -54,7 +60,7 @@ function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
     temp = transpose(LT, (3, 2, 1), (4,); copy=true)
     _, Rt = leftorth(temp)
-    return Rt/norm(Rt, Inf)
+    return Rt / norm(Rt, Inf)
 end
 
 # A single step of the QR decomposition from the right with 3 in-coming legs
@@ -71,7 +77,7 @@ end
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
     @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
     Lt, _ = rightorth(TR)
-    return Lt/norm(Lt, Inf)
+    return Lt / norm(Lt, Inf)
 end
 
 # A single step of the QR decomposition from the left with 2 in-coming legs
@@ -89,7 +95,7 @@ function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
     temp = transpose(LT, (2, 1), (3,); copy=true)
     _, Rt = leftorth(temp)
-    return Rt/norm(Rt, Inf)
+    return Rt / norm(Rt, Inf)
 end
 
 # A single step of the QR decomposition from the right with 2 in-coming legs
@@ -105,7 +111,7 @@ end
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
     @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
     Lt, _ = rightorth(TR)
-    return Lt/norm(Lt, Inf)
+    return Lt / norm(Lt, Inf)
 end
 
 # Functions to find the left and right projectors
@@ -114,7 +120,7 @@ end
 function find_L(psi::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
-    L_list = map(x->id(type, codomain(psi[x])[1]), 1:n)
+    L_list = map(x -> id(type, codomain(psi[x])[1]), 1:n)
     crit = true
     steps = 0
     error = [Inf]
@@ -140,14 +146,14 @@ end
 function find_R(psi::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
-    R_list = map(x->id(type, domain(psi[x]).spaces[end]), 1:n)
+    R_list = map(x -> id(type, domain(psi[x]).spaces[end]), 1:n)
     crit = true
     steps = 0
     error = [Inf]
 
     running_pos = n
     while crit
-        pos_last = mod(running_pos-2, n)+1
+        pos_last = mod(running_pos - 2, n) + 1
         R_last_time = R_list[pos_last]
         R_list[pos_last] = QR_R(R_list[running_pos], psi[running_pos])
 
@@ -182,7 +188,7 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     L_list = find_L(psi, entanglement_criterion)
     R_list = find_R(psi, entanglement_criterion)
     for i in 1:n
-        pr, pl = P_decomp(R_list[mod(i-2, n)+1], L_list[i], trunc)
+        pr, pl = P_decomp(R_list[mod(i - 2, n) + 1], L_list[i], trunc)
 
         push!(PR_list, pr)
         push!(PL_list, pl)
@@ -211,7 +217,7 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    PR_list, PL_list = find_projectors(ΨB, criterion, trunc&truncentanglement)
+    PR_list, PL_list = find_projectors(ΨB, criterion, trunc & truncentanglement)
 
     ΨB_disentangled = []
     for i in 1:8
@@ -263,8 +269,8 @@ end
 function ΨBΨA(psiB, psiA)
     ΨBΨA_list = []
     for i in 1:4
-        @planar temp[-1 -2; -3 -4] := psiB[2*i-1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
-                                      psiB[2*i]'[2 -3; 3]
+        @planar temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
+                                      psiB[2 * i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
     end
     return ΨBΨA_list
@@ -308,14 +314,14 @@ function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationSch
     return entanglement_filtering!(scheme, entanglement_criterion, trunc)
 end
 
-#Optimisation functions
+# Optimisation functions
 
 # Function to compute the half of the matrix N by inputting the left and right SS transfer matrices
 tN(SS_left, SS_right) = SS_right * SS_left
 
 # Function to compute the vector W for a given position in the loop
 function tW(pos, psiA, psiB, TSS_left, TSS_right)
-    ΨA = psiA[(pos-1)÷2+1]
+    ΨA = psiA[(pos - 1) ÷ 2 + 1]
 
     tmp = TSS_right * TSS_left
 
@@ -406,7 +412,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
 
         t_start = time()
         for pos_psiB in 1:8
-            pos_psiA = (pos_psiB-1)÷2+1 # Position in the MPS Ψ_A
+            pos_psiA = (pos_psiB - 1) ÷ 2 + 1 # Position in the MPS Ψ_A
 
             N = tN(left_BB, right_cache_BB[pos_psiB]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
             W = tW(pos_psiB, psiA, psiB, left_BA, right_cache_BA[pos_psiA]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
@@ -420,9 +426,9 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @planar BA_temp[-1 -2; -3 -4] := psiB[2*pos_psiA-1]'[1 3; -1] *
+                @planar BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
                                                  psiA[pos_psiA][-2; 1 2 -4] *
-                                                 psiB[2*pos_psiA]'[2 -3; 3]
+                                                 psiB[2 * pos_psiA]'[2 -3; 3]
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
                 left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
             end
@@ -433,7 +439,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         tNt = tr(left_BB)
         tdw = tr(left_BA)
         wdt = conj(tdw)
-        cost_this = real((C + tNt - wdt - tdw)/C)
+        cost_this = real((C + tNt - wdt - tdw) / C)
         push!(cost, cost_this)
 
         if verbosity > 1
