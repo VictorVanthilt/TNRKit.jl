@@ -2,15 +2,18 @@
 ![TNRKit Logo](https://github.com/VictorVanthilt/TNRKit.jl/blob/master/docs/src/assets/TNRKitLogo-light.svg#gh-light-mode-only)
 
 # TNRKit.jl
-| **Documentation** |
-|:-----------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] |
+| **Documentation** | **Build Status** |
+|:-----------------:|:----------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![CI][ci-img]][ci-url] |
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://VictorVanthilt.github.io/TNRKit.jl/stable
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://VictorVanthilt.github.io/TNRKit.jl/dev
+
+[ci-img]: https://github.com/VictorVanthilt/TNRKit.jl/actions/workflows/CI.yml/badge.svg
+[ci-url]: https://github.com/VictorVanthilt/TNRKit.jl/actions/workflows/CI.yml
 
 TNRKit.jl is a Julia package that aims to implement as many tensor network renormalization (TNR) schemes as possible.
 It is built upon
