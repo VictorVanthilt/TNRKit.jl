@@ -2,11 +2,19 @@
 ![TNRKit Logo](https://github.com/VictorVanthilt/TNRKit.jl/blob/master/docs/src/assets/TNRKitLogo-light.svg#gh-light-mode-only)
 
 # TNRKit.jl
+| **Documentation** |
+|:-----------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] |
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://VictorVanthilt.github.io/TNRKit.jl/stable
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://VictorVanthilt.github.io/TNRKit.jl/dev
 
 TNRKit.jl is a Julia package that aims to implement as many tensor network renormalization (TNR) schemes as possible.
 It is built upon
-[TensorKit.jl](https://github.com/jutho/TensorKit.jl), which provides functionality for
-generic symmetries.
+[TensorKit.jl](https://github.com/jutho/TensorKit.jl), which provides functionality for symmetric tensors.
 The following schemes are currently implemented:
 - TRG (Levin and Nave's original formulation of a TNR scheme) 
 - BTRG (bond-weighted TRG)
