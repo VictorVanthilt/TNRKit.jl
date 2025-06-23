@@ -1,5 +1,5 @@
 function next_τ(τ)
-    return (τ-1)/(τ+1)
+    return (τ - 1) / (τ + 1)
 end
 
 function cft_data(scheme::TNRScheme; v=1, unitcell=1, is_real=true)
@@ -108,9 +108,9 @@ function spec_2x4(A, B; Nh=10, is_real=true)
         if I == Trivial
             V = 𝔽^1
         else
-            V = Vect[I](charge=>1)
+            V = Vect[I](charge => 1)
         end
-        x = rand(domain(B)⊗domain(B)←V)
+        x = rand(domain(B) ⊗ domain(B) ← V)
         if dim(x) == 0
             spec_sector[charge] = [0.0]
         else
@@ -125,15 +125,15 @@ function spec_2x4(A, B; Nh=10, is_real=true)
             if is_real
                 spec_sector[charge] = filter(≥(1e-12), abs.(spec))
             else
-                spec_sector[charge] = filter(x->abs(real(x))≥1e-12, spec)
+                spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
             end
         end
     end
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = -12/pi*log(norm_const_0)
+    conformal_data["c"] = -12 / pi * log(norm_const_0)
     for irr_center in values(I)
-        conformal_data[irr_center] = - 1/pi * log.(spec_sector[irr_center]/norm_const_0)
+        conformal_data[irr_center] = -1 / pi * log.(spec_sector[irr_center] / norm_const_0)
     end
     return conformal_data
 end
@@ -141,8 +141,8 @@ end
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
 function cft_data!(scheme::LoopTNR; is_real=true)
     norm_const = shape_factor_2x2(scheme.TA, scheme.TB; is_real)
-    scheme.TA = scheme.TA/norm_const^(1/4)
-    scheme.TB = scheme.TB/norm_const^(1/4)
+    scheme.TA = scheme.TA / norm_const^(1 / 4)
+    scheme.TB = scheme.TB / norm_const^(1 / 4)
     conformal_data = spec_2x4(scheme.TA, scheme.TB; is_real)
     return conformal_data
 end

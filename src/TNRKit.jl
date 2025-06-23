@@ -6,7 +6,6 @@ using OptimKit, Zygote
 using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 using DocStringExtensions
 
-
 # stop criteria
 include("utility/stopping.jl")
 export maxiter, convcrit
