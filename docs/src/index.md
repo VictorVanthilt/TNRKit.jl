@@ -11,6 +11,7 @@ You can use TNRKit for calculating:
 3. Central charges
 
 Many common TNR schemes have already been implemented:
+
 **2D square tensor networks**
 * [`TRG`](@ref) (Levin and Nave's Tensor Renormalization Group)
 * [`BTRG`](@ref) (bond-weighted TRG)
