@@ -12,7 +12,7 @@ c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
               criterion::TNRKit.stopcrit[, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
-    `oneloop=true` will use disentangled tensors as a starting guess for the optimization.
+`oneloop=true` will use disentangled tensors as a starting guess for the optimization.
 ### Fields
 
 $(TYPEDFIELDS)
