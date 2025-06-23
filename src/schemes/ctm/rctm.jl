@@ -1,5 +1,3 @@
-using PEPSKit
-
 #=
 CTM with spatial reflection symmetry along x and y axis. This allows the different edge tensors for the vertical and horizontal edges.
 The corner tensors are related by its mirror images.

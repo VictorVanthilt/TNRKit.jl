@@ -11,15 +11,19 @@ You can use TNRKit for calculating:
 3. Central charges
 
 Many common TNR schemes have already been implemented:
-* [`TRG`](@ref)
-* [`BTRG`](@ref)
-* [`ATRG`](@ref)
-* [`LoopTNR`](@ref)
+**2D square tensor networks**
+* [`TRG`](@ref) (Levin and Nave's Tensor Renormalization Group)
+* [`BTRG`](@ref) (bond-weighted TRG)
+* [`LoopTNR`](@ref) (entanglement filtering + loop optimization)
+* [`SLoopTNR`](@ref) (c4 & inversion symmetric LoopTNR)
+* [`HOTRG`](@ref) (higher order TRG)
+* [`ATRG`](@ref) (anisotropic TRG)
 
-TNRKit has received funding by:
-- Fonds voor Wetenschappenlijk Onderzoek (FWO)
-- The European Research Council
+**CTM methods (yet to be documented)**
+* `ctm_TRG` (Corner Transfer Matrix environment + TRG)
+* `ctm_HOTRG` (Corner Transfer Matrix environment + HOTRG)
+* `c4CTM` (c4 symmetric CTM)
+* `rCTM` (reflection symmetric CTM)
 
-# References
-```@bibliography
-```
+**3D cubic tensor networks**
+* [`ATRG_3D`](@ref) (anisotropic TRG)

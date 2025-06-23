@@ -10,6 +10,7 @@ makedocs(
     pages = [
         "Home" => "index.md"
         "Library" => "lib/lib.md"
+        "References" => "references.md"
     ],
     plugins = [bib]
 )

@@ -1,4 +1,26 @@
-# C4 & inversion symmetric LoopTNR described in Fig. S6 of Phys. Rev. Lett. 118, 110504 (2017)
+"""
+$(TYPEDEF)
+
+c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
+
+### Constructors
+    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+
+### Running the algorithm
+    run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
+              criterion::TNRKit.stopcrit[, finalize_beginning=true, oneloop=true,
+              verbosity=1])
+
+    `oneloop=true` will use disentangled tensors as a starting guess for the optimization.
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yang_loop_2017) (Fig. S6)
+
+"""
 mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
@@ -119,7 +141,7 @@ end
 
 ########## Initialization of loop optimizations ##########
 function decompose_T(T, trunc)
-    u, s, vt = tsvd(T, (1, 2), (3, 4); trunc)
+    u, s, _ = tsvd(T, (1, 2), (3, 4); trunc)
     return u * sqrt(s)
 end
 
@@ -128,14 +150,14 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨB = []
 
     for i in 1:4
-        s1, s2 = TNRKit.SVD12(ΨA[i], truncdim(trunc.dim * 2))
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
     end
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
-    PR_list, PL_list = TNRKit.find_projectors(ΨB, criterion, trunc)
+    PR_list, _ = find_projectors(ΨB, criterion, trunc)
 
     ΨB_disentangled = []
     for i in 1:1
