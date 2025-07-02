@@ -8,7 +8,7 @@ T = classical_ising_symmetric()
 
 # TRG
 @testset "TRG - Ising Model" begin
-    scheme = TRG(T; finalize=(finalize_two_by_two!))
+    scheme = TRG(T; finalize = (finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
@@ -19,12 +19,12 @@ T = classical_ising_symmetric()
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-6
+    @test relerror < 2.0e-6
 end
 
 # BTRG
 @testset "BTRG - Ising Model" begin
-    scheme = BTRG(T, -0.5; finalize=(finalize_two_by_two!))
+    scheme = BTRG(T, -0.5; finalize = (finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
@@ -35,12 +35,12 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-8
+    @test relerror < 6.0e-8
 end
 
 # HOTRG
 @testset "HOTRG - Ising Model" begin
-    scheme = HOTRG(T; finalize=(finalize_two_by_two!))
+    scheme = HOTRG(T; finalize = (finalize_two_by_two!))
     data = run!(scheme, truncdim(16), maxiter(25))
 
     lnz = 0
@@ -51,12 +51,12 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-7
+    @test relerror < 6.0e-7
 end
 
 # ATRG
 @testset "ATRG - Ising Model" begin
-    scheme = ATRG(T; finalize=(finalize_two_by_two!))
+    scheme = ATRG(T; finalize = (finalize_two_by_two!))
     data = run!(scheme, truncdim(24), maxiter(25))
 
     lnz = 0
@@ -67,5 +67,5 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 3e-6
+    @test relerror < 3.0e-6
 end

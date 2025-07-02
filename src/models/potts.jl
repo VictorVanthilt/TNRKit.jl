@@ -17,7 +17,7 @@ function classical_potts(q::Int, β::Float64)
 end
 classical_potts(q::Int) = classical_potts(q, potts_βc(q))
 
-function weyl_heisenberg_matrices(Q::Int, elt=ComplexF64)
+function weyl_heisenberg_matrices(Q::Int, elt = ComplexF64)
     U = zeros(elt, Q, Q) # clock matrix
     V = zeros(elt, Q, Q) # shift matrix
     W = zeros(elt, Q, Q) # DFT
@@ -49,8 +49,10 @@ function classical_potts_symmetric(q::Int64, β::Float64)
     Vp = Vect[ZNIrrep{q}](sector => 1 for sector in 0:(q - 1))
     _, _, W = weyl_heisenberg_matrices(q)
     P = TensorMap(W, ℂ^q ← ℂ^q)
-    A_potts = TensorMap(reshape(((P' ⊗ P') * A_potts * (P ⊗ P)).data, (q, q, q, q)),
-                        Vp ⊗ Vp ← Vp ⊗ Vp)
+    A_potts = TensorMap(
+        reshape(((P' ⊗ P') * A_potts * (P ⊗ P)).data, (q, q, q, q)),
+        Vp ⊗ Vp ← Vp ⊗ Vp
+    )
     return A_potts
 end
 classical_potts_symmetric(q::Int) = classical_potts_symmetric(q, potts_βc(q))

@@ -1,8 +1,12 @@
 function block_tensors(O_list::Matrix)
     m, n = size(O_list)
-    ind_list = [[(n + 1) * (i - 1) + j, m * (n + 1) + (m + 1) * (j - 1) + i + 1,
-                 m * (n + 1) + (m + 1) * (j - 1) + i,
-                 (n + 1) * (i - 1) + j + 1] for i in 1:m for j in 1:n]
+    ind_list = [
+        [
+                (n + 1) * (i - 1) + j, m * (n + 1) + (m + 1) * (j - 1) + i + 1,
+                m * (n + 1) + (m + 1) * (j - 1) + i,
+                (n + 1) * (i - 1) + j + 1,
+            ] for i in 1:m for j in 1:n
+    ]
     Vv = [space(O_list[end, j])[2] for j in 1:n]
     Uv = isomorphism(fuse(Vv...), prod(Vv))
     Vh = [space(O_list[i, 1])[1] for i in 1:m]

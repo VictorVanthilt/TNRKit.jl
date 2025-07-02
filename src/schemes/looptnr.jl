@@ -26,20 +26,22 @@ mutable struct LoopTNR <: TNRScheme
     TB::TensorMap
 
     finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize=(finalize!))
+    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize = (finalize!))
         return new(TA, TB, finalize)
     end
-    function LoopTNR(T::TensorMap; finalize=(finalize!))
+    function LoopTNR(T::TensorMap; finalize = (finalize!))
         return new(T, copy(T), finalize)
     end
 end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[transpose(scheme.TA, ((2,), (1, 3, 4)); copy=true),
-                            transpose(scheme.TB, ((1,), (3, 4, 2)); copy=true),
-                            transpose(scheme.TA, ((3,), (4, 2, 1)); copy=true),
-                            transpose(scheme.TB, ((4,), (2, 1, 3)); copy=true)]
+    psi = AbstractTensorMap[
+        transpose(scheme.TA, ((2,), (1, 3, 4)); copy = true),
+        transpose(scheme.TB, ((1,), (3, 4, 2)); copy = true),
+        transpose(scheme.TA, ((3,), (4, 2, 1)); copy = true),
+        transpose(scheme.TB, ((4,), (2, 1, 3)); copy = true),
+    ]
     return psi
 end
 
@@ -56,9 +58,9 @@ end
 #         v v
 # ----1-<--Q--<-4--Rt-
 
-function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
+function QR_L(L::TensorMap, T::AbstractTensorMap{E, S, 1, 3}) where {E, S}
     @planar LT[-1; -2 -3 -4] := L[-1; 1] * T[1; -2 -3 -4]
-    temp = transpose(LT, (3, 2, 1), (4,); copy=true)
+    temp = transpose(LT, (3, 2, 1), (4,); copy = true)
     _, Rt = leftorth(temp)
     return Rt / norm(Rt, Inf)
 end
@@ -74,7 +76,7 @@ end
 #          v v
 # -Lt--1-<--Q--<-4----
 
-function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
+function QR_R(R::TensorMap, T::AbstractTensorMap{E, S, 1, 3}) where {E, S}
     @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
     Lt, _ = rightorth(TR)
     return Lt / norm(Lt, Inf)
@@ -86,14 +88,14 @@ end
 #          v
 # --L-1-<--T--<-3----
 # =
-#          | 
+#          |
 #          2
 #          v
 # ----1-<--Q--<-3--Rt-
 
-function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
+function QR_L(L::TensorMap, T::AbstractTensorMap{E, S, 1, 2}) where {E, S}
     @planar LT[-1; -2 -3] := L[-1; 1] * T[1; -2 -3]
-    temp = transpose(LT, (2, 1), (3,); copy=true)
+    temp = transpose(LT, (2, 1), (3,); copy = true)
     _, Rt = leftorth(temp)
     return Rt / norm(Rt, Inf)
 end
@@ -108,7 +110,7 @@ end
 #           2
 #           v
 # -Lt--1-<--Q--<-3----
-function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
+function QR_R(R::TensorMap, T::AbstractTensorMap{E, S, 1, 2}) where {E, S}
     @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
     Lt, _ = rightorth(TR)
     return Lt / norm(Lt, Inf)
@@ -171,7 +173,7 @@ end
 
 # Function to find the projector P_L and P_R
 function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(L * R; trunc=trunc, alg=TensorKit.SVD())
+    U, S, V, _ = tsvd(L * R; trunc = trunc, alg = TensorKit.SVD())
     re_sq = pseudopow(S, -0.5)
     PR = R * V' * re_sq
     PL = re_sq * U' * L
@@ -179,8 +181,10 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
 end
 
 # Function to find the list of projectors
-function find_projectors(psi::Array, entanglement_criterion::stopcrit,
-                         trunc::TensorKit.TruncationScheme)
+function find_projectors(
+        psi::Array, entanglement_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme
+    )
     PR_list = []
     PL_list = []
 
@@ -196,17 +200,19 @@ function find_projectors(psi::Array, entanglement_criterion::stopcrit,
     return PR_list, PL_list
 end
 
-function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    T_trans = transpose(T, (2, 1), (3, 4); copy=true)
-    U, s, V, _ = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
+function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme) where {E, S}
+    T_trans = transpose(T, (2, 1), (3, 4); copy = true)
+    U, s, V, _ = tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
     @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
-             truncentanglement::TensorKit.TruncationScheme)
+function Ψ_B(
+        ΨA, trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme
+    )
     ΨB = []
 
     for i in 1:4
@@ -216,13 +222,13 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
     end
 
     ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
+    criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
     PR_list, PL_list = find_projectors(ΨB, criterion, trunc & truncentanglement)
 
     ΨB_disentangled = []
     for i in 1:8
         @planar B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
-                                 PR_list[mod(i, 8) + 1][2; -3]
+            PR_list[mod(i, 8) + 1][2; -3]
         push!(ΨB_disentangled, B1)
     end
     return ΨB_disentangled
@@ -270,7 +276,7 @@ function ΨBΨA(psiB, psiA)
     ΨBΨA_list = []
     for i in 1:4
         @planar temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
-                                      psiB[2 * i]'[2 -3; 3]
+            psiB[2 * i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
     end
     return ΨBΨA_list
@@ -285,15 +291,17 @@ function to_number(tensor_list)
     return tr(cont)
 end
 
-#Entanglement Filtering 
+#Entanglement Filtering
 entanglement_function(steps, data) = abs(data[end])
-entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
+entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
 
-loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
+loop_criterion = maxiter(50) & convcrit(1.0e-8, entanglement_function)
 
 # Entanglement filtering function
-function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
-                                 trunc::TensorKit.TruncationScheme)
+function entanglement_filtering!(
+        scheme::LoopTNR, entanglement_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme
+    )
     ΨA = Ψ_A(scheme)
     PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
 
@@ -301,11 +309,11 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
     TB = copy(scheme.TB)
 
     @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
-                                       PL_list[1][-2; 2] * PR_list[2][4; -4] *
-                                       PL_list[3][-3; 3]
+        PL_list[1][-2; 2] * PR_list[2][4; -4] *
+        PL_list[3][-3; 3]
     @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
-                                       PR_list[3][2; -2] * PL_list[4][-4; 4] *
-                                       PR_list[1][3; -3]
+        PR_list[3][2; -2] * PL_list[4][-4; 4] *
+        PR_list[1][3; -3]
 
     return scheme
 end
@@ -363,8 +371,10 @@ function opt_T(N, W, psi)
         @planar b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
-    new_T, info = linsolve(apply_f, W, psi; krylovdim=20, maxiter=20, tol=1e-12,
-                           verbosity=0)
+    new_T, info = linsolve(
+        apply_f, W, psi; krylovdim = 20, maxiter = 20, tol = 1.0e-12,
+        verbosity = 0
+    )
     return new_T
 end
 
@@ -388,12 +398,14 @@ function right_cache(tensor_list)
 end
 
 # Function to perform the optimization loop for the LoopTNR scheme. Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
-# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
+# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping.
 # The transfer matrix on the left is updated after each optimization step.
 # The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
-                   trunc::TensorKit.TruncationScheme,
-                   truncentanglement::TensorKit.TruncationScheme, verbosity::Int)
+function loop_opt!(
+        scheme::LoopTNR, loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme, verbosity::Int
+    )
     psiA = Ψ_A(scheme)
     psiB = Ψ_B(psiA, trunc, truncentanglement)
     psiBpsiB = ΨBΨB(psiB)
@@ -419,7 +431,7 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
 
             new_psiB = opt_T(N, W, psiB[pos_psiB]) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
 
-            psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B 
+            psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B
 
             @planar BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
@@ -427,8 +439,8 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
                 @planar BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
-                                                 psiA[pos_psiA][-2; 1 2 -4] *
-                                                 psiB[2 * pos_psiA]'[2 -3; 3]
+                    psiA[pos_psiA][-2; 1 2 -4] *
+                    psiB[2 * pos_psiA]'[2 -3; 3]
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
                 left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
             end
@@ -448,31 +460,37 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     end
 
     @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
-                                       psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
+        psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
     @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
-                                       psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
+        psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     return scheme
 end
 
-function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                   verbosity::Int)
+function loop_opt!(
+        scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+        verbosity::Int
+    )
     return loop_opt!(scheme, loop_criterion, trunc, verbosity)
 end
 
-function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-               truncentanglement::TensorKit.TruncationScheme,
-               entanglement_criterion::stopcrit,
-               loop_criterion::stopcrit, verbosity::Int)
+function step!(
+        scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        entanglement_criterion::stopcrit,
+        loop_criterion::stopcrit, verbosity::Int
+    )
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
     return scheme
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
-              truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
-              entanglement_criterion::stopcrit,
-              loop_criterion::stopcrit;
-              finalize_beginning=true, verbosity=1)
+function run!(
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
+        entanglement_criterion::stopcrit,
+        loop_criterion::stopcrit;
+        finalize_beginning = true, verbosity = 1
+    )
     data = []
 
     LoggingExtras.withlevel(; verbosity) do
@@ -486,8 +504,10 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, truncentanglement, entanglement_criterion,
-                  loop_criterion, verbosity)
+            step!(
+                scheme, trscheme, truncentanglement, entanglement_criterion,
+                loop_criterion, verbosity
+            )
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
@@ -498,12 +518,16 @@ function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
     return data
 end
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-              finalize_beginning=true, verbosity=1)
-    return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
-                loop_criterion;
-                finalize_beginning=finalize_beginning,
-                verbosity=verbosity)
+function run!(
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        finalize_beginning = true, verbosity = 1
+    )
+    return run!(
+        scheme, trscheme, truncbelow(1.0e-15), criterion, entanglement_criterion,
+        loop_criterion;
+        finalize_beginning = finalize_beginning,
+        verbosity = verbosity
+    )
 end
 
 function Base.show(io::IO, scheme::LoopTNR)

@@ -27,7 +27,7 @@ mutable struct ATRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function ATRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
+    function ATRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
@@ -43,7 +43,7 @@ function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
 end
 
 function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
-    A, S, B, _ = tsvd(scheme.T, ((1, 3), (2, 4)); trunc=trunc)
+    A, S, B, _ = tsvd(scheme.T, ((1, 3), (2, 4)); trunc = trunc)
     C, D = deepcopy.([A, B])
 
     @tensor begin
@@ -53,7 +53,7 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
 
     @tensor M[-1 -2; -3 -4] := B[-3; 1 -4] * C[-1 1; -2]
 
-    X, S, Y, _ = tsvd(M, ((1, 3), (2, 4)); trunc=trunc)
+    X, S, Y, _ = tsvd(M, ((1, 3), (2, 4)); trunc = trunc)
     sqrtS = sqrt(S)
 
     @tensor begin
@@ -62,9 +62,9 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     end
 
     @tensor Q[-1 -2; -3 -4] := A[3 -3; 2] * D[1; -2 4] * X[4 2; -4] *
-                               Y[-1 1; 3]
+        Y[-1 1; 3]
 
-    H, S, G, _ = tsvd(Q; trunc=trunc)
+    H, S, G, _ = tsvd(Q; trunc = trunc)
     sqrtS = sqrt(S)
 
     @tensor begin
@@ -72,7 +72,7 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
         G[-1; -2 -3] = sqrtS[-1; 1] * G[1; -2 -3]
     end
 
-    @tensor scheme.T[-1 -2; -3 -4] := G[-1; -3 1] * H[1 -2; -4]
+    return @tensor scheme.T[-1 -2; -3 -4] := G[-1; -3 1] * H[1 -2; -4]
 end
 
 function Base.show(io::IO, scheme::ATRG)

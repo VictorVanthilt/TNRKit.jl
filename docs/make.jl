@@ -3,12 +3,16 @@ using Documenter
 using DocumenterCitations
 
 bibpath = joinpath(@__DIR__, "src", "assets", "tnrkit.bib")
-bib = CitationBibliography(bibpath; style=:authoryear)
+bib = CitationBibliography(bibpath; style = :authoryear)
 
-makedocs(; sitename="TNRKit.jl",
-         pages=["Home" => "index.md"
-                "Library" => "lib/lib.md"
-                "References" => "references.md"],
-         plugins=[bib])
+makedocs(;
+    sitename = "TNRKit.jl",
+    pages = [
+        "Home" => "index.md"
+        "Library" => "lib/lib.md"
+        "References" => "references.md"
+    ],
+    plugins = [bib]
+)
 
-deploydocs(; repo="github.com/VictorVanthilt/TNRKit.jl.git", push_preview=true)
+deploydocs(; repo = "github.com/VictorVanthilt/TNRKit.jl.git", push_preview = true)
