@@ -1,7 +1,7 @@
 name = "TNRKit"
 uuid = "7dfc3ef0-df9b-475f-b8e2-b91f34f5d84d"
 authors = ["Victor Vanthilt, Adwait Naravane, Atsushi Ueda and contributors"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
