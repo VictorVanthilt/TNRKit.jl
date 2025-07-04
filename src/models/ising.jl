@@ -1,15 +1,21 @@
 const ising_βc = BigFloat(log(1.0 + sqrt(2)) / 2.0)
-const ising_cft_exact = [1 / 8, 1, 9 / 8, 9 / 8, 2, 2, 2, 2, 17 / 8, 17 / 8, 17 / 8, 3, 3,
-                         3, 3, 3,
-                         25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8]
-function classical_ising(β::Number; h=0)
+const ising_cft_exact = [
+    1 / 8, 1, 9 / 8, 9 / 8, 2, 2, 2, 2, 17 / 8, 17 / 8, 17 / 8, 3, 3,
+    3, 3, 3,
+    25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8,
+]
+function classical_ising(β::Number; h = 0)
     function σ(i::Int64)
         return 2i - 3
     end
 
-    T_array = Float64[exp(β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
-                          h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l)))
-                      for i in 1:2, j in 1:2, k in 1:2, l in 1:2]
+    T_array = Float64[
+        exp(
+                β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
+                h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l))
+            )
+            for i in 1:2, j in 1:2, k in 1:2, l in 1:2
+    ]
 
     T = TensorMap(T_array, ℝ^2 ⊗ ℝ^2 ← ℝ^2 ⊗ ℝ^2)
 
@@ -23,8 +29,8 @@ function classical_ising_symmetric(β)
 
     S = ℤ₂Space(0 => 1, 1 => 1)
     T = zeros(Float64, S ⊗ S ← S ⊗ S)
-    block(T, Irrep[ℤ₂](0)) .= [2x^2 2x*y; 2x*y 2y^2]
-    block(T, Irrep[ℤ₂](1)) .= [2x*y 2x*y; 2x*y 2x*y]
+    block(T, Irrep[ℤ₂](0)) .= [2x^2 2x * y; 2x * y 2y^2]
+    block(T, Irrep[ℤ₂](1)) .= [2x * y 2x * y; 2x * y 2x * y]
 
     return T
 end
@@ -41,7 +47,7 @@ function classical_ising_symmetric_3D(β)
         for a in 1:2
             # Outer product of W[a, :] with itself 6 times
             T_array[i, j, k, l, m, n] += W[a, i] * W[a, j] * W[a, k] * W[a, l] * W[a, m] *
-                                         W[a, n]
+                W[a, n]
         end
     end
     S = ℤ₂Space(0 => 1, 1 => 1)
@@ -50,7 +56,7 @@ function classical_ising_symmetric_3D(β)
     return permute(T, ((1, 4), (5, 6, 2, 3)))
 end
 
-function classical_ising_3D(β; J=1.0)
+function classical_ising_3D(β; J = 1.0)
     K = β * J
 
     # Boltzmann weights
@@ -63,7 +69,7 @@ function classical_ising_3D(β; J=1.0)
     O[1, 1, 1, 1, 1, 1] = 1
     O[2, 2, 2, 2, 2, 2] = 1
     @tensor o[-1 -2; -3 -4 -5 -6] := O[1 2; 3 4 5 6] * q[-1; 1] * q[-2; 2] * q[-3; 3] *
-                                     q[-4; 4] * q[-5; 5] * q[-6; 6]
+        q[-4; 4] * q[-5; 5] * q[-6; 6]
 
     TMS = ℂ^2 ⊗ (ℂ^2)' ← ℂ^2 ⊗ ℂ^2 ⊗ (ℂ^2)' ⊗ (ℂ^2)'
 

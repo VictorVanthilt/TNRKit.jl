@@ -29,20 +29,20 @@ mutable struct TRG <: TNRScheme
 
     "finalization function"
     finalize!::Function
-    function TRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
+    function TRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
 
 function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc = trunc)
 
     @tensor begin
         A[-1 -2; -3] := U[-1 -2; 1] * sqrt(S)[1; -3]
         B[-1; -2 -3] := sqrt(S)[-1; 1] * V[1; -2 -3]
     end
 
-    U, S, V, _ = tsvd(scheme.T, ((3, 1), (4, 2)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((3, 1), (4, 2)); trunc = trunc)
 
     @tensor begin
         C[-1 -2; -3] := U[-1 -2; 1] * sqrt(S)[1; -3]

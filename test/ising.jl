@@ -26,7 +26,7 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-6
+    @test relerror < 2.0e-6
 end
 
 # BTRG
@@ -42,7 +42,7 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-8
+    @test relerror < 6.0e-8
 end
 
 # HOTRG
@@ -58,7 +58,7 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-7
+    @test relerror < 6.0e-7
 end
 
 # ATRG
@@ -74,29 +74,29 @@ end
     fs = lnz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 3e-6
+    @test relerror < 3.0e-6
 end
 
 # c4CTM
 @testset "c4CTM - Ising Model" begin
     scheme = c4CTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1e-9); verbosity=1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-8
+    @test relerror < 6.0e-8
 end
 
 # rCTM
 @testset "rCTM - Ising Model" begin
     scheme = rCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1e-9); verbosity=1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 6e-8
+    @test relerror < 6.0e-8
 end
 
 #LoopTNR
@@ -104,16 +104,18 @@ end
     scheme = LoopTNR(T)
 
     entanglement_function(steps, data) = abs(data[end])
-    entanglement_criterion = maxiter(100) & convcrit(1e-15, entanglement_function)
-    loop_criterion = maxiter(5) & convcrit(1e-10, entanglement_function)
+    entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
+    loop_criterion = maxiter(5) & convcrit(1.0e-10, entanglement_function)
 
-    data = run!(scheme, truncdim(8), truncbelow(1e-12), maxiter(25), entanglement_criterion,
-                loop_criterion)
+    data = run!(
+        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        loop_criterion
+    )
 
     fs = free_energy(data, ising_βc)
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-4
+    @test relerror < 1.0e-4
 end
 
 @testset "SLoopTNR - Ising Model" begin
@@ -125,7 +127,7 @@ end
     fs = free_energy(data, ising_βc)
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 1e-5
+    @test relerror < 1.0e-5
 end
 
 @testset "ctm_TRG - Ising Model" begin
@@ -134,7 +136,7 @@ end
     fs = lz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 7e-6
+    @test relerror < 7.0e-6
 end
 
 @testset "ctm_HOTRG - Ising Model" begin
@@ -143,7 +145,7 @@ end
     fs = lz * -1 / ising_βc
 
     relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 2e-5
+    @test relerror < 2.0e-5
 end
 
 # ATRG_3D
@@ -161,5 +163,5 @@ end
     @show fs
     f_benchmark = -3.515
     relerror = abs((fs - f_benchmark) / f_benchmark)
-    @test relerror < 1e-3
+    @test relerror < 1.0e-3
 end
