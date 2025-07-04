@@ -169,9 +169,10 @@ function spec_1x6(U, D; Nh=10)
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * D[4 5; 1] * U[-1; 5 6] *
-                                              D[6 7; 2] * U[-2; 7 8] * D[8 9; 3] *
-                                              U[-3; 9 4]
+                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * D[4 5; 1] *
+                                                       U[-1; 5 6] *
+                                                       D[6 7; 2] * U[-2; 7 8] * D[8 9; 3] *
+                                                       U[-3; 9 4]
                 return TTTx
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
