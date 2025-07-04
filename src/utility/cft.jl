@@ -147,6 +147,57 @@ function cft_data!(scheme::LoopTNR; is_real=true)
     return conformal_data
 end
 
+function spec_1x6(U, D; Nh=10)
+    I = sectortype(U)
+    𝔽 = field(U)
+    if BraidingStyle(I) != Bosonic()
+        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
+    end
+
+    spec_sector = Dict()
+    conformal_data = Dict()
+
+    for charge in values(I)
+        if I == Trivial
+            V = 𝔽^1
+        else
+            V = Vect[I](charge => 1)
+        end
+        W = domain(D)[1]
+        x = rand(W ⊗ W ⊗ W ← V)
+        if dim(x) == 0
+            spec_sector[charge] = [0.0]
+        else
+            function f(x)
+                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * D[4 5; 1] * U[-1; 5 6] *
+                                              D[6 7; 2] * U[-2; 7 8] * D[8 9; 3] *
+                                              U[-3; 9 4]
+                return TTTx
+            end
+            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
+                                  verbosity=0)
+
+            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
+        end
+    end
+
+    norm_const_0 = spec_sector[one(I)][1]
+    for irr_center in values(I)
+        conformal_data[irr_center] = -3 / pi * log.(spec_sector[irr_center] / norm_const_0)
+    end
+    return conformal_data, abs(norm_const_0)
+end
+
+# Based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsuchi Ueda
+function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
+    T = coarsegrain(scheme, trunc)
+    D, U = SVD12(T, trunc)
+    conformal_data, norm_const = spec_1x6(U, D)
+    scheme.TA = scheme.TA / norm_const^(1 / 12)
+    scheme.TB = scheme.TB / norm_const^(1 / 12)
+    return conformal_data
+end
+
 """
     central_charge(scheme::TNRScheme, n::Number)
 

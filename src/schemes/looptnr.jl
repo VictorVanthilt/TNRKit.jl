@@ -149,7 +149,7 @@ end
 #             |
 function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
     @planar TR[-1; -2 -3 -4] := T[-2 -1; 3 -4] * R[3; -3]
-    Rt, _ = rightorth(RT)
+    Rt, _ = rightorth(TR)
     return Rt / norm(Rt, Inf)
 end
 
@@ -160,35 +160,6 @@ function coarsegrain(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
     dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), trunc)
     @planar T[-1 -2; -3 -4] := ur[-1; 1 4] * dr[1 2; -3] * dl[2 3; -4] * ul[-2; 4 3]
     return T
-end
-#        |
-#        v
-#        |
-# ---<---T---<---
-#        |
-#        v
-#        |
-# ≈
-#            |
-#            v
-#            |
-# --<--L--<--R--<--
-#      |
-#      v
-#      |
-#
-# newT = 
-#        |
-#        v
-#        3'
-# --<-1'-R-<-0-<-L-4'-<--
-#                2'
-#                v
-#                |
-function translate(T::AbstractTensorMap{E,S,2,2}, trunc::TensorKit.TruncationScheme) where {E,S}
-    L, R = SVD12(T, trunc)
-    @planar newT[-1 -2; -3 -4] := R[-1; -3 0] * L[0 -2; -4]
-    return newT
 end
 
 # Functions to find the left and right projectors
@@ -249,7 +220,7 @@ end
 
 # Function to find the list of projectors
 function find_projectors(psi::Array, entanglement_criterion::stopcrit,
-                         trunc::TensorKit.TruncationScheme; L_list = [], R_list = [])
+                         trunc::TensorKit.TruncationScheme; L_list=[], R_list=[])
     PR_list = []
     PL_list = []
 
@@ -281,15 +252,17 @@ function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme)
 end
 
 function SVD12(T::AbstractTensorMap{E,S,2,2}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T; trunc = trunc)
+    U, s, V, _ = tsvd(T; trunc=trunc)
     return U * sqrt(s), sqrt(s) * V
 end
 
-function MPO_disentangler(T::AbstractTensorMap{E,S,2,2}, entanglement_criterion, trunc::TensorKit.TruncationScheme) where {E,S}
+function MPO_disentangler(T::AbstractTensorMap{E,S,2,2}, entanglement_criterion,
+                          trunc::TensorKit.TruncationScheme) where {E,S}
     type = eltype(T)
-    PR, PL = find_projectors([T], entanglement_criterion, trunc; L_list = [id(type, codomain(T)[2])], R_list = [id(type, domain(T)[1])])
-    @planar newT[-1 -2; -3 -4] := PL[1][-2; 2] * T[-1 2; 3 -4] * PR[1][3; -3]
-    return newT
+    PR, PL = find_projectors([T], entanglement_criterion, trunc;
+                             L_list=[id(type, codomain(T)[2])],
+                             R_list=[id(type, domain(T)[1])])
+    return PR[1], PL[1]
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
