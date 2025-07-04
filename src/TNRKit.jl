@@ -68,7 +68,7 @@ export classical_clock
 
 # utility functions
 include("utility/cft.jl")
-export cft_data, central_charge, cft_data!
+export cft_data, central_charge, cft_data!, cft_data_spin!
 
 include("utility/finalize.jl")
 export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
