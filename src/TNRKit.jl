@@ -5,7 +5,6 @@ using KrylovKit
 using OptimKit, Zygote
 using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
 using DocStringExtensions
-using MPSKit: tensorexpr
 
 # stop criteria
 include("utility/stopping.jl")
