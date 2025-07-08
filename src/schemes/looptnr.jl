@@ -47,7 +47,6 @@ end
 function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
              truncentanglement::TensorKit.TruncationScheme)
     ΨB = []
-
     for i in 1:4
         s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
@@ -56,9 +55,10 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    in_inds = [1,1,1,1,1,1,1,1]
-    out_inds = [2,2,2,2,2,2,2,2]
-    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & truncentanglement)
+    in_inds = [1, 1, 1, 1, 1, 1, 1, 1]
+    out_inds = [2, 2, 2, 2, 2, 2, 2, 2]
+    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
+                                       trunc & truncentanglement)
     MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
     return ΨB
 end
@@ -130,7 +130,8 @@ loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(ΨA, [1,1,1,1], [3,3,3,3], entanglement_criterion, trunc)
+    PR_list, PL_list = find_projectors(ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
+                                       entanglement_criterion, trunc)
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)

@@ -72,7 +72,8 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+                   truncentanglement::TensorKit.TruncationScheme)
     TA = scheme.TA
     TB = scheme.TB
 
@@ -81,20 +82,24 @@ function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, truncenta
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
 
-    transfer_MPO = [transpose(dl, (1,), (3,2)), ur, transpose(ul, (2,), (3,1)), transpose(dr, (3,), (2,1))]
+    transfer_MPO = [transpose(dl, (1,), (3, 2)), ur, transpose(ul, (2,), (3, 1)),
+                    transpose(dr, (3,), (2, 1))]
 
     in_inds = [1, 1, 1, 1]
     out_inds = [1, 2, 2, 1]
     MPO_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1e-12, MPO_function)
-    PR_list, PL_list = find_projectors(transfer_MPO, in_inds, out_inds, criterion, trunc & truncentanglement)
+    PR_list, PL_list = find_projectors(transfer_MPO, in_inds, out_inds, criterion,
+                                       trunc & truncentanglement)
 
     MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
     return transfer_MPO
 end
 
-function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
-    @planar T[-1 -2; -3 -4] := transfer_MPO[2][-1; 1 4] * transfer_MPO[3][4; 3 -2] * transfer_MPO[4][-3; 2 1] * transfer_MPO[1][2; -4 3]
+function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme,
+                     truncentanglement::TensorKit.TruncationScheme)
+    @planar T[-1 -2; -3 -4] := transfer_MPO[2][-1; 1 4] * transfer_MPO[3][4; 3 -2] *
+                               transfer_MPO[4][-3; 2 1] * transfer_MPO[1][2; -4 3]
     D, U = SVD12(T, trunc)
     @planar newT[-1 -2; -3 -4] := U[-1; -3 1] * D[1 -2; -4]
     return newT
@@ -239,8 +244,9 @@ function spec_1x8(T; Nh=10)
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[-1 12; 41 1] * T[-2 23; 12 2] *
-                                                       T[-3 34; 23 3] * T[-4 41; 34 4]
+                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[-1 12; 41 1] *
+                                                  T[-2 23; 12 2] *
+                                                  T[-3 34; 23 3] * T[-4 41; 34 4]
                 return TTTTx
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
@@ -257,7 +263,7 @@ function spec_1x8(T; Nh=10)
     return conformal_data, abs(norm_const_0)
 end
 
-function spec_1x3(T; Nh = 10)
+function spec_1x3(T; Nh=10)
     I = sectortype(T)
     𝔽 = field(T)
     if BraidingStyle(I) != Bosonic()
@@ -279,7 +285,8 @@ function spec_1x3(T; Nh = 10)
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * T[31 -1; 1 12] * T[12 -2; 2 23] * T[23 -3; 3 31]
+                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * T[31 -1; 1 12] *
+                                                       T[12 -2; 2 23] * T[23 -3; 3 31]
                 return TTTx
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
@@ -300,7 +307,8 @@ function spec_1x3(T; Nh = 10)
 end
 
 # Based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsuchi Ueda
-function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+                        truncentanglement::TensorKit.TruncationScheme)
     transfer_MPO = translate(scheme, trunc, truncentanglement)
     T = reduced_MPO(transfer_MPO, trunc, truncentanglement)
     conformal_data, norm_const = spec_1x8(T)
@@ -309,7 +317,8 @@ function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, trun
     return conformal_data
 end
 
-function cft_data_spin2!(scheme::LoopTNR, entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme)
+function cft_data_spin2!(scheme::LoopTNR, entanglement_criterion::stopcrit,
+                         trunc::TensorKit.TruncationScheme)
     TA = scheme.TA
     TB = scheme.TB
 
