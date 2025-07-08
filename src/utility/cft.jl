@@ -72,6 +72,34 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
+function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+    TA = scheme.TA
+    TB = scheme.TB
+
+    pretrunc = truncdim(2 * trunc.dim)
+    # Perform SVD on the tensors
+    dl, ur = SVD12(TA, pretrunc)
+    dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
+
+    transfer_MPO = [transpose(dl, (1,), (3,2)), ur, transpose(ul, (2,), (3,1)), transpose(dr, (3,), (2,1))]
+
+    in_inds = [1, 1, 1, 1]
+    out_inds = [1, 2, 2, 1]
+    MPO_function(steps, data) = abs(data[end])
+    criterion = maxiter(10) & convcrit(1e-12, MPO_function)
+    PR_list, PL_list = find_projectors(transfer_MPO, in_inds, out_inds, criterion, trunc & truncentanglement)
+
+    MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
+    return transfer_MPO
+end
+
+function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+    @planar T[-1 -2; -3 -4] := transfer_MPO[2][-1; 1 4] * transfer_MPO[3][4; 3 -2] * transfer_MPO[4][-3; 2 1] * transfer_MPO[1][2; -4 3]
+    D, U = SVD12(T, trunc)
+    @planar newT[-1 -2; -3 -4] := U[-1; -3 1] * D[1 -2; -4]
+    return newT
+end
+
 # Function to obtain the "canonical" normalization constant
 function shape_factor_2x2(A, B; is_real=true)
     a_in = domain(A)[1]
@@ -189,13 +217,110 @@ function spec_1x6(U, D; Nh=10)
     return conformal_data, abs(norm_const_0)
 end
 
+function spec_1x8(T; Nh=10)
+    I = sectortype(T)
+    𝔽 = field(T)
+    if BraidingStyle(I) != Bosonic()
+        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
+    end
+
+    spec_sector = Dict()
+    conformal_data = Dict()
+
+    for charge in values(I)
+        if I == Trivial
+            V = 𝔽^1
+        else
+            V = Vect[I](charge => 1)
+        end
+        W = domain(T)[2]
+        x = rand(W ⊗ W ⊗ W ⊗ W ← V)
+        if dim(x) == 0
+            spec_sector[charge] = [0.0]
+        else
+            function f(x)
+                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[-1 12; 41 1] * T[-2 23; 12 2] *
+                                                       T[-3 34; 23 3] * T[-4 41; 34 4]
+                return TTTTx
+            end
+            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
+                                  verbosity=0)
+
+            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
+        end
+    end
+
+    norm_const_0 = spec_sector[one(I)][1]
+    for irr_center in values(I)
+        conformal_data[irr_center] = -4 / pi * log.(spec_sector[irr_center] / norm_const_0)
+    end
+    return conformal_data, abs(norm_const_0)
+end
+
+function spec_1x3(T; Nh = 10)
+    I = sectortype(T)
+    𝔽 = field(T)
+    if BraidingStyle(I) != Bosonic()
+        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
+    end
+
+    spec_sector = Dict()
+    conformal_data = Dict()
+
+    for charge in values(I)
+        if I == Trivial
+            V = 𝔽^1
+        else
+            V = Vect[I](charge => 1)
+        end
+        W = domain(T)[1]
+        x = rand(W ⊗ W ⊗ W ← V)
+        if dim(x) == 0
+            spec_sector[charge] = [0.0]
+        else
+            function f(x)
+                @tensor opt=true TTTx[-1 -2 -3; -4] := x[1 2 3; -4] * T[31 -1; 1 12] * T[12 -2; 2 23] * T[23 -3; 3 31]
+                return TTTx
+            end
+            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
+                                  verbosity=0)
+
+            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
+        end
+    end
+
+    norm_const_0 = spec_sector[one(I)][1]
+    for irr_center in values(I)
+        v = log.(spec_sector[irr_center] / norm_const_0)
+        Δ = - 3 / pi * real.(v)
+        s = - 3 / pi * imag.(v)
+        conformal_data[irr_center] = Δ + im * s
+    end
+    return conformal_data, abs(norm_const_0)
+end
+
 # Based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsuchi Ueda
-function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    T = coarsegrain(scheme, trunc)
-    D, U = SVD12(T, trunc)
-    conformal_data, norm_const = spec_1x6(U, D)
-    scheme.TA = scheme.TA / norm_const^(1 / 12)
-    scheme.TB = scheme.TB / norm_const^(1 / 12)
+function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+    transfer_MPO = translate(scheme, trunc, truncentanglement)
+    T = reduced_MPO(transfer_MPO, trunc, truncentanglement)
+    conformal_data, norm_const = spec_1x8(T)
+    scheme.TA = scheme.TA / norm_const^(1 / 16)
+    scheme.TB = scheme.TB / norm_const^(1 / 16)
+    return conformal_data
+end
+
+function cft_data_spin2!(scheme::LoopTNR, entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme)
+    TA = scheme.TA
+    TB = scheme.TB
+
+    t1 = time()
+    T = compression(TA, TB, entanglement_criterion, trunc)
+    t2 = time()
+    println("Compression time: ", t2 - t1)
+    conformal_data, norm_const = spec_1x3(T)
+    println("Conformal data time: ", time() - t2)
+    scheme.TA = TA / norm_const^(1 / 6)
+    scheme.TB = TB / norm_const^(1 / 6)
     return conformal_data
 end
 

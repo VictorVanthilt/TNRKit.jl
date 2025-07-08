@@ -43,228 +43,6 @@ function Ψ_A(scheme::LoopTNR)
     return psi
 end
 
-#Utility functions for QR decomp
-
-# A single step of the QR decomposition from the left with 3 in-coming legs and 1 out-going leg
-#            |     |
-#             2'  1'
-#              v v
-# -<-3'-<-L-1-<-T-<-4'----
-# =
-#      |     |
-#       2'  1'
-#        v v
-# -<-3'-<-Q--<--Rt-<--4'--
-function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
-    @planar LT[-1 -2 -3; -4] := L[-3; 1] * T[1; -2 -1 -4]
-    _, Rt = leftorth(LT)
-    return Rt / norm(Rt, Inf)
-end
-
-# A single step of the QR decomposition from the right with 3 in-coming legs and 1 out-going leg
-#        |     |
-#         2'  3'
-#          v v
-# ---1'--<--T--<-1--R--4'--
-# =
-#            |     |
-#             2'  3'
-#              v v
-# ---1'--Lt--<--Q--<--4'--
-function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,3}) where {E,S}
-    @planar TR[-1; -2 -3 -4] := T[-1; -2 -3 1] * R[1; -4]
-    Lt, _ = rightorth(TR)
-    return Lt / norm(Lt, Inf)
-end
-
-# A single step of the QR decomposition from the left with 2 in-coming legs and 1 out-going leg
-#             |
-#             1'
-#             v
-# -2'-<-L-1-<-T--<-3'--
-# =
-#          | 
-#          1'
-#          v
-# ---2'-<--Q--<--Rt-<-3'--
-function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
-    @planar LT[-1 -2; -3] := L[-2; 1] * T[1; -1 -3]
-    _, Rt = leftorth(LT)
-    return Rt / norm(Rt, Inf)
-end
-
-# A single step of the QR decomposition from the right with 2 in-coming legs and 1 out-going leg
-#           |
-#           2'
-#           v
-# ----1'-<--T--<-1-R--3'--
-# =
-#              |
-#              2'
-#              v
-# --1'--Lt--<--Q--<-3'--
-function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,1,2}) where {E,S}
-    @planar TR[-1; -2 -3] := T[-1; -2 1] * R[1; -3]
-    Lt, _ = rightorth(TR)
-    return Lt / norm(Lt, Inf)
-end
-
-# A single step of the QR decomposition from the left with 2 in-coming legs and 2 out-going legs
-#                  |
-#                  1'
-#                  ^
-# -<-2'-<-L-<-2-<--T--<-4'--
-#                  ^
-#                  3'
-#                  |
-# =
-#        |
-#        1'
-#        ^
-# -<-2'--Q--<--Lt--<-4'--
-#        ^
-#        3'
-#        |
-function QR_L(L::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
-    @planar LT[-1 -2 -3; -4] := L[-2; 2] * T[-1 2; -4 -3]
-    _, Lt = leftorth(LT)
-    return Lt / norm(Lt, Inf)
-end
-
-# A single step of the QR decomposition from the left with 2 in-coming legs and 2 out-going legs
-#        |
-#        2'
-#        ^
-# -<-1'--T--<-3-R-<-3'--
-#        ^
-#        4'
-#        |
-# =
-#             |
-#             2'
-#             ^
-# -<-1'-<-Rt--Q--<-3'--
-#             ^
-#             4'
-#             |
-function QR_R(R::TensorMap, T::AbstractTensorMap{E,S,2,2}) where {E,S}
-    @planar TR[-1; -2 -3 -4] := T[-2 -1; 3 -4] * R[3; -3]
-    Rt, _ = rightorth(TR)
-    return Rt / norm(Rt, Inf)
-end
-
-function coarsegrain(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    TA = scheme.TA
-    TB = scheme.TB
-    dl, ur = SVD12(TA, trunc)
-    dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), trunc)
-    @planar T[-1 -2; -3 -4] := ur[-1; 1 4] * dr[1 2; -3] * dl[2 3; -4] * ul[-2; 4 3]
-    return T
-end
-
-# Functions to find the left and right projectors
-
-# Function to find the list of left projectors L_list
-function find_L!(psi::Array, L_list::Array, entanglement_criterion::stopcrit)
-    n = length(psi)
-    crit = true
-    steps = 0
-    error = [Inf]
-    running_pos = 1
-    while crit
-        pos_next = mod(running_pos, n) + 1
-        L_last_time = L_list[pos_next]
-        L_list[pos_next] = QR_L(L_list[running_pos], psi[running_pos])
-
-        if space(L_list[pos_next]) == space(L_last_time)
-            push!(error, abs(norm(L_list[pos_next] - L_last_time)))
-        end
-
-        running_pos = pos_next
-        steps += 1
-        crit = entanglement_criterion(steps, error)
-    end
-end
-
-# Function to find the list of right projectors R_list
-function find_R!(psi::Array, R_list::Array, entanglement_criterion::stopcrit)
-    n = length(psi)
-    crit = true
-    steps = 0
-    error = [Inf]
-
-    running_pos = n
-    while crit
-        pos_last = mod(running_pos - 2, n) + 1
-        R_last_time = R_list[pos_last]
-        R_list[pos_last] = QR_R(R_list[running_pos], psi[running_pos])
-
-        if space(R_list[pos_last]) == space(R_last_time)
-            push!(error, abs(norm(R_list[pos_last] - R_last_time)))
-        end
-
-        running_pos = pos_last
-        steps += 1
-        crit = entanglement_criterion(steps, error)
-    end
-end
-
-# Function to find the projector P_L and P_R
-function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(L * R; trunc=trunc, alg=TensorKit.SVD())
-    re_sq = pseudopow(S, -0.5)
-    PR = R * V' * re_sq
-    PL = re_sq * U' * L
-    return PR, PL
-end
-
-# Function to find the list of projectors
-function find_projectors(psi::Array, entanglement_criterion::stopcrit,
-                         trunc::TensorKit.TruncationScheme; L_list=[], R_list=[])
-    PR_list = []
-    PL_list = []
-
-    type = eltype(psi[1])
-    if isempty(L_list)
-        L_list = map(x -> id(type, codomain(psi[x])[1]), 1:length(psi))
-    end
-    if isempty(R_list)
-        R_list = map(x -> id(type, domain(psi[x]).spaces[end]), 1:length(psi))
-    end
-
-    n = length(psi)
-    find_L!(psi, L_list, entanglement_criterion)
-    find_R!(psi, R_list, entanglement_criterion)
-    for i in 1:n
-        pr, pl = P_decomp(R_list[mod(i - 2, n) + 1], L_list[i], trunc)
-        push!(PR_list, pr)
-        push!(PL_list, pl)
-    end
-    return PR_list, PL_list
-end
-
-function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
-    T_trans = transpose(T, (2, 1), (3, 4); copy=true)
-    U, s, V, _ = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
-    @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
-    @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
-    return S1, S2
-end
-
-function SVD12(T::AbstractTensorMap{E,S,2,2}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T; trunc=trunc)
-    return U * sqrt(s), sqrt(s) * V
-end
-
-function MPO_disentangler(T::AbstractTensorMap{E,S,2,2}, entanglement_criterion,
-                          trunc::TensorKit.TruncationScheme) where {E,S}
-    type = eltype(T)
-    PR, PL = find_projectors([T], entanglement_criterion, trunc;
-                             L_list=[id(type, codomain(T)[2])],
-                             R_list=[id(type, domain(T)[1])])
-    return PR[1], PL[1]
-end
-
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
              truncentanglement::TensorKit.TruncationScheme)
@@ -278,15 +56,11 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    PR_list, PL_list = find_projectors(ΨB, criterion, trunc & truncentanglement)
-
-    ΨB_disentangled = []
-    for i in 1:8
-        @planar B1[-1; -2 -3] := PL_list[i][-1; 1] * ΨB[i][1; -2 2] *
-                                 PR_list[mod(i, 8) + 1][2; -3]
-        push!(ΨB_disentangled, B1)
-    end
-    return ΨB_disentangled
+    in_inds = [1,1,1,1,1,1,1,1]
+    out_inds = [2,2,2,2,2,2,2,2]
+    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & truncentanglement)
+    MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
+    return ΨB
 end
 
 # Construct the list of transfer matrices for ΨAΨA
@@ -356,7 +130,7 @@ loop_criterion = maxiter(50) & convcrit(1e-8, entanglement_function)
 function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit,
                                  trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(ΨA, entanglement_criterion, trunc)
+    PR_list, PL_list = find_projectors(ΨA, [1,1,1,1], [3,3,3,3], entanglement_criterion, trunc)
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
