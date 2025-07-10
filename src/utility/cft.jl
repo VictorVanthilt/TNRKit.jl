@@ -72,8 +72,22 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                   truncentanglement::TensorKit.TruncationScheme)
+function transfer_MPS(scheme::LoopTNR)
+    TA = scheme.TA
+    TB = scheme.TB
+
+    if BraidingStyle(sectortype(TA)) isa NoBraiding
+        throw(ArgumentError("Transfer MPS is only implemented for sectors with braiding"))
+    end
+
+    @planar T1[-1; -2 -3 -4] := TA[1 2; -3 -4] * τ[-2 -1; 1 2]
+    @planar T2[-1; -2 -3 -4] := TB[-1 1; -2 2] * τ[-3 2; -4 1]
+
+    return [T1, T2, T1, T2, T1, T2, T1, T2]
+end
+
+function planar_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+                    truncentanglement::TensorKit.TruncationScheme)
     TA = scheme.TA
     TB = scheme.TB
 
@@ -93,16 +107,45 @@ function translate(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
                                        trunc & truncentanglement)
 
     MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
-    return transfer_MPO
+    return vcat(transfer_MPO, transfer_MPO, transfer_MPO, transfer_MPO)
 end
 
-function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme,
-                     truncentanglement::TensorKit.TruncationScheme)
-    @planar T[-1 -2; -3 -4] := transfer_MPO[2][-1; 1 4] * transfer_MPO[3][4; 3 -2] *
-                               transfer_MPO[4][-3; 2 1] * transfer_MPO[1][2; -4 3]
-    D, U = SVD12(T, trunc)
-    @planar newT[-1 -2; -3 -4] := U[-1; -3 1] * D[1 -2; -4]
-    return newT
+function transfer_MPO_opt(scheme::LoopTNR, loop_criterion::stopcrit,
+                          trunc::TensorKit.TruncationScheme,
+                          truncentanglement::TensorKit.TruncationScheme,
+                          verbosity::Int)
+    if BraidingStyle(sectortype(scheme.TA)) isa NoBraiding
+        return planar_opt(scheme, trunc, truncentanglement)
+    end
+
+    psiA = transfer_MPS(scheme)
+    psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
+
+    for n in [1, 5, 9, 13]
+        @planar temp[-1 -2; -3] := psiB[n][1; 2 -3] * τ[2 -1; 1 -2]
+        psiB[n] = temp
+    end
+
+    for n in [4, 8, 12, 16]
+        @planar temp[-1; -2 -3] := psiB[n][-1; 1 2] * τ[1 2; -2 -3]
+        psiB[n] = temp
+    end
+
+    return psiB
+end
+
+function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme)
+    T = []
+    for n in [2, 6, 10, 14]
+        n1, n2, n3, n4 = (n, n+1, n+2, mod(n+3, 16))
+        @planar temp[-1 -2; -3 -4] := transfer_MPO[n1][-1; 1 4] *
+                                      transfer_MPO[n2][4; 3 -2] *
+                                      transfer_MPO[n3][-3; 2 1] * transfer_MPO[n4][2; -4 3]
+        D, U = SVD12(temp, trunc)
+        @planar translate[-1 -2; -3 -4] := U[-1; -3 1] * D[1 -2; -4]
+        push!(T, translate)
+    end
+    return T
 end
 
 # Function to obtain the "canonical" normalization constant

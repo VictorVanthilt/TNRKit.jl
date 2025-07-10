@@ -223,15 +223,16 @@ function right_cache(tensor_list)
     return cache
 end
 
-# Function to perform the optimization loop for the LoopTNR scheme. Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
+# A general function to optimize the truncation error of an MPS on a ring.
+# Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
 # Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
 # The transfer matrix on the left is updated after each optimization step.
 # The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
-                   trunc::TensorKit.TruncationScheme,
-                   truncentanglement::TensorKit.TruncationScheme, verbosity::Int)
-    psiA = Ψ_A(scheme)
+function loop_opt(psiA::Array, loop_criterion::stopcrit,
+                  trunc::TensorKit.TruncationScheme,
+                  truncentanglement::TensorKit.TruncationScheme, verbosity::Int)
     psiB = Ψ_B(psiA, trunc, truncentanglement)
+    NB = length(psiB) # Number of tensors in the MPS Ψ_B
     psiBpsiB = ΨBΨB(psiB)
     psiBpsiA = ΨBΨA(psiB, psiA)
     psiApsiA = ΨAΨA(psiA)
@@ -247,7 +248,18 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         left_BA = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
 
         t_start = time()
-        for pos_psiB in 1:8
+
+        if sweep == 0
+            tNt = tr(psiBpsiB[1]*right_cache_BB[1])
+            tdw = tr(psiBpsiA[1]*right_cache_BA[1])
+            wdt = conj(tdw)
+            cost_this = real((C + tNt - wdt - tdw) / C)
+            if verbosity > 1
+                @infov 3 "Initial cost: $cost_this"
+            end
+        end
+
+        for pos_psiB in 1:NB
             pos_psiA = (pos_psiB - 1) ÷ 2 + 1 # Position in the MPS Ψ_A
 
             N = tN(left_BB, right_cache_BB[pos_psiB]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
@@ -283,16 +295,20 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
         end
     end
 
+    return psiB
+end
+
+function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
+                   trunc::TensorKit.TruncationScheme,
+                   truncentanglement::TensorKit.TruncationScheme,
+                   verbosity::Int)
+    psiA = Ψ_A(scheme)
+    psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
     @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
                                        psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
     @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
                                        psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     return scheme
-end
-
-function loop_opt!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                   verbosity::Int)
-    return loop_opt!(scheme, loop_criterion, trunc, verbosity)
 end
 
 function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
