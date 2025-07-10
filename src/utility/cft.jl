@@ -122,7 +122,7 @@ function transfer_MPO_opt(scheme::LoopTNR, loop_criterion::stopcrit,
     psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
 
     for n in [1, 5, 9, 13]
-        @planar temp[-1 -2; -3] := psiB[n][1; 2 -3] * τ[2 -1; 1 -2]
+        @planar temp[-1; -2 -3] := psiB[n][1; 2 -2] * τ[2 -1; 1 -3]
         psiB[n] = temp
     end
 
@@ -142,7 +142,7 @@ function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme)
                                       transfer_MPO[n2][4; 3 -2] *
                                       transfer_MPO[n3][-3; 2 1] * transfer_MPO[n4][2; -4 3]
         D, U = SVD12(temp, trunc)
-        @planar translate[-1 -2; -3 -4] := U[-1; -3 1] * D[1 -2; -4]
+        @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
         push!(T, translate)
     end
     return T
@@ -224,8 +224,8 @@ function cft_data!(scheme::LoopTNR; is_real=true)
 end
 
 function spec_1x8(T; Nh=10)
-    I = sectortype(T)
-    𝔽 = field(T)
+    I = sectortype(T[1])
+    𝔽 = field(T[1])
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
@@ -239,15 +239,15 @@ function spec_1x8(T; Nh=10)
         else
             V = Vect[I](charge => 1)
         end
-        W = domain(T)[2]
-        x = rand(W ⊗ W ⊗ W ⊗ W ← V)
+        in_spaces = Tuple(map(x->domain(x)[1], T))
+        x = rand(⊗(in_spaces...) ← V)
         if dim(x) == 0
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[-1 12; 41 1] *
-                                                  T[-2 23; 12 2] *
-                                                  T[-3 34; 23 3] * T[-4 41; 34 4]
+                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[1][41 -1; 1 12] *
+                                                  T[2][12 -2; 2 23] *
+                                                  T[3][23 -3; 3 34] * T[4][34 -4; 4 41]
                 return TTTTx
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
@@ -266,13 +266,17 @@ function spec_1x8(T; Nh=10)
 end
 
 # Based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsuchi Ueda
-function cft_data_spin!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                        truncentanglement::TensorKit.TruncationScheme)
+function cft_data_spin!(scheme::LoopTNR, loop_criterion::stopcrit,
+                        trunc::TensorKit.TruncationScheme,
+                        truncentanglement::TensorKit.TruncationScheme,
+                        verbosity::Int)
     norm_const = shape_factor_2x2(scheme.TA, scheme.TB)
     scheme.TA = scheme.TA / norm_const^(1 / 4)
     scheme.TB = scheme.TB / norm_const^(1 / 4)
-    transfer_MPO = translate(scheme, trunc, truncentanglement)
-    T = reduced_MPO(transfer_MPO, trunc, truncentanglement)
+    @infov 2 "CFT data calculating"
+    transfer_MPO = transfer_MPO_opt(scheme, loop_criterion, trunc, truncentanglement,
+                                    verbosity)
+    T = reduced_MPO(transfer_MPO, trunc)
     conformal_data = spec_1x8(T)
     return conformal_data
 end

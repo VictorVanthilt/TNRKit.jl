@@ -46,8 +46,9 @@ end
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
              truncentanglement::TensorKit.TruncationScheme)
+    NA = length(ΨA)
     ΨB = []
-    for i in 1:4
+    for i in 1:NA
         s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
@@ -55,8 +56,8 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    in_inds = [1, 1, 1, 1, 1, 1, 1, 1]
-    out_inds = [2, 2, 2, 2, 2, 2, 2, 2]
+    in_inds = ones(Int, 2*NA)
+    out_inds = 2*ones(Int, 2*NA)
     PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
                                        trunc & truncentanglement)
     MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
@@ -70,8 +71,9 @@ end
 #       | |
 # ---2'--A--4'---
 function ΨAΨA(psiA)
+    NA = length(psiA)
     ΨAΨA_list = []
-    for i in 1:4
+    for i in 1:NA
         @planar tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
         push!(ΨAΨA_list, tmp)
     end
@@ -86,8 +88,9 @@ end
 # ---2'--B--4'---
 
 function ΨBΨB(psiB)
+    NB = length(psiB)
     ΨBΨB_list = []
-    for i in 1:8
+    for i in 1:NB
         @planar tmp[-1 -2; -3 -4] := psiB[i][-2; 1 -4] * psiB[i]'[1 -3; -1]
         push!(ΨBΨB_list, tmp)
     end
@@ -102,8 +105,9 @@ end
 # ---2'----A----4'---
 
 function ΨBΨA(psiB, psiA)
+    NA = length(psiA)
     ΨBΨA_list = []
-    for i in 1:4
+    for i in 1:NA
         @planar temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
                                       psiB[2 * i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
