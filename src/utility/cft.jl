@@ -186,7 +186,7 @@ function planar_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
 end
 
 function circular_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-             truncentanglement::TensorKit.TruncationScheme)
+                      truncentanglement::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     NA = length(ΨA)
     ΨB = []
@@ -202,7 +202,7 @@ function circular_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
     out_inds = 2*ones(Int, 2*NA)
     PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
                                        trunc & truncentanglement)
-    @planar dl[-1; -2 -3] := ΨB[1][-3; -1 1] *  PR_list[2][1; -2]
+    @planar dl[-1; -2 -3] := ΨB[1][-3; -1 1] * PR_list[2][1; -2]
     ur = PL_list[2] * ΨB[2]
     @planar ul[-1; -2 -3] := ΨB[3][-1; -2 1] * PR_list[4][1; -3]
     dr = PL_list[4] * ΨB[4]
