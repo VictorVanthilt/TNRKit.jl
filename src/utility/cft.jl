@@ -72,82 +72,6 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-function transfer_MPS(scheme::LoopTNR)
-    TA = scheme.TA
-    TB = scheme.TB
-
-    if BraidingStyle(sectortype(TA)) isa NoBraiding
-        throw(ArgumentError("Transfer MPS is only implemented for sectors with braiding"))
-    end
-
-    @planar T1[-1; -2 -3 -4] := TA[1 2; -3 -4] * τ[-2 -1; 1 2]
-    @planar T2[-1; -2 -3 -4] := TB[-1 1; -2 2] * τ[-3 2; -4 1]
-
-    return [T1, T2, T1, T2, T1, T2, T1, T2]
-end
-
-function planar_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                    truncentanglement::TensorKit.TruncationScheme)
-    TA = scheme.TA
-    TB = scheme.TB
-
-    pretrunc = truncdim(2 * trunc.dim)
-    # Perform SVD on the tensors
-    dl, ur = SVD12(TA, pretrunc)
-    dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
-
-    transfer_MPO = [transpose(dl, (1,), (3, 2)), ur, transpose(ul, (2,), (3, 1)),
-                    transpose(dr, (3,), (2, 1))]
-
-    in_inds = [1, 1, 1, 1]
-    out_inds = [1, 2, 2, 1]
-    MPO_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1e-12, MPO_function)
-    PR_list, PL_list = find_projectors(transfer_MPO, in_inds, out_inds, criterion,
-                                       trunc & truncentanglement)
-
-    MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
-    return vcat(transfer_MPO, transfer_MPO, transfer_MPO, transfer_MPO)
-end
-
-function transfer_MPO_opt(scheme::LoopTNR, loop_criterion::stopcrit,
-                          trunc::TensorKit.TruncationScheme,
-                          truncentanglement::TensorKit.TruncationScheme,
-                          verbosity::Int)
-    if BraidingStyle(sectortype(scheme.TA)) isa NoBraiding
-        return planar_opt(scheme, trunc, truncentanglement)
-    end
-
-    psiA = transfer_MPS(scheme)
-    psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
-
-    for n in [1, 5, 9, 13]
-        @planar temp[-1; -2 -3] := psiB[n][1; 2 -2] * τ[2 -1; 1 -3]
-        psiB[n] = temp
-    end
-
-    for n in [4, 8, 12, 16]
-        @planar temp[-1; -2 -3] := psiB[n][-1; 1 2] * τ[1 2; -2 -3]
-        psiB[n] = temp
-    end
-
-    return psiB
-end
-
-function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme)
-    T = []
-    for n in [2, 6, 10, 14]
-        n1, n2, n3, n4 = (n, n+1, n+2, mod(n+3, 16))
-        @planar temp[-1 -2; -3 -4] := transfer_MPO[n1][-1; 1 4] *
-                                      transfer_MPO[n2][4; 3 -2] *
-                                      transfer_MPO[n3][-3; 2 1] * transfer_MPO[n4][2; -4 3]
-        D, U = SVD12(temp, trunc)
-        @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
-        push!(T, translate)
-    end
-    return T
-end
-
 # Function to obtain the "canonical" normalization constant
 function shape_factor_2x2(A, B; is_real=true)
     a_in = domain(A)[1]
@@ -223,9 +147,97 @@ function cft_data!(scheme::LoopTNR; is_real=true)
     return conformal_data
 end
 
+function transfer_MPS(scheme::LoopTNR)
+    TA = scheme.TA
+    TB = scheme.TB
+
+    if BraidingStyle(sectortype(TA)) isa NoBraiding
+        throw(ArgumentError("Transfer MPS is only implemented for sectors with braiding"))
+    end
+
+    @planar T1[-1; -2 -3 -4] := TA[1 2; -3 -4] * τ[-2 -1; 1 2]
+    @planar T2[-1; -2 -3 -4] := TB[-1 1; -2 2] * τ[-3 2; -4 1]
+
+    return [T1, T2]
+end
+
+function planar_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+                    truncentanglement::TensorKit.TruncationScheme)
+    TA = scheme.TA
+    TB = scheme.TB
+
+    pretrunc = truncdim(2 * trunc.dim)
+    # Perform SVD on the tensors
+    dl, ur = SVD12(TA, pretrunc)
+    dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
+
+    transfer_MPO = [transpose(dl, (1,), (3, 2)), ur, transpose(ul, (2,), (3, 1)),
+                    transpose(dr, (3,), (2, 1))]
+
+    in_inds = [1, 1, 1, 1]
+    out_inds = [1, 2, 2, 1]
+    MPO_function(steps, data) = abs(data[end])
+    criterion = maxiter(10) & convcrit(1e-12, MPO_function)
+    PR_list, PL_list = find_projectors(transfer_MPO, in_inds, out_inds, criterion,
+                                       trunc & truncentanglement)
+
+    MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
+    return vcat(transfer_MPO, transfer_MPO, transfer_MPO, transfer_MPO)
+end
+
+function circular_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+             truncentanglement::TensorKit.TruncationScheme)
+    ΨA = Ψ_A(scheme)
+    NA = length(ΨA)
+    ΨB = []
+    for i in 1:NA
+        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
+        push!(ΨB, s1)
+        push!(ΨB, s2)
+    end
+
+    ΨB_function(steps, data) = abs(data[end])
+    criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
+    in_inds = ones(Int, 2*NA)
+    out_inds = 2*ones(Int, 2*NA)
+    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
+                                       trunc & truncentanglement)
+    @planar dl[-1; -2 -3] := ΨB[1][-3; -1 1] *  PR_list[2][1; -2]
+    ur = PL_list[2] * ΨB[2]
+    @planar ul[-1; -2 -3] := ΨB[3][-1; -2 1] * PR_list[4][1; -3]
+    dr = PL_list[4] * ΨB[4]
+    return [dl, ur, ul, dr]
+end
+
+function transfer_MPO_opt(scheme::LoopTNR, loop_criterion::stopcrit,
+                          trunc::TensorKit.TruncationScheme,
+                          truncentanglement::TensorKit.TruncationScheme,
+                          verbosity::Int)
+    psiA = transfer_MPS(scheme)
+    # psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
+    psiB = Ψ_B(psiA, trunc, truncentanglement)
+
+    @planar T1[-1; -2 -3] := psiB[1][1; 2 -2] * τ[2 -1; 1 -3]
+    psiB[1] = T1
+
+    @planar T4[-1; -2 -3] := psiB[4][-1; 1 2] * τ[1 2; -2 -3]
+    psiB[4] = T4
+
+    return psiB
+end
+
+function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme)
+    @planar temp[-1 -2; -3 -4] := transfer_MPO[2][-1; 1 4] *
+                                  transfer_MPO[3][4; 3 -2] *
+                                  transfer_MPO[4][-3; 2 1] * transfer_MPO[1][2; -4 3]
+    D, U = SVD12(temp, trunc)
+    @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
+    return translate
+end
+
 function spec_1x8(T; Nh=10)
-    I = sectortype(T[1])
-    𝔽 = field(T[1])
+    I = sectortype(T)
+    𝔽 = field(T)
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
@@ -239,15 +251,15 @@ function spec_1x8(T; Nh=10)
         else
             V = Vect[I](charge => 1)
         end
-        in_spaces = Tuple(map(x->domain(x)[1], T))
-        x = rand(⊗(in_spaces...) ← V)
+        W = domain(T)[1]
+        x = rand(W ⊗ W ⊗ W ⊗ W ← V)
         if dim(x) == 0
             spec_sector[charge] = [0.0]
         else
             function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[1][41 -1; 1 12] *
-                                                  T[2][12 -2; 2 23] *
-                                                  T[3][23 -3; 3 34] * T[4][34 -4; 4 41]
+                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[41 -1; 1 12] *
+                                                  T[12 -2; 2 23] *
+                                                  T[23 -3; 3 34] * T[34 -4; 4 41]
                 return TTTTx
             end
             spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
@@ -274,8 +286,9 @@ function cft_data_spin!(scheme::LoopTNR, loop_criterion::stopcrit,
     scheme.TA = scheme.TA / norm_const^(1 / 4)
     scheme.TB = scheme.TB / norm_const^(1 / 4)
     @infov 2 "CFT data calculating"
-    transfer_MPO = transfer_MPO_opt(scheme, loop_criterion, trunc, truncentanglement,
-                                    verbosity)
+    # transfer_MPO = transfer_MPO_opt(scheme, loop_criterion, trunc, truncentanglement,
+    #                                 verbosity, false)
+    transfer_MPO = planar_opt(scheme, trunc, truncentanglement)
     T = reduced_MPO(transfer_MPO, trunc)
     conformal_data = spec_1x8(T)
     return conformal_data
