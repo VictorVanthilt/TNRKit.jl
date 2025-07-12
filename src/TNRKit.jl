@@ -44,7 +44,7 @@ export rCTM
 export ctm_TRG
 export ctm_HOTRG
 
-export LoopTNR
+export LoopTNR, loop_opt
 export SLoopTNR
 
 export run!

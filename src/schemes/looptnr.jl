@@ -241,7 +241,6 @@ function loop_opt(psiA::Array, loop_criterion::stopcrit,
     psiBpsiA = ΨBΨA(psiB, psiA)
     psiApsiA = ΨAΨA(psiA)
     C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
-
     cost = Float64[Inf]
     sweep = 0
     crit = true
@@ -261,6 +260,7 @@ function loop_opt(psiA::Array, loop_criterion::stopcrit,
             if verbosity > 1
                 @infov 3 "Initial cost: $cost_this"
             end
+            push!(cost, cost_this)
         end
 
         for pos_psiB in 1:NB
@@ -286,14 +286,13 @@ function loop_opt(psiA::Array, loop_criterion::stopcrit,
             end
         end
         sweep += 1
-        crit = loop_criterion(sweep, cost)
 
         tNt = tr(left_BB)
         tdw = tr(left_BA)
         wdt = conj(tdw)
         cost_this = real((C + tNt - wdt - tdw) / C)
         push!(cost, cost_this)
-
+        crit = loop_criterion(sweep, cost)
         if verbosity > 1
             @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
         end
