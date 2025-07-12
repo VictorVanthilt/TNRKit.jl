@@ -44,7 +44,7 @@ export rCTM
 export ctm_TRG
 export ctm_HOTRG
 
-export LoopTNR
+export LoopTNR, loop_opt
 export SLoopTNR
 
 export run!
@@ -68,13 +68,16 @@ export classical_clock
 
 # utility functions
 include("utility/cft.jl")
-export cft_data, central_charge, cft_data!
+export cft_data, central_charge, cft_data!, cft_data_spin!
 
 include("utility/finalize.jl")
 export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
 
 include("utility/cdl.jl")
 export cdl_tensor
+
+include("utility/projectors.jl")
+export QR_L, QR_R, find_projectors, SVD12
 
 include("utility/blocking.jl")
 export block_tensors

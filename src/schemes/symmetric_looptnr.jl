@@ -126,11 +126,14 @@ function entanglement_filtering(T; trunc=truncbelow(1e-12))
     psi_center = Ψ_center(T)
     psi_corner = Ψ_corner(T)
 
-    PR_list, PL_list = TNRKit.find_projectors(psi_center, entanglement_criterion, trunc)
+    PR_list, PL_list = TNRKit.find_projectors(psi_center, [1, 1, 1, 1], [3, 3, 3, 3],
+                                              entanglement_criterion, trunc)
     P_bottom = PL_list[1]
     P_right = PL_list[1]
 
-    PR_list, PL_list = TNRKit.find_projectors(psi_corner, entanglement_criterion, trunc)
+    PR_list, PL_list = TNRKit.find_projectors(psi_corner,
+                                              [1, 1, 1, 1], [3, 3, 3, 3],
+                                              entanglement_criterion, trunc)
     P_top = PL_list[3]
     P_left = PL_list[3]
 
@@ -157,7 +160,8 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1e-12, ΨB_function)
-    PR_list, _ = find_projectors(ΨB, criterion, trunc)
+    PR_list, _ = find_projectors(ΨB, [1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2, 2],
+                                 criterion, trunc)
 
     ΨB_disentangled = []
     for i in 1:1
