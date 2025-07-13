@@ -68,7 +68,7 @@ export classical_clock
 
 # utility functions
 include("utility/cft.jl")
-export cft_data, central_charge, cft_data!, cft_data_spin!
+export cft_data, central_charge, cft_data!
 
 include("utility/finalize.jl")
 export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
@@ -77,7 +77,7 @@ include("utility/cdl.jl")
 export cdl_tensor
 
 include("utility/projectors.jl")
-export QR_L, QR_R, find_projectors, SVD12
+export find_projectors
 
 include("utility/blocking.jl")
 export block_tensors

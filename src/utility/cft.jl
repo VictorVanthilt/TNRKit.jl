@@ -73,7 +73,7 @@ function cft_data(scheme::BTRG; v=1, unitcell=1, is_real=true)
 end
 
 # Function to obtain the "canonical" normalization constant
-function shape_factor_2x2(A, B; is_real=true)
+function area_term(A, B; is_real=true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
     x0 = rand(a_in ⊗ b_in)
@@ -93,76 +93,9 @@ function shape_factor_2x2(A, B; is_real=true)
     end
 end
 
-# Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function spec_2x4(A, B; Nh=10, is_real=true)
-    I = sectortype(A)
-    𝔽 = field(A)
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
-    spec_sector = Dict()
-    conformal_data = Dict()
-
-    for charge in values(I)
-        if I == Trivial
-            V = 𝔽^1
-        else
-            V = Vect[I](charge => 1)
-        end
-        x = rand(domain(B) ⊗ domain(B) ← V)
-        if dim(x) == 0
-            spec_sector[charge] = [0.0]
-        else
-            function f(x)
-                @tensor fx[-1 -2 -3 -4; 5] := B[-1 -2; 1 2] * x[1 2 3 4; 5] * B[-3 -4; 3 4]
-                @tensor ffx[-1 -2 -3 -4; 5] := A[-3 -4; 2 3] * fx[1 2 3 4; 5] *
-                                               A[-1 -2; 4 1]
-                return permute(ffx, (2, 3, 4, 1), (5,))
-            end
-            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
-                                  verbosity=0)
-            if is_real
-                spec_sector[charge] = filter(≥(1e-12), abs.(spec))
-            else
-                spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
-            end
-        end
-    end
-
-    norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = -12 / pi * log(norm_const_0)
-    for irr_center in values(I)
-        conformal_data[irr_center] = -1 / pi * log.(spec_sector[irr_center] / norm_const_0)
-    end
-    return conformal_data
-end
-
-# The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
-function cft_data!(scheme::LoopTNR; is_real=true)
-    norm_const = shape_factor_2x2(scheme.TA, scheme.TB; is_real)
-    scheme.TA = scheme.TA / norm_const^(1 / 4)
-    scheme.TB = scheme.TB / norm_const^(1 / 4)
-    conformal_data = spec_2x4(scheme.TA, scheme.TB; is_real)
-    return conformal_data
-end
-
-function transfer_MPS(TA::TensorMap, TB::TensorMap)
-    if BraidingStyle(sectortype(TA)) isa NoBraiding
-        throw(ArgumentError("Transfer MPS is only implemented for sectors with braiding"))
-    end
-    T1 = permute(TA, ((1,), (2,3,4)))
-    T2 = permute(TB, ((1,), (3,2,4)))
-    # @planar T1[-1; -2 -3 -4] := TA[1 2; -3 -4] * τ[-2 -1; 1 2]
-    # @planar T2[-1; -2 -3 -4] := TB[-1 1; -2 2] * τ[-3 2; -4 1]
-    psi = [T1, T2]
-    return vcat(psi, psi, psi, psi)
-end
-
-function planar_opt(TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
-                    truncentanglement::TensorKit.TruncationScheme)
+function MPO_opt(TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
+                 truncentanglement::TensorKit.TruncationScheme)
     pretrunc = truncdim(2 * trunc.dim)
-    # Perform SVD on the tensors
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
 
@@ -177,62 +110,11 @@ function planar_opt(TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationSch
                                        trunc & truncentanglement)
 
     MPO_disentangled!(transfer_MPO, in_inds, out_inds, PR_list, PL_list)
-    return vcat(transfer_MPO, transfer_MPO, transfer_MPO, transfer_MPO)
-    # return transfer_MPO
+    return transfer_MPO
 end
 
-function circular_opt(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-                      truncentanglement::TensorKit.TruncationScheme)
-    ΨA = Ψ_A(scheme)
-    NA = length(ΨA)
-    ΨB = []
-    for i in 1:NA
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        push!(ΨB, s1)
-        push!(ΨB, s2)
-    end
-
-    ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    in_inds = ones(Int, 2*NA)
-    out_inds = 2*ones(Int, 2*NA)
-    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
-                                       trunc & truncentanglement)
-    @planar dl[-1; -2 -3] := ΨB[1][-3; -1 1] * PR_list[2][1; -2]
-    ur = PL_list[2] * ΨB[2]
-    @planar ul[-1; -2 -3] := ΨB[3][-1; -2 1] * PR_list[4][1; -3]
-    dr = PL_list[4] * ΨB[4]
-    return [dl, ur, ul, dr]
-end
-
-function transfer_MPO_opt(TA::TensorMap, TB::TensorMap, loop_criterion::stopcrit,
-                          trunc::TensorKit.TruncationScheme,
-                          truncentanglement::TensorKit.TruncationScheme,
-                          verbosity::Int)
-    psiA = transfer_MPS(TA, TB)
-    psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
-    # psiB = Ψ_B(psiA, trunc, truncentanglement)
-
-    n = 1
-    while n ≤ length(psiB)
-        # @planar T1[-1; -2 -3] := psiB[n][1; 2 -2] * τ[2 -1; 1 -3]
-        # psiB[n] = T1
-        psiB[n] = permute(psiB[n], ((1,), (3, 2)))
-        n += 4
-    end
-
-    n = 4
-    while n ≤ length(psiB)
-        # @planar T4[-1; -2 -3] := psiB[n][-1; 1 2] * τ[1 2; -2 -3]
-        # psiB[n] = T4
-        psiB[n] = permute(psiB[n], ((1,), (3, 2)))
-        n += 4
-    end
-
-    return psiB
-end
-
-function reduced_MPO(dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap, trunc::TensorKit.TruncationScheme)
+function reduced_MPO(dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
+                     trunc::TensorKit.TruncationScheme)
     @planar temp[-1 -2; -3 -4] := ur[-1; 1 4] *
                                   ul[4; 3 -2] *
                                   dr[-3; 2 1] * dl[2; -4 3]
@@ -241,110 +123,30 @@ function reduced_MPO(dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
     return translate
 end
 
-function spec_1x8(T::TensorMap; Nh=10)
-    I = sectortype(T)
-    𝔽 = field(T)
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
-    spec_sector = Dict()
-    conformal_data = Dict()
-
-    for charge in values(I)
-        if I == Trivial
-            V = 𝔽^1
-        else
-            V = Vect[I](charge => 1)
-        end
-        W = domain(T)[1]
-        x = rand(W ⊗ W ⊗ W ⊗ W ← V)
-        if dim(x) == 0
-            spec_sector[charge] = [0.0]
-        else
-            function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[41 -1; 1 12] *
-                                                  T[12 -2; 2 23] *
-                                                  T[23 -3; 3 34] * T[34 -4; 4 41]
-                return TTTTx
-            end
-            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
-                                  verbosity=0)
-
-            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
-        end
-    end
-
-    norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = - 16 / 5 / pi * log(norm_const_0)
-    for irr_center in values(I)
-        conformal_data[irr_center] = -4 / pi * log.(spec_sector[irr_center] / norm_const_0)
-    end
-    return conformal_data
+function MPO_action_1x4(TA::TensorMap, TB::TensorMap, x::TensorMap)
+    @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TA[41 -1; 1 12] *
+                                      TB[12 -2; 2 23] *
+                                      TA[23 -3; 3 34] * TB[34 -4; 4 41]
+    return TTTTx
 end
 
-function reduced_MPO(transfer_MPO::Array, trunc::TensorKit.TruncationScheme)
-    n = 1
-    N = length(transfer_MPO)
-    translate_MPO = []
-    while n ≤ N
-        @planar temp[-1 -2; -3 -4] := transfer_MPO[n+1][-1; 1 4] *
-                                    transfer_MPO[n+2][4; 3 -2] *
-                                    transfer_MPO[n+3][-3; 2 1] * transfer_MPO[mod(n+4,N)][2; -4 3]
-        D, U = SVD12(temp, trunc)
-        @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
-        push!(translate_MPO, translate)
-        n += 4
-    end
-    return translate_MPO
+function MPO_action_1x4_twist(TA::TensorMap, TB::TensorMap, x::TensorMap)
+    TTTTx = MPO_action_1x4(TA, TB, x)
+    return permute(TTTTx, ((2, 3, 4, 1), (5,)))
 end
 
-
-
-function spec_1x8(T::Array; Nh=10)
-    I = sectortype(T[1])
-    𝔽 = field(T[1])
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
-    spec_sector = Dict()
-    conformal_data = Dict()
-
-    for charge in values(I)
-        if I == Trivial
-            V = 𝔽^1
-        else
-            V = Vect[I](charge => 1)
-        end
-        W = map(tensor->domain(tensor)[1], T)
-        x = rand(⊗(W...) ← V)
-        if dim(x) == 0
-            spec_sector[charge] = [0.0]
-        else
-            function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * T[1][41 -1; 1 12] *
-                                                  T[2][12 -2; 2 23] *
-                                                  T[3][23 -3; 3 34] * T[4][34 -4; 4 41]
-                return TTTTx
-            end
-            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
-                                  verbosity=0)
-
-            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
-        end
-    end
-
-    norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = - 16 / 5 / pi * log(norm_const_0)
-    for irr_center in values(I)
-        conformal_data[irr_center] = -4 / pi * log.(spec_sector[irr_center] / norm_const_0)
-    end
-    return conformal_data
+# Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
+function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
+    @tensor fx[-1 -2 -3 -4; 5] := TB[-1 -2; 1 2] * x[1 2 3 4; 5] * TB[-3 -4; 3 4]
+    @tensor ffx[-1 -2 -3 -4; 5] := TA[-3 -4; 2 3] * fx[1 2 3 4; 5] *
+                                   TA[-1 -2; 4 1]
+    return permute(ffx, (2, 3, 4, 1), (5,))
 end
 
+function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=13)
+    area = shape[1] * shape[2]
+    Reτ = shape[1] / shape[2]
 
-function spec_1x4(TA, TB; Nh=10)
     I = sectortype(TA)
     𝔽 = field(TA)
     if BraidingStyle(I) != Bosonic()
@@ -360,15 +162,23 @@ function spec_1x4(TA, TB; Nh=10)
         else
             V = Vect[I](charge => 1)
         end
-        x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
+
+        if shape ≈ [1, 4, 1]
+            x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
+            f = MPO_action_1x4_twist
+        elseif shape ≈ [1, 8, 1]
+            x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
+            f = MPO_action_1x4
+        elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0]
+            x = rand(domain(TB) ⊗ domain(TB) ← V)
+            f = MPO_action_2gates
+        end
+
         if dim(x) == 0
             spec_sector[charge] = [0.0]
         else
-            function f(x)
-                @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TA[41 -2; 1 12] * TB[12 -3; 2 23] * TA[23 -4; 3 34] * TB[34 -1; 4 41]
-                return TTTTx
-            end
-            spec, _, _ = eigsolve(f, x, Nh, :LM; krylovdim=40, maxiter=100, tol=1e-12,
+            spec, _, _ = eigsolve(a->f(TA, TB, a), x, Nh, :LM; krylovdim=40, maxiter=100,
+                                  tol=1e-12,
                                   verbosity=0)
 
             spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1e-12, spec)
@@ -376,28 +186,47 @@ function spec_1x4(TA, TB; Nh=10)
     end
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = - 8 / pi * log(norm_const_0)
-    for irr_center in values(I)
-        conformal_data[irr_center] = -2 / pi * log.(spec_sector[irr_center] / norm_const_0)
+    conformal_data["c"] = 6 / pi / (Reτ - area / 4) * log(norm_const_0)
+
+    for charge in values(I)
+        conformal_data[charge] = -1 / (2 * pi * shape[1] / shape[2]) *
+                                 log.(spec_sector[charge] / norm_const_0)
     end
     return conformal_data
 end
 
-# Based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsuchi Ueda
-function cft_data_spin!(scheme::LoopTNR, loop_criterion::stopcrit,
-                        trunc::TensorKit.TruncationScheme,
-                        truncentanglement::TensorKit.TruncationScheme,
-                        verbosity::Int)
-    norm_const = shape_factor_2x2(scheme.TA, scheme.TB)
+# The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
+# The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
+function cft_data!(scheme::LoopTNR, shape::Array,
+                   trunc::TensorKit.TruncationScheme,
+                   truncentanglement::TensorKit.TruncationScheme)
+    if !(shape ≈ [1, 8, 1])
+        throw(ArgumentError("The shape $shape is not correct."))
+    end
+
+    norm_const = area_term(scheme.TA, scheme.TB)
     scheme.TA = scheme.TA / norm_const^(1 / 4)
     scheme.TB = scheme.TB / norm_const^(1 / 4)
     @infov 2 "CFT data calculating"
-    # transfer_MPO = transfer_MPO_opt(scheme.TA, scheme.TB, loop_criterion, trunc, truncentanglement,
-    #                                 verbosity)
-    # dl, ur, ul, dr = planar_opt(scheme.TA, scheme.TB, trunc, truncentanglement)
-    # T = reduced_MPO(dl, ur, ul, dr, trunc)
-    # conformal_data = spec_1x8(T)
-    conformal_data = spec_1x4(scheme.TA, scheme.TB)
+
+    dl, ur, ul, dr = MPO_opt(scheme.TA, scheme.TB, trunc, truncentanglement)
+    T = reduced_MPO(dl, ur, ul, dr, trunc)
+
+    # Calculate conformal data with spin from -4 to 4. Most error is introduced in the second step of the SVD.
+    conformal_data = spec(T, T, shape)
+    return conformal_data
+end
+
+function cft_data!(scheme::LoopTNR, shape::Array)
+    if !(shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]])
+        throw(ArgumentError("The shape $shape is not correct."))
+    end
+
+    norm_const = area_term(scheme.TA, scheme.TB)
+    scheme.TA = scheme.TA / norm_const^(1 / 4)
+    scheme.TB = scheme.TB / norm_const^(1 / 4)
+    @infov 2 "CFT data calculating"
+    conformal_data = spec(scheme.TA, scheme.TB, shape)
     return conformal_data
 end
 

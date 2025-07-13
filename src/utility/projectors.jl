@@ -29,55 +29,59 @@ function find_L(psi::Array, in_inds::Array, out_inds::Array,
                 entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
-    L_list = map(x -> id(type, codomain(psi[x])[in_inds[x]]), 1:n)
+    L_list = []
 
-    crit = true
-    steps = 0
-    error = [Inf]
-    running_pos = 1
-    while crit
-        pos_next = mod(running_pos, n) + 1
-        L_last_time = L_list[pos_next]
-        L_list[pos_next] = QR_L(L_list[running_pos], psi[running_pos], in_inds[running_pos],
-                                out_inds[running_pos])
-
-        if space(L_list[pos_next]) == space(L_last_time)
-            push!(error, abs(norm(L_list[pos_next] - L_last_time)))
+    for i in 1:n
+        L = id(type, codomain(psi[i])[in_inds[i]])
+        error = [Inf]
+        crit = true
+        steps = 1
+        while crit
+            L_last_time = L
+            for j in 0:(n - 1)
+                running_pos = mod(i + j - 1, n) + 1
+                L = QR_L(L, psi[running_pos], in_inds[running_pos],
+                         out_inds[running_pos])
+            end
+            if space(L) == space(L_last_time)
+                push!(error, abs(norm(L - L_last_time)))
+            end
+            crit = entanglement_criterion(steps, error)
+            steps += 1
         end
-
-        running_pos = pos_next
-        steps += 1
-        crit = entanglement_criterion(steps, error)
+        push!(L_list, L)
     end
 
     return L_list
 end
 
-# Function to find the list of right projectors R_list
+# Function to find the list of left projectors L_list
 function find_R(psi::Array, in_inds::Array, out_inds::Array,
                 entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
-    R_list = map(x -> id(type, domain(psi[x])[in_inds[x]]), 1:n)
-    crit = true
-    steps = 0
-    error = [Inf]
+    R_list = []
 
-    running_pos = n
-    while crit
-        pos_last = mod(running_pos - 2, n) + 1
-        R_last_time = R_list[pos_last]
-        R_list[pos_last] = QR_R(R_list[running_pos], psi[running_pos], in_inds[running_pos],
-                                out_inds[running_pos])
-
-        if space(R_list[pos_last]) == space(R_last_time)
-            push!(error, abs(norm(R_list[pos_last] - R_last_time)))
+    for i in 1:n
+        R = id(type, domain(psi[i])[in_inds[i]])
+        error = [Inf]
+        crit = true
+        steps = 1
+        while crit
+            R_last_time = R
+            for j in 0:(n - 1)
+                running_pos = mod(i - j - 1, n) + 1
+                R = QR_R(R, psi[running_pos], in_inds[running_pos], out_inds[running_pos])
+            end
+            if space(R) == space(R_last_time)
+                push!(error, abs(norm(R - R_last_time)))
+            end
+            crit = entanglement_criterion(steps, error)
+            steps += 1
         end
-
-        running_pos = pos_last
-        steps += 1
-        crit = entanglement_criterion(steps, error)
+        push!(R_list, R)
     end
+
     return R_list
 end
 
@@ -132,13 +136,13 @@ end
 
 function SVD12(T::AbstractTensorMap{E,S,1,3}, trunc::TensorKit.TruncationScheme) where {E,S}
     T_trans = transpose(T, (2, 1), (3, 4); copy=true)
-    U, s, V, _ = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
+    U, s, V, e = tsvd(T_trans; trunc=trunc, alg=TensorKit.SVD())
     @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 
 function SVD12(T::AbstractTensorMap{E,S,2,2}, trunc::TensorKit.TruncationScheme) where {E,S}
-    U, s, V, _ = tsvd(T; trunc=trunc)
+    U, s, V, e = tsvd(T; trunc=trunc)
     return U * sqrt(s), sqrt(s) * V
 end
