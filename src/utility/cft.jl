@@ -114,20 +114,13 @@ function MPO_opt(TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme
 end
 
 function reduced_MPO(dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
-                     trunc::TensorKit.TruncationScheme, truncentanglement)
+                     trunc::TensorKit.TruncationScheme)
     @planar temp[-1 -2; -3 -4] := ur[-1; 1 4] *
                                   ul[4; 3 -2] *
                                   dr[-3; 2 1] * dl[2; -4 3]
     D, U = SVD12(temp, trunc)
     @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
-
-    MPO = [translate]
-    MPO_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1e-12, MPO_function)
-    PR, PL = find_projectors(MPO, [2], [2], criterion,
-                             truncdim(trunc.dim ÷ 2) & truncentanglement)
-    MPO_disentangled!(MPO, [2], [2], PR, PL)
-    return MPO[1]
+    return translate
 end
 
 function MPO_action_1x4(TA::TensorMap, TB::TensorMap, x::TensorMap)
