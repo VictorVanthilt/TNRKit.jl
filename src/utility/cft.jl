@@ -224,21 +224,6 @@ function cft_data!(scheme::LoopTNR, shape::Array,
     return conformal_data
 end
 
-function cft_data!(scheme::LoopTNR, shape::Array, trunc::TensorKit.TruncationScheme)
-    if !(shape ≈ [2 / sqrt(5), 2 * sqrt(5), 1 / sqrt(5)])
-        throw(ArgumentError("The shape $shape is not correct."))
-    end
-
-    DA, UA = SVD12(scheme.TA, trunc)
-    DB, UB = SVD12(scheme.TB, trunc)
-
-    @planar translate_A[-1 -2; -3 -4] := UA[-1; -3 1] * DB[1 -2; -4]
-    @planar translate_B[-1 -2; -3 -4] := UB[-1; -3 1] * DA[1 -2; -4]
-
-    conformal_data = spec(translate_A, translate_B, shape)
-    return conformal_data
-end
-
 function cft_data!(scheme::LoopTNR, shape::Array)
     if !(shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]])
         throw(ArgumentError("The shape $shape is not correct."))
