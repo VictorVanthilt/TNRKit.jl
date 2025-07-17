@@ -143,9 +143,10 @@ function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
     return permute(ffx, (2, 3, 4, 1), (5,))
 end
 
-function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=13)
+function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=25)
     area = shape[1] * shape[2]
     Reτ = shape[1] / shape[2]
+    relative_shift = shape[3] / shape[1]
 
     I = sectortype(TA)
     𝔽 = field(TA)
@@ -169,7 +170,8 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=13)
         elseif shape ≈ [1, 8, 1]
             x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
             f = MPO_action_1x4
-        elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0]
+        elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0] ||
+               shape ≈ [4/sqrt(10), 2*sqrt(10), 2/sqrt(10)]
             x = rand(domain(TB) ⊗ domain(TB) ← V)
             f = MPO_action_2gates
         end
@@ -177,7 +179,7 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=13)
         if dim(x) == 0
             spec_sector[charge] = [0.0]
         else
-            spec, _, _ = eigsolve(a->f(TA, TB, a), x, Nh, :LM; krylovdim=40, maxiter=100,
+            spec, _, _ = eigsolve(a -> f(TA, TB, a), x, Nh, :LM; krylovdim=40, maxiter=100,
                                   tol=1e-12,
                                   verbosity=0)
 
@@ -189,8 +191,13 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh=13)
     conformal_data["c"] = 6 / pi / (Reτ - area / 4) * log(norm_const_0)
 
     for charge in values(I)
-        conformal_data[charge] = -1 / (2 * pi * shape[1] / shape[2]) *
-                                 log.(spec_sector[charge] / norm_const_0)
+        DeltaS = -1 / (2 * pi * shape[1] / shape[2]) *
+                 log.(spec_sector[charge] / norm_const_0)
+        if !(relative_shift ≈ 0)
+            conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
+        else
+            conformal_data[charge] = DeltaS
+        end
     end
     return conformal_data
 end
@@ -200,7 +207,7 @@ end
 function cft_data!(scheme::LoopTNR, shape::Array,
                    trunc::TensorKit.TruncationScheme,
                    truncentanglement::TensorKit.TruncationScheme)
-    if !(shape ≈ [1, 8, 1])
+    if !(shape in [[1, 8, 1], [4/sqrt(10), 2*sqrt(10), 2/sqrt(10)]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
 
@@ -214,6 +221,21 @@ function cft_data!(scheme::LoopTNR, shape::Array,
 
     # Calculate conformal data with spin from -4 to 4. Most error is introduced in the second step of the SVD.
     conformal_data = spec(T, T, shape)
+    return conformal_data
+end
+
+function cft_data!(scheme::LoopTNR, shape::Array, trunc::TensorKit.TruncationScheme)
+    if !(shape ≈ [2 / sqrt(5), 2 * sqrt(5), 1 / sqrt(5)])
+        throw(ArgumentError("The shape $shape is not correct."))
+    end
+
+    DA, UA = SVD12(scheme.TA, trunc)
+    DB, UB = SVD12(scheme.TB, trunc)
+
+    @planar translate_A[-1 -2; -3 -4] := UA[-1; -3 1] * DB[1 -2; -4]
+    @planar translate_B[-1 -2; -3 -4] := UB[-1; -3 1] * DA[1 -2; -4]
+
+    conformal_data = spec(translate_A, translate_B, shape)
     return conformal_data
 end
 
