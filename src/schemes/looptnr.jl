@@ -46,8 +46,10 @@ function Ψ_A(scheme::LoopTNR)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
-             truncentanglement::TensorKit.TruncationScheme)
+function Ψ_B(
+        ΨA, trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme
+    )
     NA = length(ΨA)
     ΨB = []
     for i in 1:NA
@@ -57,11 +59,13 @@ function Ψ_B(ΨA, trunc::TensorKit.TruncationScheme,
     end
 
     ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1e-12, ΨB_function)
-    in_inds = ones(Int, 2*NA)
-    out_inds = 2*ones(Int, 2*NA)
-    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion,
-                                       trunc & truncentanglement)
+    criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
+    in_inds = ones(Int, 2 * NA)
+    out_inds = 2 * ones(Int, 2 * NA)
+    PR_list, PL_list = find_projectors(
+        ΨB, in_inds, out_inds, criterion,
+        trunc & truncentanglement
+    )
     MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
     return ΨB
 end
@@ -138,8 +142,10 @@ function entanglement_filtering!(
         trunc::TensorKit.TruncationScheme
     )
     ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
-                                       entanglement_criterion, trunc)
+    PR_list, PL_list = find_projectors(
+        ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
+        entanglement_criterion, trunc
+    )
 
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
@@ -235,12 +241,14 @@ end
 
 # A general function to optimize the truncation error of an MPS on a ring.
 # Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
-# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping. 
+# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping.
 # The transfer matrix on the left is updated after each optimization step.
 # The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function loop_opt(psiA::Array, loop_criterion::stopcrit,
-                  trunc::TensorKit.TruncationScheme,
-                  truncentanglement::TensorKit.TruncationScheme, verbosity::Int)
+function loop_opt(
+        psiA::Array, loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme, verbosity::Int
+    )
     psiB = Ψ_B(psiA, trunc, truncentanglement)
     NB = length(psiB) # Number of tensors in the MPS Ψ_B
     psiBpsiB = ΨBΨB(psiB)
@@ -259,8 +267,8 @@ function loop_opt(psiA::Array, loop_criterion::stopcrit,
         t_start = time()
 
         if sweep == 0
-            tNt = tr(psiBpsiB[1]*right_cache_BB[1])
-            tdw = tr(psiBpsiA[1]*right_cache_BA[1])
+            tNt = tr(psiBpsiB[1] * right_cache_BB[1])
+            tdw = tr(psiBpsiA[1] * right_cache_BA[1])
             wdt = conj(tdw)
             cost_this = real((C + tNt - wdt - tdw) / C)
             if verbosity > 1
@@ -307,10 +315,12 @@ function loop_opt(psiA::Array, loop_criterion::stopcrit,
     return psiB
 end
 
-function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
-                   trunc::TensorKit.TruncationScheme,
-                   truncentanglement::TensorKit.TruncationScheme,
-                   verbosity::Int)
+function loop_opt!(
+        scheme::LoopTNR, loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        verbosity::Int
+    )
     psiA = Ψ_A(scheme)
     psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
     @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
@@ -320,10 +330,12 @@ function loop_opt!(scheme::LoopTNR, loop_criterion::stopcrit,
     return scheme
 end
 
-function step!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
-               truncentanglement::TensorKit.TruncationScheme,
-               entanglement_criterion::stopcrit,
-               loop_criterion::stopcrit, verbosity::Int)
+function step!(
+        scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        entanglement_criterion::stopcrit,
+        loop_criterion::stopcrit, verbosity::Int
+    )
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
     return scheme
