@@ -1,4 +1,4 @@
-const ising_βc = BigFloat(log(1.0 + sqrt(2)) / 2.0)
+const ising_βc = BigFloat(log(BigFloat(1.0) + sqrt(BigFloat(2.0))) / BigFloat(2.0))
 const ising_cft_exact = [
     1 / 8, 1, 9 / 8, 9 / 8, 2, 2, 2, 2, 17 / 8, 17 / 8, 17 / 8, 3, 3,
     3, 3, 3,
@@ -75,7 +75,7 @@ function classical_ising_3D(β; J = 1.0)
 
     return TensorMap(o, TMS)
 end
-ising_βc_3D = 1 / 4.51152469
+const ising_βc_3D = 1.0 / 4.51152469
 
 classical_ising_symmetric_3D() = classical_ising_symmetric_3D(ising_βc_3D)
 classical_ising_3D() = classical_ising_3D(ising_βc_3D)
