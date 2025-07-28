@@ -7,24 +7,24 @@ function P_tensor()
     return P
 end
 
-# Manually defining the A and A_bar tensors
-A = zeros(ComplexF64, 2, 2, 2, 2)
-A[2, 2, 1, 1] = 1 + 1im
-A[1, 1, 2, 2] = -1 - 1im
-A[2, 1, 1, 2] = 1 - 1im
-A[2, 1, 2, 1] = 2
-A[1, 2, 1, 2] = -2im
-A[1, 2, 2, 1] = 1 - 1im
-
-A_bar = zeros(ComplexF64, 2, 2, 2, 2)
-A_bar[2, 2, 1, 1] = -1 + 1im
-A_bar[1, 1, 2, 2] = 1 - 1im
-A_bar[2, 1, 1, 2] = -1 - 1im
-A_bar[2, 1, 2, 1] = -2
-A_bar[1, 2, 1, 2] = -2im
-A_bar[1, 2, 2, 1] = -1 - 1im
-
 function gross_neveu_8_leg_tensor(μ::Number, m::Number, g::Number)
+    # Manually defining the A and A_bar tensors
+    A = zeros(ComplexF64, 2, 2, 2, 2)
+    A[2, 2, 1, 1] = 1 + 1im
+    A[1, 1, 2, 2] = -1 - 1im
+    A[2, 1, 1, 2] = 1 - 1im
+    A[2, 1, 2, 1] = 2
+    A[1, 2, 1, 2] = -2im
+    A[1, 2, 2, 1] = 1 - 1im
+
+    A_bar = zeros(ComplexF64, 2, 2, 2, 2)
+    A_bar[2, 2, 1, 1] = -1 + 1im
+    A_bar[1, 1, 2, 2] = 1 - 1im
+    A_bar[2, 1, 1, 2] = -1 - 1im
+    A_bar[2, 1, 2, 1] = -2
+    A_bar[1, 2, 1, 2] = -2im
+    A_bar[1, 2, 2, 1] = -1 - 1im
+
     # Utility Kronecker delta function
     δ(x, y) = ==(x, y)
 
