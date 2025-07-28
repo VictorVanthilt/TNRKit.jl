@@ -99,11 +99,11 @@ function MPO_opt(
     )
     pretrunc = truncdim(2 * trunc.dim)
     dl, ur = SVD12(TA, pretrunc)
-    dr, ul = SVD12(transpose(TB, (2, 4), (1, 3)), pretrunc)
+    dr, ul = SVD12(transpose(TB, ((2, 4), (1, 3))), pretrunc)
 
     transfer_MPO = [
-        transpose(dl, (1,), (3, 2)), ur, transpose(ul, (2,), (3, 1)),
-        transpose(dr, (3,), (2, 1)),
+        transpose(dl, ((1,), (3, 2))), ur, transpose(ul, ((2,), (3, 1))),
+        transpose(dr, ((3,), (2, 1))),
     ]
 
     in_inds = [1, 1, 1, 1]
@@ -148,7 +148,7 @@ function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
     @tensor fx[-1 -2 -3 -4; 5] := TB[-1 -2; 1 2] * x[1 2 3 4; 5] * TB[-3 -4; 3 4]
     @tensor ffx[-1 -2 -3 -4; 5] := TA[-3 -4; 2 3] * fx[1 2 3 4; 5] *
         TA[-1 -2; 4 1]
-    return permute(ffx, (2, 3, 4, 1), (5,))
+    return permute(ffx, ((2, 3, 4, 1), (5,)))
 end
 
 function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
