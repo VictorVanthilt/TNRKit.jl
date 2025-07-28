@@ -7,6 +7,7 @@ function run!(
         scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
         finalize_beginning = true, verbosity = 1
     )
+
     data = []
 
     LoggingExtras.withlevel(; verbosity) do
@@ -29,15 +30,4 @@ function run!(
         @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     end
     return data
-end
-
-function run!(
-        scheme::TNRScheme, trscheme::TensorKit.TruncationScheme;
-        finalize_beginning = true, verbosity = 1
-    )
-    # default maxiter criterion of 100 iterations
-    return run!(
-        scheme, trscheme, maxiter(100); finalize_beginning = finalize_beginning,
-        verbosity = verbosity
-    )
 end
