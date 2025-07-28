@@ -76,6 +76,8 @@ export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_char
 include("utility/cdl.jl")
 export cdl_tensor
 
+include("utility/projectors.jl")
+
 include("utility/blocking.jl")
 export block_tensors
 end
