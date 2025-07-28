@@ -44,7 +44,7 @@ export rCTM
 export ctm_TRG
 export ctm_HOTRG
 
-export LoopTNR, loop_opt
+export LoopTNR
 export SLoopTNR
 
 export run!
@@ -77,7 +77,6 @@ include("utility/cdl.jl")
 export cdl_tensor
 
 include("utility/projectors.jl")
-export find_projectors
 
 include("utility/blocking.jl")
 export block_tensors
