@@ -137,10 +137,7 @@ entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
 loop_criterion = maxiter(50) & convcrit(1.0e-8, entanglement_function)
 
 # Entanglement filtering function
-function entanglement_filtering!(
-        scheme::LoopTNR, entanglement_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme
-    )
+function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_A(scheme)
     PR_list, PL_list = find_projectors(
         ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
@@ -316,7 +313,8 @@ function loop_opt(
 end
 
 function loop_opt!(
-        scheme::LoopTNR, loop_criterion::stopcrit,
+        scheme::LoopTNR,
+        loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme,
         verbosity::Int
@@ -331,10 +329,12 @@ function loop_opt!(
 end
 
 function step!(
-        scheme::LoopTNR, trunc::TensorKit.TruncationScheme,
+        scheme::LoopTNR,
+        trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme,
         entanglement_criterion::stopcrit,
-        loop_criterion::stopcrit, verbosity::Int
+        loop_criterion::stopcrit,
+        verbosity::Int
     )
     entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
@@ -342,11 +342,14 @@ function step!(
 end
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
+        scheme::LoopTNR,
+        trscheme::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        criterion::stopcrit,
         entanglement_criterion::stopcrit,
         loop_criterion::stopcrit;
-        finalize_beginning = true, verbosity = 1
+        finalize_beginning = true,
+        verbosity = 1
     )
     data = []
 
@@ -380,10 +383,8 @@ function run!(
         finalize_beginning = true, verbosity = 1
     )
     return run!(
-        scheme, trscheme, truncbelow(1.0e-15), criterion, entanglement_criterion,
-        loop_criterion;
-        finalize_beginning = finalize_beginning,
-        verbosity = verbosity
+        scheme, trscheme, truncbelow(1.0e-15), criterion, entanglement_criterion, loop_criterion;
+        finalize_beginning = finalize_beginning, verbosity = verbosity
     )
 end
 

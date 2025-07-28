@@ -20,6 +20,7 @@ mutable struct rCTM{A, S}
     C2::TensorMap{A, S, 1, 1}
     E1::TensorMap{A, S, 2, 1}
     E2::TensorMap{A, S, 2, 1}
+
     function rCTM(T::TensorMap{A, S, 2, 2}) where {A, S}
         if typeof(T.data[1]) != Float64
             @error "This scheme only support tensors with real numbers"
@@ -71,10 +72,8 @@ function step!(scheme::rCTM, trunc)
 end
 
 function run!(
-        scheme::rCTM,
-        trunc::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit;
-        verbosity = 1,
+        scheme::rCTM, trunc::TensorKit.TruncationScheme,
+        criterion::TNRKit.stopcrit; verbosity = 1
     )
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
