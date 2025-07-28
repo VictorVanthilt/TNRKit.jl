@@ -41,10 +41,7 @@ end
 # Functions to find the left and right projectors
 
 # Function to find the list of left projectors L_list
-function find_L(
-        psi::Array, in_inds::Array, out_inds::Array,
-        entanglement_criterion::stopcrit
-    )
+function find_L(psi::Array, in_inds::Array, out_inds::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
     L_list = []
@@ -76,10 +73,7 @@ function find_L(
 end
 
 # Function to find the list of left projectors L_list
-function find_R(
-        psi::Array, in_inds::Array, out_inds::Array,
-        entanglement_criterion::stopcrit
-    )
+function find_R(psi::Array, in_inds::Array, out_inds::Array, entanglement_criterion::stopcrit)
     type = eltype(psi[1])
     n = length(psi)
     R_list = []
@@ -117,11 +111,7 @@ function P_decomp(R::TensorMap, L::TensorMap, trunc::TensorKit.TruncationScheme)
 end
 
 # Function to find the list of projectors
-function find_projectors(
-        psi::Array, in_inds::Array, out_inds::Array,
-        entanglement_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme
-    )
+function find_projectors(psi::Array, in_inds::Array, out_inds::Array, entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme)
     PR_list = []
     PL_list = []
 
@@ -136,10 +126,7 @@ function find_projectors(
     return PR_list, PL_list
 end
 
-function MPO_disentangled!(
-        psi::Array, in_inds::Array, out_inds::Array, PR_list::Array,
-        PL_list::Array
-    )
+function MPO_disentangled!(psi::Array, in_inds::Array, out_inds::Array, PR_list::Array, PL_list::Array)
     n = length(psi)
     for i in 1:n
         M = length(codomain(psi[i]))
@@ -176,7 +163,7 @@ function MPO_disentangled!(
 end
 
 function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme) where {E, S}
-    T_trans = transpose(T, (2, 1), (3, 4); copy = true)
+    T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
     U, s, V, e = tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
     @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
