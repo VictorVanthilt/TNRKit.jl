@@ -1,6 +1,5 @@
-"""
-    This tests every scheme in the library on the Z2 symmetric Ising model.
-"""
+# This tests every scheme in the library on the Z2 symmetric Ising model.
+
 println("---------------------")
 println(" Testing all schemes ")
 println("---------------------")
