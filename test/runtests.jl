@@ -5,5 +5,5 @@ using PEPSKit: InfinitePartitionFunction, CTMRGEnv, SequentialCTMRG, leading_bou
 using QuadGK
 
 include("spaces.jl") # do they give spacemismatches?
-include("ising.jl") # do they give the correct results (with the expected accuracy)?
+include("schemes.jl") # do they give the correct results (with the expected accuracy)?
 include("finalize.jl") # do they give the correct results (with the expected accuracy)?
