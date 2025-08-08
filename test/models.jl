@@ -2,14 +2,6 @@ println("--------------------")
 println(" Testing all models ")
 println("--------------------")
 
-function free_energy(data; β = ising_βc, scalefactor = 2.0)
-    lnz = 0
-    for (i, z) in enumerate(data)
-        lnz += log(z) * scalefactor^(1 - i)
-    end
-    return -lnz / β
-end
-
 models_2D = [
     classical_ising(),
     classical_ising_symmetric(),
@@ -34,7 +26,7 @@ temperatures = [
 ]
 
 answers = [
-    2 * f_onsager, # Hack because classical_ising starts from larger lattice
+    f_onsager, # Hack because classical_ising starts from larger lattice
     f_onsager,
     -1.4515448845652446,
     -4.119552029995684, # This is an approximation!
@@ -44,10 +36,12 @@ answers = [
     3 / 2 * log(3 / 4),
 ]
 
+unitcells = vcat([2.0], fill(1.0, length(models_2D) - 1))
+
 @testset "2D Models" begin
-    for (model, temp, answer) in zip(models_2D, temperatures, answers)
+    for (model, temp, answer, unitcell) in zip(models_2D, temperatures, answers, unitcells)
         scheme = TRG(model)
         data = run!(scheme, truncdim(16), maxiter(25))
-        @test free_energy(data; β = temp) ≈ answer rtol = 1.0e-3
+        @test free_energy(data, temp; unitcell = unitcell) ≈ answer rtol = 1.0e-3
     end
 end

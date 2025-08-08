@@ -67,6 +67,9 @@ include("models/clock.jl")
 export classical_clock
 
 # utility functions
+include("utility/free_energy.jl")
+export free_energy
+
 include("utility/cft.jl")
 export cft_data, central_charge, cft_data!
 
