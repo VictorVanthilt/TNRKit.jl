@@ -178,7 +178,6 @@ end
 
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
 
-    fs = lnz * -1 / ising_βc_3D
     f_benchmark = -3.515
 
     @test fs ≈ f_benchmark rtol = 1.0e-3
