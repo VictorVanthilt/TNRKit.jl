@@ -6,14 +6,6 @@ println("---------------------")
 
 T = classical_ising_symmetric()
 
-function free_energy(data; β = ising_βc, scalefactor = 2.0)
-    lnz = 0
-    for (i, z) in enumerate(data)
-        lnz += log(z) * scalefactor^(1 - i)
-    end
-    return fs = -lnz / β
-end
-
 function cft_finalize!(scheme)
     finalize!(scheme)
     return cft_data(scheme)
@@ -25,7 +17,7 @@ end
     scheme = TRG(T)
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(data) ≈ f_onsager rtol = 2.0e-6
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 2.0e-6
 
     @info "TRG ising CFT data"
     scheme = TRG(T)
@@ -43,7 +35,7 @@ end
     scheme = BTRG(T)
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(data) ≈ f_onsager rtol = 6.0e-8
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 6.0e-8
 
     @info "BTRG ising CFT data"
     scheme = BTRG(T)
@@ -61,7 +53,7 @@ end
     scheme = HOTRG(T)
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    @test free_energy(data; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
+    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
 
     @info "HOTRG ising CFT data"
     scheme = HOTRG(T)
@@ -79,7 +71,7 @@ end
     scheme = ATRG(T)
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(data; scalefactor = 4.0) ≈ f_onsager rtol = 3.0e-6
+    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 3.0e-6
 
     @info "ATRG ising CFT data"
     scheme = ATRG(T)
@@ -105,7 +97,7 @@ end
         loop_criterion
     )
 
-    @test free_energy(data) ≈ f_onsager rtol = 1.0e-6
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
 
     @info "LoopTNR ising CFT data"
     scheme = LoopTNR(T)
@@ -132,7 +124,7 @@ end
 
     data = run!(scheme, truncdim(4), maxiter(25))
 
-    @test free_energy(data) ≈ f_onsager rtol = 1.0e-5
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-5
 end
 
 # ctm_TRG
@@ -184,10 +176,7 @@ end
     scheme = ATRG_3D(T_3D)
     data = run!(scheme, truncdim(12), maxiter(25))
 
-    lnz = 0
-    for (i, d) in enumerate(data)
-        lnz += log(d) * 8.0^(1 - i)
-    end
+    fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
 
     fs = lnz * -1 / ising_βc_3D
     f_benchmark = -3.515
