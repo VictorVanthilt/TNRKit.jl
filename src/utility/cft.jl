@@ -12,7 +12,7 @@ function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     outinds = Tuple(collect(1:unitcell))
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
-    T = permute(T, outinds, ininds)
+    T = permute(T, (outinds, ininds))
     D, _ = eig(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
@@ -48,7 +48,7 @@ function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     outinds = Tuple(collect(1:unitcell))
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
-    T = permute(T, outinds, ininds)
+    T = permute(T, (outinds, ininds))
     D, _ = eig(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
