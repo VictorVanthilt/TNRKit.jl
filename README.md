@@ -81,7 +81,7 @@ There are 3 levels of verbosity implemented in TNRKit:
 - Level 1: Info at beginning and end of the simulations (including information on why the simulation stopped, how long it took and how many iterations were performed).
 - Level 2: Level 1 + info at every iteration about the last generated finalize output and the iteration number.
 
-Tto choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
+To choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
 
 ## Included Models
 TNRKit includes several common models out of the box.
