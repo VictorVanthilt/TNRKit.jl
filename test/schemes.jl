@@ -177,7 +177,7 @@ end
     data = run!(scheme, truncdim(12), maxiter(25))
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     f_benchmark = -3.515
-    @info "Calculated value = $(fs)."
+    @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark rtol = 1.0e-3
 end
 
@@ -185,9 +185,9 @@ end
 @testset "HOTRG_3D - Ising Model" begin
     @info "HOTRG_3D ising free energy"
     scheme = HOTRG_3D(T_3D)
-    data = run!(scheme, truncdim(4), maxiter(25))
+    data = run!(scheme, truncdim(8), maxiter(25))
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
-    f_benchmark = -3.515
-    @info "Calculated value = $(fs)."
-    @test fs ≈ f_benchmark rtol = 1.5e-2
+    f_benchmark = -3.505
+    @info "Calculated f = $(fs)."
+    @test fs ≈ f_benchmark rtol = 2.0e-3
 end
