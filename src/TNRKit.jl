@@ -16,6 +16,7 @@ include("schemes/tnrscheme.jl")
 include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
+include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
 
@@ -36,6 +37,7 @@ export TNRScheme
 export TRG
 export BTRG
 export HOTRG
+export HOTRG_3D
 export ATRG
 export ATRG_3D
 

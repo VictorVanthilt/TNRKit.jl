@@ -28,6 +28,7 @@ Many common TNR schemes have already been implemented:
 
 **3D cubic tensor networks**
 * [`ATRG_3D`](@ref) (anisotropic TRG)
+* [`HOTRG_3D`](@ref) (higher order TRG)
 
 # Quick Start Guide
 1. Choose a (TensorKit!) tensor that respects the leg-convention (see below)

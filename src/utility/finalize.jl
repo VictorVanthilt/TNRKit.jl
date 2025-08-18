@@ -59,6 +59,12 @@ function finalize!(scheme::ATRG_3D)
     return n
 end
 
+function finalize!(scheme::HOTRG_3D)
+    n = norm(@tensor scheme.T[1 1; 2 3 2 3])
+    scheme.T /= n
+    return n
+end
+
 function finalize!(scheme::SLoopTNR)
     tr_norm = trnorm_2x2(scheme.T)
     scheme.T /= tr_norm^0.25
