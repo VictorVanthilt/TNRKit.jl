@@ -1,5 +1,26 @@
+"""
+$(SIGNATURES)
+
+returns the inverse critical temperature for the classical q-state Potts model on a 2D square lattice.
+
+See also: [`classical_potts`](@ref), [`classical_potts_symmetric`](@ref).
+"""
 potts_βc(q) = log(1.0 + sqrt(q))
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for the classical Potts model with `q` states
+and a given inverse temperature `β`.
+
+### Examples
+```julia
+    classical_potts(3) # Default inverse temperature is `potts_βc(3)`
+    classical_potts(3, 0.5) # Custom inverse temperature.
+```
+
+See also: [`classical_potts_symmetric`](@ref), [`potts_βc`](@ref).
+"""
 function classical_potts(q::Int, β::Float64)
     V = ℂ^q
     A_potts = TensorMap(zeros, V ⊗ V ← V ⊗ V)
@@ -34,6 +55,22 @@ function weyl_heisenberg_matrices(Q::Int, elt = ComplexF64)
     return U, V, W / sqrt(Q)
 end
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a symmetric Potts model with `q` states
+and a given inverse temperature `β`.
+
+This tensor has explicit ℤq symmetry on each of its spaces.
+
+### Examples
+```julia
+    classical_potts_symmetric(3) # Default inverse temperature is `potts_βc(3)`
+    classical_potts_symmetric(3, 0.5) # Custom inverse temperature.
+```
+
+See also: [`classical_potts`](@ref), [`potts_βc`](@ref).
+"""
 function classical_potts_symmetric(q::Int64, β::Float64)
     V = ℂ^q
     A_potts = TensorMap(zeros, Float64, V ⊗ V ← V ⊗ V)

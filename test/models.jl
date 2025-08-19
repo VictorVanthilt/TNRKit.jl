@@ -36,12 +36,12 @@ answers = [
     3 / 2 * log(3 / 4),
 ]
 
-unitcells = vcat([2.0], fill(1.0, length(models_2D) - 1))
+lattice_sizes = vcat([2.0], fill(1.0, length(models_2D) - 1))
 
 @testset "2D Models" begin
-    for (model, temp, answer, unitcell) in zip(models_2D, temperatures, answers, unitcells)
+    for (model, temp, answer, unitcell) in zip(models_2D, temperatures, answers, lattice_sizes)
         scheme = TRG(model)
         data = run!(scheme, truncdim(16), maxiter(25))
-        @test free_energy(data, temp; unitcell = unitcell) ≈ answer rtol = 1.0e-3
+        @test free_energy(data, temp; initial_size = unitcell) ≈ answer rtol = 1.0e-3
     end
 end

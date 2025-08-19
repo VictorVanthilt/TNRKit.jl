@@ -4,6 +4,25 @@ const ising_cft_exact = [
     3, 3, 3,
     25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8, 25 / 8,
 ]
+const ising_βc_3D = 1.0 / 4.51152469
+
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a 2D square lattice
+for the classical Ising model with a given inverse temperature `β` and external magnetic field `h`.
+
+### Examples
+```julia
+    classical_ising() # Default inverse temperature is `ising_βc`
+    classical_ising(0.5; h = 1.0) # Custom inverse temperature and magnetic field.
+```
+!!! info
+    When calculating the free energy with `free_energy()`, set the `initial_size` keyword argument to `2.0`.
+    The initial lattice holds 2 spins.
+
+See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
+"""
 function classical_ising(β::Number; h = 0)
     function σ(i::Int64)
         return 2i - 3
@@ -23,6 +42,22 @@ function classical_ising(β::Number; h = 0)
 end
 classical_ising() = classical_ising(ising_βc)
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a symmetric 2D square lattice
+for the classical Ising model with a given inverse temperature `β`.
+
+This tensor has explicit ℤ₂ symmetry on each of it spaces.
+
+### Examples
+```julia
+    classical_ising_symmetric() # Default inverse temperature is `ising_βc`
+    classical_ising_symmetric(0.5) # Custom inverse temperature.
+```
+
+See also: [`classical_ising`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
+"""
 function classical_ising_symmetric(β)
     x = cosh(β)
     y = sinh(β)
@@ -38,6 +73,22 @@ classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a symmetric 3D cubic lattice
+for the classical Ising model with a given inverse temperature `β`.
+
+This tensor has explicit ℤ₂ symmetry on each of its spaces.
+
+### Examples
+```julia
+    classical_ising_symmetric_3D() # Default inverse temperature is `ising_βc_3D`
+    classical_ising_symmetric_3D(0.5) # Custom inverse temperature.
+```
+
+See also:  [`classical_ising_3D`](@ref), [`classical_ising`](@ref), [`classical_ising_symmetric`](@ref).
+"""
 function classical_ising_symmetric_3D(β)
     x = cosh(β)
     y = sinh(β)
@@ -55,7 +106,22 @@ function classical_ising_symmetric_3D(β)
 
     return permute(T, ((1, 4), (5, 6, 2, 3)))
 end
+classical_ising_symmetric_3D() = classical_ising_symmetric_3D(ising_βc_3D)
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a 3D cubic lattice
+for the classical Ising model with a given inverse temperature `β` and coupling constant `J` (by default J = `1.0`).
+    
+### Examples
+```julia
+    classical_ising_3D() # Default inverse temperature is `ising_βc_3D`, coupling constant is `J = 1.0`.
+    classical_ising_3D(0.5; J = 1.0) # Custom inverse temperature and coupling constant.
+```
+
+See also: [`classical_ising_symmetric_3D`](@ref), [`classical_ising`](@ref), [`classical_ising_symmetric`](@ref).
+"""
 function classical_ising_3D(β; J = 1.0)
     K = β * J
 
@@ -75,7 +141,4 @@ function classical_ising_3D(β; J = 1.0)
 
     return TensorMap(o, TMS)
 end
-const ising_βc_3D = 1.0 / 4.51152469
-
-classical_ising_symmetric_3D() = classical_ising_symmetric_3D(ising_βc_3D)
 classical_ising_3D() = classical_ising_3D(ising_βc_3D)

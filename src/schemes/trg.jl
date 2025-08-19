@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of √2
 $(TYPEDFIELDS)
 
 ### References
-* [Levin & Nave Phys. Rev. Letters 99(12) (2007)](@cite levin_tensor_2007)
+* [Levin & Nave Phys. Rev. Letters 99(12) (2007)](@cite levinTensorRenormalizationGroup2007)
 """
 mutable struct TRG <: TNRScheme
     "central tensor"

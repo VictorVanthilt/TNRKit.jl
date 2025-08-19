@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of √2
 $(TYPEDFIELDS)
 
 ### References
-* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachi_bond-weighted_2022)
+* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachiBondweightedTensorRenormalization2022)
 """
 mutable struct BTRG <: TNRScheme
     T::TensorMap
