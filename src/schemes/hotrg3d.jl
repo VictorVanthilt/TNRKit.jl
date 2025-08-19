@@ -59,11 +59,10 @@ function _step_hotrg3d(
         V = adjoint(V₂)
     end
     # apply the truncation
-    @tensoropt T[-1 -2; -3 -4 -5 -6] := (
+    @tensoropt T[-1 -2; -3 -4 -5 -6] :=
         conj(U[x1 x2; -6]) * U[x1′ x2′; -4] *
-            conj(V[y1 y2; -5]) * V[y1′ y2′; -3] *
-            A1[z -2; y1′ x1′ y1 x1] * A2[-1 z; y2′ x2′ y2 x2]
-    )
+        conj(V[y1 y2; -5]) * V[y1′ y2′; -3] *
+        A1[z -2; y1′ x1′ y1 x1] * A2[-1 z; y2′ x2′ y2 x2]
     return T
 end
 
