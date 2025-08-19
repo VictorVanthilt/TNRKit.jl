@@ -54,18 +54,15 @@ data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 2
 
 Using these norms you could, for example, calculate the free energy of the critical classical Ising model:
 ```Julia
-lnz = 0
-for (i, d) in enumerate(data)
-    lnz += log(d) * 2.0^(1 - i)
-end
-
-f_ising = lnz * -1 / ising_βc
+f = free_energy(data, ising_βc) # -2.1096504926141826902647832
 ```
-You could even compare to the exact value, as calculated by Onsager:
+You could even compare to the exact value, as calculated by the [Onsager solution](https://en.wikipedia.org/wiki/Ising_model#:~:text=Onsager%27s%20exact%20solution):
+
 ```julia-repl
-julia> abs((fs - f_onsager) / f_onsager)
+julia> abs((f - f_onsager) / f_onsager)
 3.1e-07
 ```
+
 Pretty impressive for a calculation that takes about 0.3s on a laptop.
 
 ## Verbosity
