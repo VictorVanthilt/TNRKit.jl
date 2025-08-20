@@ -106,4 +106,4 @@ If you want to implement your own model you must respect the leg-convention assu
      2
 ```
 
-The 3D scheme(s) assume that the input tensor lives in the space $V_{\text{D}} \otimes V^\prime_{\text{U}} \leftarrow V_{\text{N}} \otimes V_{\text{E}} \otimes V^\prime_{\text{S}} \otimes V^\prime_{\text{W}}$, where D, U, N, E, S, W stand for Down, Up, North, East, South and West.
+The 3D scheme(s) assume that the input tensor lives in the space $V_{\text{D}} \otimes V_{\text{U}} \prime \leftarrow V_{\text{N}} \otimes V_{\text{E}} \otimes V_{\text{S}} \prime \otimes V_{\text{W}} \prime$, where D, U, N, E, S, W stand for Down, Up, North, East, South and West.
