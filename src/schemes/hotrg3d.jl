@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of 2
 $(TYPEDFIELDS)
 
 ### References
-* [Xie et. al. Phys. Rev. B 86 (2012)](@cite xie_coarse-graining_2012)
+* [Xie et. al. Phys. Rev. B 86 (2012)](@cite xieCoarsegrainingRenormalizationHigherorder2012)
 
 """
 mutable struct HOTRG_3D <: TNRScheme
@@ -37,24 +37,31 @@ function _step_hotrg3d(
         A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
         trunc::TensorKit.TruncationScheme
     ) where {E, S}
-    # join in z-direction (A1 above A2)
-    # keep x-indices open
-    @tensoropt MMdag1[x1 z z′ x1′] :=
-        A1[z z1; y1′ x1c y1 x1] * conj(A1[z′ z1; y1′ x1c y1 x1′])
-    @tensoropt MMdag[x1 x2; x1′ x2′] := A2[z2 z; y2′ x2c y2 x2] *
-        conj(A2[z2 z′; y2′ x2c y2 x2′]) * MMdag1[x1 z z′ x1′]
-    U, _, _, ε₁ = tsvd(MMdag; trunc)
-    _, _, U₂, ε₂ = tsvd(adjoint(MMdag); trunc)
+    # join in z-direction, keep x-indices open (A1 below A2)
+    @tensoropt MMdag2[x2 z z′ x2′] :=
+        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
+    normalize!(MMdag2, Inf)
+    @tensoropt MMdag[x1 x2; x1′ x2′] := MMdag2[x2 z z′ x2′] *
+        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1 x1′])
+    normalize!(MMdag, Inf)
+    U, s₁, _, ε₁ = tsvd(MMdag; trunc)
+    _, s₂, U₂, ε₂ = tsvd(adjoint(MMdag); trunc)
+    @debug "SVD of MM† (for x-truncation)" singular_values = s₁ trunc_err = ε₁
+    @debug "SVD of M†M (for x-truncation)" singular_values = s₂ trunc_err = ε₂
     if ε₁ > ε₂
         U = adjoint(U₂)
     end
-    # keep y-indices open
-    @tensoropt MMdag1[y1 z z′ y1′] :=
-        A1[z z1; y1c x1′ y1 x1] * conj(A1[z′ z1; y1c x1′ y1′ x1])
-    @tensoropt MMdag[y1 y2; y1′ y2′] := A2[z2 z; y2c x2′ y2 x2] *
-        conj(A2[z2 z′; y2c x2′ y2′ x2]) * MMdag1[y1 z z′ y1′]
-    V, _, _, ε₁ = tsvd(MMdag; trunc)
-    _, _, V₂, ε₂ = tsvd(adjoint(MMdag); trunc)
+    # join in z-direction, keep y-indices open
+    @tensoropt MMdag2[y2 z z′ y2′] :=
+        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2′ x2])
+    normalize!(MMdag2, Inf)
+    @tensoropt MMdag[y1 y2; y1′ y2′] := MMdag2[y2 z z′ y2′] *
+        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1′ x1])
+    normalize!(MMdag, Inf)
+    V, s₁, _, ε₁ = tsvd(MMdag; trunc)
+    _, s₂, V₂, ε₂ = tsvd(adjoint(MMdag); trunc)
+    @debug "SVD of MM† (for y-truncation)" singular_values = s₁ trunc_err = ε₁
+    @debug "SVD of M†M (for y-truncation)" singular_values = s₂ trunc_err = ε₂
     if ε₁ > ε₂
         V = adjoint(V₂)
     end
@@ -62,7 +69,7 @@ function _step_hotrg3d(
     @tensoropt T[-1 -2; -3 -4 -5 -6] :=
         conj(U[x1 x2; -6]) * U[x1′ x2′; -4] *
         conj(V[y1 y2; -5]) * V[y1′ y2′; -3] *
-        A1[z -2; y1′ x1′ y1 x1] * A2[-1 z; y2′ x2′ y2 x2]
+        A1[-1 z; y1′ x1′ y1 x1] * A2[z -2; y2′ x2′ y2 x2]
     return T
 end
 
