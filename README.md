@@ -85,9 +85,9 @@ To choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 
 ## Included Models
 TNRKit includes several common models out of the box.
-- 2D Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $Z_2$ grading on each leg.
-- 3D Ising model: `classical_ising_3D(β; J=1)` and `classical_ising_symmetric_3D(β)`, which has a $Z_2$ grading on each leg.
-- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $Z_q$ grading on each leg.
+- 2D Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $ℤ_2$ grading on each leg.
+- 3D Ising model: `classical_ising_3D(β; J=1)` and `classical_ising_symmetric_3D(β)`, which has a $ℤ_2$ grading on each leg.
+- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $ℤ_q$ grading on each leg.
 - Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
 - Clock model: `classical_clock`
 
