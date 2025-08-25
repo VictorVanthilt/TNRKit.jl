@@ -19,6 +19,7 @@ Constructs the partition function tensor for the six-vertex model with a given s
     sixvertex(ComplexF64, U1Irrep; a = 2.0, b = 3.0, c = 4.0) # U1 symmetry with custom coupling constants and element type.
 ```
 
+Note: The free energy density depends on the boundary conditions.  
 """
 function sixvertex(
         elt::Type{<:Number} = ComplexF64, (::Type{Trivial}) = Trivial; a = 1.0, b = 1.0,
