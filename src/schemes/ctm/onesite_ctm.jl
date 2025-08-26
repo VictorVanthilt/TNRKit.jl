@@ -1,10 +1,4 @@
-using Pkg;
-Pkg.activate(".")
-include("projector.jl")
-using TensorKit
-import TNRKit: maxiter
-# Pkg.instantiate()
-# Pkg.add(url="https://github.com/VictorVanthilt/TNRKit.jl.git")
+include("utility.jl")
 """
             ┌───┐ ┌──┐ ┌───┐
             │Ctl├─┤Et├─┤Ctr│
