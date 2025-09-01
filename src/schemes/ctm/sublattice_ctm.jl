@@ -114,23 +114,6 @@ function normalize!(ctm::Sublattice_CTM)
     return nothing
 end
 
-"""
-┌──┐┌──┐   
-│C ┼┼E2┼─ -3
-└┬─┘└┬─┘   
-┌┼─┐┌┼─┐   
-│E1┼┤T ┼─ -4
-└┬─┘└┬─┘   
- │   │     
--1   -2    
-"""
-
-function block_four_corner(T, C, E1, E2)
-    @tensor opt = true Cnew[-1 -2; -3 -4] :=
-        T[3 -2; 4 -4] * C[1; 2] * E1[-1 3; 1] * E2[2 4; -3]
-    return Cnew
-end
-
 # Rotate the tensor T by 90 degrees counter-clockwise
 function rotate_T(T; num = 1)
     Tnew = copy(T)
