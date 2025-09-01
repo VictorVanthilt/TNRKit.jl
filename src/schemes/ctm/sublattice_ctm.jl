@@ -194,7 +194,7 @@ function update_edges!(ctm::Sublattice_CTM, (Vt_list1, Vt_list2, U_list1, U_list
     return 0
 end
 
-function step!(ctm::Sublattice_CTM, trunc)
+function step!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme)
     C1s = contract_C1s(ctm)
     C2s = contract_C2s(ctm)
 

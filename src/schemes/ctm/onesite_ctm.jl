@@ -116,7 +116,7 @@ function corner_spectrum(ctm::CTM)
     return S.data
 end
 
-function step!(ctm::CTM, trunc)
+function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
     Ctl_new = block_four_corner(ctm.T, ctm.Ctl, ctm.El, ctm.Et)
     Ctr_new = block_four_corner(rotate_T(ctm.T), ctm.Ctr, ctm.Et, ctm.Er)
     Cbr_new = block_four_corner(rotate_T(ctm.T, num = 2), ctm.Cbr, ctm.Er, ctm.Eb)
@@ -124,12 +124,12 @@ function step!(ctm::CTM, trunc)
 
     ρt = Ctl_new * Ctr_new
     ρb = Cbr_new * Cbl_new
-    R1, R2 = find_P1P2(ρt, ρb, (3, 4), (1, 2), truncdim(χ))
-    L1, L2 = find_P1P2(ρb, ρt, (3, 4), (1, 2), truncdim(χ))
+    R1, R2 = find_P1P2(ρt, ρb, (3, 4), (1, 2), trunc)
+    L1, L2 = find_P1P2(ρb, ρt, (3, 4), (1, 2), trunc)
     ρr = Ctr_new * Cbr_new
     ρl = Cbl_new * Ctl_new
-    T1, T2 = find_P1P2(ρl, ρr, (3, 4), (1, 2), truncdim(χ))
-    B1, B2 = find_P1P2(ρr, ρl, (3, 4), (1, 2), truncdim(χ))
+    T1, T2 = find_P1P2(ρl, ρr, (3, 4), (1, 2), trunc)
+    B1, B2 = find_P1P2(ρr, ρl, (3, 4), (1, 2), trunc)
 
     Vt_list = [L1, T1, R1, B1]
     U_list = [L2, T2, R2, B2]
@@ -153,7 +153,7 @@ function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; c
     steps = 0
     hist = []
     while crit
-        ES_new = step!(scheme, trunc)
+        ES_new = step!(ctm, trunc)
         if size(ES) == size(ES_new)
             push!(hist, norm(ES - ES_new))
             if norm(ES - ES_new) < conv_criterium
