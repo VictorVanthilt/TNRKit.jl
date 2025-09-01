@@ -52,7 +52,7 @@ end
 Sublattice_CTM(TA, TB; bc = ones, bc_free = false) =
     Sublattice_CTM(TA, TB, CTM_init(TA, TB; bc, bc_free)...)
 
-function lnz_CTM(ctm::Sublattice_CTM)
+function lnz(ctm::Sublattice_CTM)
     A = tr(prod(contract_C1s(ctm)))
     B = tr(ρA(ctm))
     left = ctm.Cbl1 * ctm.Ctl1

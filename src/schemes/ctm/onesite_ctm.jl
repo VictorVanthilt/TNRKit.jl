@@ -23,7 +23,7 @@ end
 
 CTM(T; bc = ones, bc_free = false) = CTM(T, CTM_init(T; bc, bc_free)...)
 
-function lnz_CTM(ctm::CTM)
+function lnz(ctm::CTM)
     @tensor opt = true A =
         ctm.T[9 10; 11 12] *
         ctm.Ctl[1; 2] *
