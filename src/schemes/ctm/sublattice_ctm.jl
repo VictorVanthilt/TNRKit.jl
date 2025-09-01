@@ -236,7 +236,7 @@ function step!(ctm::Sublattice_CTM, trunc)
 end
 
 
-function run!(ctm::Sublattice_CTM, trunc, criterion::maxiter; conv_criterium = 1.0e-8)
+function run!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterium = 1.0e-8)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0
