@@ -114,11 +114,6 @@ function normalize!(ctm::Sublattice_CTM)
     return nothing
 end
 
-function contract_E(T, E, U, Vt)
-    @tensor opt = true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
-    return Enew
-end
-
 function corner_spectrum(ctm::Sublattice_CTM)
     rho = ρA(ctm)
     rho /= abs(tr(rho))
