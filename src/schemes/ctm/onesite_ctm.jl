@@ -1,4 +1,3 @@
-include("utility.jl")
 """
             ┌───┐ ┌──┐ ┌───┐
             │Ctl├─┤Et├─┤Ctr│
@@ -25,7 +24,7 @@ end
 CTM(T; bc = ones, bc_free = false) = CTM(T, CTM_init(T; bc, bc_free)...)
 
 function lnz_CTM(ctm::CTM)
-    @tensor opt=true A =
+    @tensor opt = true A =
         ctm.T[9 10; 11 12] *
         ctm.Ctl[1; 2] *
         ctm.Et[2 11; 3] *
@@ -36,42 +35,36 @@ function lnz_CTM(ctm::CTM)
         ctm.Cbl[7; 8] *
         ctm.El[8 9; 1]
     B = tr(ρA(ctm))
-    @tensor opt=true C =
+    @tensor opt = true C =
         ctm.Ctl[1; 2] *
         ctm.Et[2 7; 3] *
         ctm.Ctr[3; 4] *
         ctm.Cbr[4; 5] *
         ctm.Eb[5 7; 6] *
         ctm.Cbl[6; 1]
-    @tensor opt=true D =
+    @tensor opt = true D =
         ctm.Ctl[1; 2] *
         ctm.Ctr[2; 3] *
         ctm.Er[3 7; 4] *
         ctm.Cbr[4; 5] *
         ctm.Cbl[5; 6] *
         ctm.Eb[6 7; 1]
-    return log(abs(A*B/(C*D)))
+    return log(abs(A * B / (C * D)))
 end
 
-ρA(ctm::CTM) = ctm.Ctl*ctm.Ctr*ctm.Cbr*ctm.Cbl
+ρA(ctm::CTM) = ctm.Ctl * ctm.Ctr * ctm.Cbr * ctm.Cbl
 
 function CTM_init(T; bc = ones, bc_free = false)
     elt = eltype(T)
-    Vps = [space(T)[i]' for i = 1:4]
+    Vps = [space(T)[i]' for i in 1:4]
     V = oneunit(Vps[1])
     if bc_free
         V = Vps[1]
     end
     C = TensorMap(bc, elt, V ← V)
-    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i = 1:4]
+    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i in 1:4]
     return C, C, C, C, El, Eb, Et, Er
 end
-
-function max_SVD(C)
-    _, S, _ = tsvd(C)
-    return S.data[1]
-end
-
 
 function normalize!(ctm::CTM)
     # n = abs(tr(ρA(ctm)))^(1/4)
@@ -98,7 +91,7 @@ end
 """
 
 function block_four_corner(T, C, E1, E2)
-    @tensor opt=true Cnew[-1 -2; -3 -4] :=
+    @tensor opt = true Cnew[-1 -2; -3 -4] :=
         T[3 -2; 4 -4] * C[1; 2] * E1[-1 3; 1] * E2[2 4; -3]
     return Cnew
 end
@@ -106,14 +99,14 @@ end
 # Rotate the tensor T by 90 degrees counter-clockwise
 function rotate_T(T; num = 1)
     Tnew = copy(T)
-    for i = 1:num
+    for i in 1:num
         Tnew = permute(Tnew, (3, 1), (4, 2))
     end
     return Tnew
 end
 
 function contract_E(T, E, U, Vt)
-    @tensor opt=true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
+    @tensor opt = true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
     return Enew
 end
 
@@ -130,12 +123,12 @@ function step!(ctm::CTM, trunc)
     Cbr_new = block_four_corner(rotate_T(ctm.T, num = 2), ctm.Cbr, ctm.Er, ctm.Eb)
     Cbl_new = block_four_corner(rotate_T(ctm.T, num = 3), ctm.Cbl, ctm.Eb, ctm.El)
 
-    ρt = Ctl_new*Ctr_new
+    ρt = Ctl_new * Ctr_new
     ρb = Cbr_new * Cbl_new
     R1, R2 = find_P1P2(ρt, ρb, (3, 4), (1, 2), truncdim(χ))
     L1, L2 = find_P1P2(ρb, ρt, (3, 4), (1, 2), truncdim(χ))
-    ρr = Ctr_new*Cbr_new
-    ρl = Cbl_new*Ctl_new
+    ρr = Ctr_new * Cbr_new
+    ρl = Cbl_new * Ctl_new
     T1, T2 = find_P1P2(ρl, ρr, (3, 4), (1, 2), truncdim(χ))
     B1, B2 = find_P1P2(ρr, ρl, (3, 4), (1, 2), truncdim(χ))
 
@@ -155,7 +148,7 @@ function step!(ctm::CTM, trunc)
 end
 
 
-function run!(ctm::CTM, trunc, criterion::maxiter; conv_criteria = 1e-8)
+function run!(ctm::CTM, trunc, criterion::maxiter; conv_criteria = 1.0e-8)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0
@@ -163,8 +156,8 @@ function run!(ctm::CTM, trunc, criterion::maxiter; conv_criteria = 1e-8)
     while crit
         ES_new = step!(scheme, trunc)
         if size(ES) == size(ES_new)
-            push!(hist, norm(ES-ES_new))
-            if norm(ES-ES_new) < conv_criteria
+            push!(hist, norm(ES - ES_new))
+            if norm(ES - ES_new) < conv_criteria
                 @info "CTM converged after $steps iterations"
                 break
             end

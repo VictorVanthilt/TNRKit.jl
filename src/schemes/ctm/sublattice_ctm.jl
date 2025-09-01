@@ -1,4 +1,3 @@
-include("utility.jl")
 """
 -- CTMRG for A-B sublattice systems
 
@@ -56,8 +55,8 @@ Sublattice_CTM(TA, TB; bc = ones, bc_free = false) =
 function lnz_CTM(ctm::Sublattice_CTM)
     A = tr(prod(contract_C1s(ctm)))
     B = tr(ρA(ctm))
-    left = ctm.Cbl1*ctm.Ctl1
-    right = ctm.Ctr1*ctm.Cbr1
+    left = ctm.Cbl1 * ctm.Ctl1
+    right = ctm.Ctr1 * ctm.Cbr1
     @tensor opt = true C =
         left[1; 2] *
         ctm.EtB[2 7; 3] *
@@ -74,30 +73,24 @@ function lnz_CTM(ctm::Sublattice_CTM)
         bottom[4; 5] *
         ctm.ElA[5 8; 6] *
         ctm.ElB[6 7; 1]
-    return log(abs(A*B/(C*D)))
+    return log(abs(A * B / (C * D)))
 end
 
-ρA(ctm::Sublattice_CTM) = ctm.Ctl1*ctm.Ctr1*ctm.Cbr1*ctm.Cbl1
+ρA(ctm::Sublattice_CTM) = ctm.Ctl1 * ctm.Ctr1 * ctm.Cbr1 * ctm.Cbl1
 
 function CTM_init(TA, TB; bc = ones, bc_free = false)
     elt = eltype(TA)
-    Vps_A = [space(TA)[i]' for i = 1:4]
-    Vps_B = [space(TA)[i]' for i = 1:4]
+    Vps_A = [space(TA)[i]' for i in 1:4]
+    Vps_B = [space(TA)[i]' for i in 1:4]
     V = oneunit(Vps_A[1])
     if bc_free
         V = Vps_A[1]
     end
     C = TensorMap(bc, elt, V ← V)
-    ElA, EbA, EtA, ErA = [TensorMap(bc, elt, V ⊗ Vps_A[i] ← V) for i = 1:4]
-    ElB, EbB, EtB, ErB = [TensorMap(bc, elt, V ⊗ Vps_B[i] ← V) for i = 1:4]
+    ElA, EbA, EtA, ErA = [TensorMap(bc, elt, V ⊗ Vps_A[i] ← V) for i in 1:4]
+    ElB, EbB, EtB, ErB = [TensorMap(bc, elt, V ⊗ Vps_B[i] ← V) for i in 1:4]
     return C, C, C, C, C, C, C, C, ElA, ElB, EbA, EbB, ErA, ErB, EtA, EtB
 end
-
-function max_SVD(C)
-    _, S, _ = tsvd(C)
-    return S.data[1]
-end
-
 
 function normalize!(ctm::Sublattice_CTM)
     # n = abs(tr(ρA(ctm)))^(1/4)
@@ -134,7 +127,7 @@ end
 """
 
 function block_four_corner(T, C, E1, E2)
-    @tensor opt=true Cnew[-1 -2; -3 -4] :=
+    @tensor opt = true Cnew[-1 -2; -3 -4] :=
         T[3 -2; 4 -4] * C[1; 2] * E1[-1 3; 1] * E2[2 4; -3]
     return Cnew
 end
@@ -142,14 +135,14 @@ end
 # Rotate the tensor T by 90 degrees counter-clockwise
 function rotate_T(T; num = 1)
     Tnew = copy(T)
-    for i = 1:num
+    for i in 1:num
         Tnew = permute(Tnew, (3, 1), (4, 2))
     end
     return Tnew
 end
 
 function contract_E(T, E, U, Vt)
-    @tensor opt=true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
+    @tensor opt = true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
     return Enew
 end
 
@@ -178,12 +171,12 @@ end
 
 function CTM_projectors(Cs, trunc)
     Ctl, Ctr, Cbr, Cbl = Cs
-    ρt = Ctl*Ctr
+    ρt = Ctl * Ctr
     ρb = Cbr * Cbl
     R1, R2 = find_P1P2(ρt, ρb, (3, 4), (1, 2), trunc)
     L1, L2 = find_P1P2(ρb, ρt, (3, 4), (1, 2), trunc)
-    ρr = Ctr*Cbr
-    ρl = Cbl*Ctl
+    ρr = Ctr * Cbr
+    ρl = Cbl * Ctl
     T1, T2 = find_P1P2(ρl, ρr, (3, 4), (1, 2), trunc)
     B1, B2 = find_P1P2(ρr, ρl, (3, 4), (1, 2), trunc)
     Vt_list = [L1, T1, R1, B1]
@@ -244,7 +237,7 @@ function step!(ctm::Sublattice_CTM, trunc)
 end
 
 
-function run!(ctm::Sublattice_CTM, trunc, criterion::maxiter; conv_criteria = 1e-8)
+function run!(ctm::Sublattice_CTM, trunc, criterion::maxiter; conv_criteria = 1.0e-8)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0
@@ -252,8 +245,8 @@ function run!(ctm::Sublattice_CTM, trunc, criterion::maxiter; conv_criteria = 1e
     while crit
         ES_new = step!(scheme, trunc)
         if size(ES) == size(ES_new)
-            push!(hist, norm(ES-ES_new))
-            if norm(ES-ES_new) < conv_criteria
+            push!(hist, norm(ES - ES_new))
+            if norm(ES - ES_new) < conv_criteria
                 @info "CTM converged after $steps iterations"
                 break
             end
