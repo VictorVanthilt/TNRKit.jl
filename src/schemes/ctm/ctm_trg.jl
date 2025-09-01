@@ -151,7 +151,7 @@ function run!(
         enlarge = true,
         return_cft = false,
         inv = false,
-        conv_criteria = 1.0e-12,
+        conv_criterium = 1.0e-12,
         modified = true,
     )
     area = 1
@@ -167,7 +167,7 @@ function run!(
         if return_cft
             push!(cft, cft_data(scheme; unitcell = 2))
         end
-        if abs(log(abs(tr_norm)) / area) <= conv_criteria
+        if abs(log(abs(tr_norm)) / area) <= conv_criterium
             @info "CTM-TRG converged after $steps iterations"
             break
         end
