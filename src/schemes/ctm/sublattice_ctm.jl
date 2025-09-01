@@ -114,15 +114,6 @@ function normalize!(ctm::Sublattice_CTM)
     return nothing
 end
 
-# Rotate the tensor T by 90 degrees counter-clockwise
-function rotate_T(T; num = 1)
-    Tnew = copy(T)
-    for i in 1:num
-        Tnew = permute(Tnew, (3, 1), (4, 2))
-    end
-    return Tnew
-end
-
 function contract_E(T, E, U, Vt)
     @tensor opt = true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
     return Enew
