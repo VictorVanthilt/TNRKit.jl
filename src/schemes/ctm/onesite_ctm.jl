@@ -147,26 +147,31 @@ function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
 end
 
 
-function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterium = 1.0e-8)
+function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterion = 1.0e-8, verbosity = 1)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0
     hist = []
-    while crit
-        ES_new = step!(ctm, trunc)
-        if size(ES) == size(ES_new)
-            push!(hist, norm(ES - ES_new))
-            if norm(ES - ES_new) < conv_criterium
-                @info "CTM converged after $steps iterations"
-                break
+    LoggingExtras.withlevel(; verbosity) do
+        @infov 1 "Starting CTM calculation\n $(ctm)\n"
+        while crit
+            ES_new = step!(ctm, trunc)
+            if size(ES) == size(ES_new)
+                normdiff = norm(ES - ES_new)
+                @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
+                push!(hist, normdiff)
+                if norm(ES - ES_new) < conv_criterion
+                    @infov 1 "CTM converged after $(steps + 1) iterations"
+                    break
+                end
             end
+            ES = ES_new
+            steps += 1
+            crit = criterion(steps, nothing)
         end
-        ES = ES_new
-        steps += 1
-        crit = criterion(steps, nothing)
-    end
-    if steps == criterion.n
-        @info "CTM reached the maximum iteration $(steps)"
+        if steps == criterion.n
+            @infov 1 "CTM reached the maximum iteration $(steps)"
+        end
     end
     return hist
 end

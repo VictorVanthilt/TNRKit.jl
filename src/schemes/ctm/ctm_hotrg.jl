@@ -112,7 +112,7 @@ end
 
 function run!(
         scheme::ctm_HOTRG, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
-        sweep = 30, return_cft = false, inv = false, conv_criterium = 1.0e-12
+        sweep = 30, return_cft = false, inv = false, conv_criterion = 1.0e-12
     )
     area = 1
     lnz = 0.0
@@ -125,7 +125,7 @@ function run!(
             push!(cft, cft_data(scheme; unitcell = 2))
         end
         lnz += log(tr_norm) / area
-        if abs(log(abs(tr_norm)) / area) <= conv_criterium
+        if abs(log(abs(tr_norm)) / area) <= conv_criterion
             @info "CTM-HOTRG converged after $i iterations!"
             break
         end

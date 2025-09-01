@@ -205,7 +205,7 @@ function step!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme)
 end
 
 
-function run!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterium = 1.0e-8)
+function run!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterion = 1.0e-8)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0
@@ -214,7 +214,7 @@ function run!(ctm::Sublattice_CTM, trunc::TensorKit.TruncationScheme, criterion:
         ES_new = step!(scheme, trunc)
         if size(ES) == size(ES_new)
             push!(hist, norm(ES - ES_new))
-            if norm(ES - ES_new) < conv_criterium
+            if norm(ES - ES_new) < conv_criterion
                 @info "CTM converged after $steps iterations"
                 break
             end
