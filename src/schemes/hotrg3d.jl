@@ -42,7 +42,7 @@ function _step_hotrg3d(
         A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MMdag[x1 x2; x1′ x2′] := MMdag2[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1 x1′])
-    normalize!(MMdag, Inf)
+    TensorKit.normalize!(MMdag, Inf)
     U, s₁, _, ε₁ = tsvd(MMdag; trunc)
     _, s₂, U₂, ε₂ = tsvd(adjoint(MMdag); trunc)
     @debug "SVD of MM† (for x-truncation)" singular_values = s₁ trunc_err = ε₁
@@ -55,7 +55,7 @@ function _step_hotrg3d(
         A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2′ x2])
     @tensoropt MMdag[y1 y2; y1′ y2′] := MMdag2[y2 z z′ y2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1′ x1])
-    normalize!(MMdag, Inf)
+    TensorKit.normalize!(MMdag, Inf)
     V, s₁, _, ε₁ = tsvd(MMdag; trunc)
     _, s₂, V₂, ε₂ = tsvd(adjoint(MMdag); trunc)
     @debug "SVD of MM† (for y-truncation)" singular_values = s₁ trunc_err = ε₁
