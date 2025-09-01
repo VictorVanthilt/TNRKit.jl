@@ -47,6 +47,7 @@ export c4CTM
 export rCTM
 export ctm_TRG
 export ctm_HOTRG
+export lnz
 
 export LoopTNR
 export SLoopTNR
