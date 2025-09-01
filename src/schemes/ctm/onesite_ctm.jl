@@ -67,7 +67,6 @@ function CTM_init(T; bc = ones, bc_free = false)
 end
 
 function normalize!(ctm::CTM)
-    # n = abs(tr(ρA(ctm)))^(1/4)
     ctm.Ctl /= norm(ctm.Ctl)
     ctm.Ctr /= norm(ctm.Ctr)
     ctm.Cbr /= norm(ctm.Cbr)
@@ -76,7 +75,7 @@ function normalize!(ctm::CTM)
     ctm.Er /= norm(ctm.Er)
     ctm.Eb /= norm(ctm.Eb)
     ctm.El /= norm(ctm.El)
-    return 0
+    return nothing
 end
 
 """
