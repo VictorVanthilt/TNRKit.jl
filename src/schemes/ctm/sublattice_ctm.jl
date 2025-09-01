@@ -93,7 +93,6 @@ function CTM_init(TA, TB; bc = ones, bc_free = false)
 end
 
 function normalize!(ctm::Sublattice_CTM)
-    # n = abs(tr(ρA(ctm)))^(1/4)
     ctm.Ctl1 /= norm(ctm.Ctl1)
     ctm.Ctr1 /= norm(ctm.Ctr1)
     ctm.Cbr1 /= norm(ctm.Cbr1)
@@ -112,7 +111,7 @@ function normalize!(ctm::Sublattice_CTM)
     ctm.ErB /= norm(ctm.ErB)
     ctm.EbB /= norm(ctm.EbB)
     ctm.ElB /= norm(ctm.ElB)
-    return 0
+    return nothing
 end
 
 """
