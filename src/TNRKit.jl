@@ -43,6 +43,8 @@ export HOTRG_3D
 export ATRG
 export ATRG_3D
 
+export CTM
+export Sublattice_CTM
 export c4CTM
 export rCTM
 export ctm_TRG
