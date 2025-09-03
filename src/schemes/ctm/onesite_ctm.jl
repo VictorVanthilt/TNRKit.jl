@@ -98,7 +98,7 @@ end
 # Rotate the tensor T by 90 degrees counter-clockwise
 function rotate_T(T; num = 1)
     Tnew = copy(T)
-    for i in 1:num
+    for _ in 1:num
         Tnew = permute(Tnew, (3, 1), (4, 2))
     end
     return Tnew
