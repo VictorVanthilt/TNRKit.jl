@@ -379,13 +379,17 @@ function run!(
 end
 
 
-function run!(scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-              finalize_beginning=true, verbosity=1, max_loop=50, tol_loop=1.0e-8)
+function run!(
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
+    )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
-    return run!(scheme, trscheme, truncbelow(1e-15), criterion, entanglement_criterion,
-                loop_criterion;
-                finalize_beginning=finalize_beginning,
-                verbosity=verbosity)
+    return run!(
+        scheme, trscheme, truncbelow(1.0e-15), criterion, entanglement_criterion,
+        loop_criterion;
+        finalize_beginning = finalize_beginning,
+        verbosity = verbosity
+    )
 end
 
 function Base.show(io::IO, scheme::LoopTNR)
