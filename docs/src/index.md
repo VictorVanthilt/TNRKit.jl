@@ -28,6 +28,7 @@ Many common TNR schemes have already been implemented:
 
 **3D cubic tensor networks**
 * [`ATRG_3D`](@ref) (anisotropic TRG)
+* [`HOTRG_3D`](@ref) (higher order TRG)
 
 # Quick Start Guide
 1. Choose a (TensorKit!) tensor that respects the leg-convention (see below)
@@ -47,16 +48,12 @@ data = run!(scheme, truncdim(16), maxiter(25)) # max bond-dimension of 16, for 2
 
 Using these norms you could, for example, calculate the free energy of the critical classical Ising model:
 ```Julia
-lnz = 0
-for (i, d) in enumerate(data)
-    lnz += log(d) * 2.0^(1 - i)
-end
-
-f_ising = lnz * -1 / ising_βc
+f = free_energy(data, ising_βc) # -2.1096504926141826902647832
 ```
-You could even compare to the exact value, as calculated by Onsager:
+You could even compare to the exact value, as calculated by the [Onsager solution](https://en.wikipedia.org/wiki/Ising_model#:~:text=Onsager%27s%20exact%20solution):
+
 ```julia-repl
-julia> abs((fs - f_onsager) / f_onsager)
+julia> abs((f - f_onsager) / f_onsager)
 3.1e-07
 ```
 Pretty impressive for a calculation that takes about 0.3s on a laptop.
@@ -71,10 +68,10 @@ to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 
 ## Included Models
 TNRKit includes several common models out of the box.
-- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a Z2 grading on each leg.
-- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a Zq grading on each leg.
-- Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
-- Clock model: `classical_clock`
+- Ising model: [`classical_ising`](@ref) and [`classical_ising_symmetric`](@ref), which has a Z2 grading on each leg.
+- Potts model: [`classical_potts`](@ref) and [`classical_potts_symmetric`](@ref), which has a Zq grading on each leg.
+- Six Vertex model: [`sixvertex`](@ref)
+- Clock model: [`classical_clock`](@ref)
 If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
 
 ## Leg-convention

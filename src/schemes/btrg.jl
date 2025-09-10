@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of √2
 $(TYPEDFIELDS)
 
 ### References
-* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachi_bond-weighted_2022)
+* [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachiBondweightedTensorRenormalization2022)
 """
 mutable struct BTRG <: TNRScheme
     T::TensorMap
@@ -30,7 +30,7 @@ mutable struct BTRG <: TNRScheme
     k::Float64
 
     finalize!::Function
-    function BTRG(T::TensorMap{E,S,2,2}, k::Number; finalize=(finalize!)) where {E,S}
+    function BTRG(T::TensorMap{E, S, 2, 2}, k::Number; finalize = (finalize!)) where {E, S}
         # Construct S1 and S2 as identity matrices.
         return new(T, id(space(T, 2)), id(space(T, 1)), k, finalize)
     end
@@ -39,7 +39,7 @@ end
 # Default implementation using the optimal value for k
 BTRG(T::TensorMap; kwargs...) = BTRG(T, -0.5; kwargs...)
 
-function pseudopow(t::DiagonalTensorMap, a::Real; tol=eps(scalartype(t))^(3 / 4))
+function pseudopow(t::DiagonalTensorMap, a::Real; tol = eps(scalartype(t))^(3 / 4))
     t′ = copy(t)
     for (c, b) in blocks(t′)
         @inbounds for I in LinearAlgebra.diagind(b)
@@ -50,7 +50,7 @@ function pseudopow(t::DiagonalTensorMap, a::Real; tol=eps(scalartype(t))^(3 / 4)
 end
 
 function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc = trunc)
 
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
@@ -61,7 +61,7 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
         S1′[-1; -2] := S_b[-1; -2]
     end
 
-    U, S, V, _ = tsvd(scheme.T, ((3, 1), (4, 2)); trunc=trunc)
+    U, S, V, _ = tsvd(scheme.T, ((3, 1), (4, 2)); trunc = trunc)
 
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
@@ -73,13 +73,13 @@ function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
     end
 
     @tensor scheme.T[-1 -2; -3 -4] := D[-1; 4 7] *
-                                      scheme.S1[1; 7] *
-                                      B[-2; 1 3] *
-                                      scheme.S2[3; 2] *
-                                      C[8 2; -4] *
-                                      scheme.S1[8; 5] *
-                                      A[6 5; -3] *
-                                      scheme.S2[4; 6]
+        scheme.S1[1; 7] *
+        B[-2; 1 3] *
+        scheme.S2[3; 2] *
+        C[8 2; -4] *
+        scheme.S1[8; 5] *
+        A[6 5; -3] *
+        scheme.S2[4; 6]
     scheme.S1 = S1′
     scheme.S2 = S2′
     return scheme
