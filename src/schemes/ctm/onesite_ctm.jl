@@ -48,7 +48,7 @@ function lnz(ctm::CTM)
         ctm.Er[3 7; 4] *
         ctm.Cbr[4; 5] *
         ctm.Cbl[5; 6] *
-        ctm.Eb[6 7; 1]
+        ctm.El[6 7; 1]
     return log(abs(A * B / (C * D)))
 end
 
