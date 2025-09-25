@@ -15,8 +15,8 @@
 [ci-img]: https://github.com/VictorVanthilt/TNRKit.jl/actions/workflows/CI.yml/badge.svg
 [ci-url]: https://github.com/VictorVanthilt/TNRKit.jl/actions/workflows/CI.yml
 
-[doi-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.16836270.svg
-[doi-url]: https://doi.org/10.5281/zenodo.16836270
+[doi-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.16836269.svg
+[doi-url]: https://doi.org/10.5281/zenodo.16836269
 
 TNRKit.jl is a Julia package that aims to implement as many tensor network renormalization (TNR) schemes as possible.
 It is built upon
