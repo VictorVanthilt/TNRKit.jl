@@ -204,7 +204,7 @@ function combine_4S(S)
 end
 
 ########## Main funcitons ##########
-function step!(scheme, trunc, oneloop; ef_trunc=truncbelow(1.0e-14))
+function step!(scheme, trunc, oneloop; ef_trunc = truncbelow(1.0e-14))
     scheme.T = entanglement_filtering(scheme.T; ef_trunc)
     if oneloop == true
         S = ef_oneloop(scheme.T, trunc)
@@ -224,7 +224,7 @@ function run!(
     finalize_beginning = true,
     oneloop = true,
     verbosity = 1,
-    ef_trunc=truncbelow(1.0e-14),
+    ef_trunc = truncbelow(1.0e-14),
 )
     data = []
 
@@ -239,7 +239,7 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, oneloop;ef_trunc)
+            step!(scheme, trscheme, oneloop; ef_trunc)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
