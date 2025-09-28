@@ -129,7 +129,7 @@ function Ψ_corner(T)
     return psi
 end
 
-function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
+function entanglement_filtering(T; ef_trunc = truncbelow(1.0e-14))
     entanglement_function(steps, data) = abs(data[end])
     entanglement_criterion = maxiter(100) & convcrit(1.0e-12, entanglement_function)
 
@@ -141,7 +141,7 @@ function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
         [1, 1, 1, 1],
         [3, 3, 3, 3],
         entanglement_criterion,
-        trunc,
+        ef_trunc,
     )
     P_bottom = PL_list[1]
     P_right = PL_list[1]
@@ -151,7 +151,7 @@ function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
         [1, 1, 1, 1],
         [3, 3, 3, 3],
         entanglement_criterion,
-        trunc,
+        ef_trunc,
     )
     P_top = PL_list[3]
     P_left = PL_list[3]
@@ -204,8 +204,8 @@ function combine_4S(S)
 end
 
 ########## Main funcitons ##########
-function step!(scheme, trunc, oneloop)
-    scheme.T = entanglement_filtering(scheme.T)
+function step!(scheme, trunc, oneloop; ef_trunc=truncbelow(1.0e-14))
+    scheme.T = entanglement_filtering(scheme.T; ef_trunc)
     if oneloop == true
         S = ef_oneloop(scheme.T, trunc)
     else
@@ -224,6 +224,7 @@ function run!(
     finalize_beginning = true,
     oneloop = true,
     verbosity = 1,
+    ef_trunc=truncbelow(1.0e-14),
 )
     data = []
 
@@ -238,7 +239,7 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, oneloop)
+            step!(scheme, trscheme, oneloop;ef_trunc)
             push!(data, scheme.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
