@@ -71,6 +71,17 @@ function finalize!(scheme::SLoopTNR)
     return tr_norm^0.25
 end
 
+# finalize! for ImpurityHOTRG
+function finalize!(scheme::ImpurityHOTRG)
+    n = norm(@tensor scheme.T[1 2; 2 1])
+    n_1 = norm(@tensor scheme.T_imp_1[1 2; 2 1])
+    n_2 = norm(@tensor scheme.T_imp_2[1 2; 2 1])
+    scheme.T /= n
+    scheme.T_imp_1 /= n_1
+    scheme.T_imp_2 /= n_2
+    return n, n_1, n_2
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
