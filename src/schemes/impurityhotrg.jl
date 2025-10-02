@@ -120,26 +120,26 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
 
     @tensor T_imp1[-1 -2; -3 -4] :=
         1/2 *
-        scheme.T_imp1[-1 1; 3 5] *
+        scheme.T_imp_1[-1 1; 3 5] *
         scheme.T[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3] +
-        1/2 * scheme.T[-1 1; 3 5] * scheme.T_imp1[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
+        1/2 * scheme.T[-1 1; 3 5] * scheme.T_imp_1[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
 
     @tensor T_imp2[-1 -2; -3 -4] :=
         1/4 *
-        scheme.T_imp2[-1 1; 3 5] *
+        scheme.T_imp_2[-1 1; 3 5] *
         scheme.T[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3] +
         1/4 *
         scheme.T[-1 1; 3 5] *
-        scheme.T_imp2[5 2; 4 -4] *
+        scheme.T_imp_2[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3] +
         1/2 *
-        scheme.T_imp1[-1 1; 3 5] *
-        scheme.T_imp1[5 2; 4 -4] *
+        scheme.T_imp_1[-1 1; 3 5] *
+        scheme.T_imp_1[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3]
     
