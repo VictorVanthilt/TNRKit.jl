@@ -60,7 +60,7 @@ function classical_ising(β::Number; h = 0)
 end
 classical_ising() = classical_ising(ising_βc)
 
-function Ising_magnetisation(β::Number; h = 0, impurity = true)
+function Ising_magnetisation(β::Number; h = 0, impurity = false)
     init = zeros(ComplexF64, 2, 2, 2, 2)
     for (i, j, k, l) in Iterators.product([1:2 for _ = 1:4]...)
         init[i, j, k, l] =
@@ -83,7 +83,7 @@ function Ising_magnetisation(β::Number; h = 0, impurity = true)
         bond_tensor[4; -4]
     return T
 end
-Ising_magnetisation() = Ising_magnetisation(ising_βc)
+Ising_magnetisation() = Ising_magnetisation(ising_βc; impurity = true)
 
 """
 $(SIGNATURES)
