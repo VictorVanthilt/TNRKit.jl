@@ -54,8 +54,8 @@ function Ising_magnetisation(β::Number; h = 0)
     init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
 
     bond_tensor = zeros(ComplexF64, 2, 2)
-    bond_tensor[1, 1] = cosh(β)
-    bond_tensor[2, 2] = sinh(β)
+    bond_tensor[1, 1] = sqrt(cosh(β))
+    bond_tensor[2, 2] = sqrt(sinh(β))
     bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
 
     @tensor T[-1 -2; -3 -4] := init[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] *
