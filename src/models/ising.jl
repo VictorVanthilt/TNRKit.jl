@@ -76,8 +76,8 @@ function Ising_magnetisation(β::Number; h = 0, impurity = true)
         init[1 2; 3 4] *
         bond_tensor[-1; 1] *
         bond_tensor[-2; 2] *
-        bond_tensor[-3; 3] *
-        bond_tensor[-4; 4]
+        bond_tensor[3; -3] *
+        bond_tensor[4; -4]
     return T
 end
 Ising_magnetisation() = Ising_magnetisation(ising_βc)
