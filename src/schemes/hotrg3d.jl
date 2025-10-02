@@ -28,20 +28,20 @@ mutable struct HOTRG_3D <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function HOTRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
+    function HOTRG_3D(T::TensorMap{E,S,2,4}; finalize = (finalize!)) where {E,S}
         return new(T, finalize)
     end
 end
 
 function _step_hotrg3d(
-        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
+    A1::TensorMap{E,S,2,4},
+    A2::TensorMap{E,S,2,4},
+    trunc::TensorKit.TruncationScheme,
+) where {E,S}
     # join in z-direction, keep x-indices open (A1 below A2)
-    @tensoropt MMdag2[x2 z z′ x2′] :=
-        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
-    @tensoropt MMdag[x1 x2; x1′ x2′] := MMdag2[x2 z z′ x2′] *
-        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1 x1′])
+    @tensoropt MMdag2[x2 z z′ x2′] := A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
+    @tensoropt MMdag[x1 x2; x1′ x2′] :=
+        MMdag2[x2 z z′ x2′] * A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1 x1′])
     TensorKit.normalize!(MMdag, Inf)
     U, s₁, _, ε₁ = tsvd(MMdag; trunc)
     _, s₂, U₂, ε₂ = tsvd(adjoint(MMdag); trunc)
@@ -51,10 +51,9 @@ function _step_hotrg3d(
         U = adjoint(U₂)
     end
     # join in z-direction, keep y-indices open
-    @tensoropt MMdag2[y2 z z′ y2′] :=
-        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2′ x2])
-    @tensoropt MMdag[y1 y2; y1′ y2′] := MMdag2[y2 z z′ y2′] *
-        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1′ x1])
+    @tensoropt MMdag2[y2 z z′ y2′] := A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2′ x2])
+    @tensoropt MMdag[y1 y2; y1′ y2′] :=
+        MMdag2[y2 z z′ y2′] * A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1′ x1])
     TensorKit.normalize!(MMdag, Inf)
     V, s₁, _, ε₁ = tsvd(MMdag; trunc)
     _, s₂, V₂, ε₂ = tsvd(adjoint(MMdag); trunc)
@@ -65,9 +64,12 @@ function _step_hotrg3d(
     end
     # apply the truncation
     @tensoropt T[-1 -2; -3 -4 -5 -6] :=
-        conj(U[x1 x2; -6]) * U[x1′ x2′; -4] *
-        conj(V[y1 y2; -5]) * V[y1′ y2′; -3] *
-        A1[-1 z; y1′ x1′ y1 x1] * A2[z -2; y2′ x2′ y2 x2]
+        conj(U[x1 x2; -6]) *
+        U[x1′ x2′; -4] *
+        conj(V[y1 y2; -5]) *
+        V[y1′ y2′; -3] *
+        A1[-1 z; y1′ x1′ y1 x1] *
+        A2[z -2; y2′ x2′ y2 x2]
     return T
 end
 

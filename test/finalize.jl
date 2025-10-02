@@ -69,3 +69,21 @@ end
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3.0e-6
 end
+
+# ImpurityHOTRG
+@testset "ImpurityHOTRG - Ising Model" begin
+    T = Ising_magnetisation(ising_βc; impurity = false)
+    T_imp1 = Ising_magnetisation(ising_βc; impurity = true)
+    scheme = ImpurityHOTRG(T, T_imp1, T)
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    lnz = 0
+    for (i, d) in enumerate(data)
+        lnz += log(d[1]) * 4.0^(1 - i)
+    end
+
+    fs = lnz * -1 / ising_βc
+
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 3.0e-6
+end

@@ -27,10 +27,10 @@ mutable struct SLoopTNR <: TNRScheme
     gradalg::OptimKit.LBFGS
     finalize!::Function
     function SLoopTNR(
-            T::TensorMap;
-            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
-            finalize = (finalize!)
-        )
+        T::TensorMap;
+        gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
+        finalize = (finalize!),
+    )
         return new(T, gradalg, finalize)
     end
 end
@@ -97,10 +97,7 @@ end
 function optimize_S(scheme, S)
     opt_fun(x) = cost_looptnr(x, scheme.T)
     opt_fg(x) = fg(opt_fun, x)
-    Sopt, fx, gx, numfg, normgradhistory = optimize(
-        opt_fg, S,
-        scheme.gradalg
-    )
+    Sopt, fx, gx, numfg, normgradhistory = optimize(opt_fg, S, scheme.gradalg)
     return Sopt
 end
 
@@ -135,22 +132,27 @@ function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
     psi_corner = Ψ_corner(T)
 
     PR_list, PL_list = TNRKit.find_projectors(
-        psi_center, [1, 1, 1, 1], [3, 3, 3, 3],
-        entanglement_criterion, trunc
+        psi_center,
+        [1, 1, 1, 1],
+        [3, 3, 3, 3],
+        entanglement_criterion,
+        trunc,
     )
     P_bottom = PL_list[1]
     P_right = PL_list[1]
 
     PR_list, PL_list = TNRKit.find_projectors(
         psi_corner,
-        [1, 1, 1, 1], [3, 3, 3, 3],
-        entanglement_criterion, trunc
+        [1, 1, 1, 1],
+        [3, 3, 3, 3],
+        entanglement_criterion,
+        trunc,
     )
     P_top = PL_list[3]
     P_left = PL_list[3]
 
-    @tensor T_new[-1 -2 -3 -4] := T[1 2 3 4] * P_left[-1; 1] * P_bottom[-2; 2] *
-        P_top[-3; 3] * P_right[-4; 4]
+    @tensor T_new[-1 -2 -3 -4] :=
+        T[1 2 3 4] * P_left[-1; 1] * P_bottom[-2; 2] * P_top[-3; 3] * P_right[-4; 4]
     return T_new
 end
 
@@ -164,7 +166,7 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
     ΨB = []
 
-    for i in 1:4
+    for i = 1:4
         s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
@@ -173,14 +175,16 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)
     PR_list, _ = find_projectors(
-        ΨB, [1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2, 2],
-        criterion, trunc
+        ΨB,
+        [1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 2, 2, 2, 2, 2, 2, 2],
+        criterion,
+        trunc,
     )
 
     ΨB_disentangled = []
-    for i in 1:1
-        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] *
-            PR_list[mod(i, 8) + 1][2; -3]
+    for i = 1:1
+        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] * PR_list[mod(i, 8)+1][2; -3]
         push!(ΨB_disentangled, B1)
     end
     S = ΨB_disentangled[1]
@@ -208,10 +212,13 @@ function step!(scheme, trunc, oneloop)
 end
 
 function run!(
-        scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; finalize_beginning = true, oneloop = true,
-        verbosity = 1
-    )
+    scheme::SLoopTNR,
+    trscheme::TensorKit.TruncationScheme,
+    criterion::TNRKit.stopcrit;
+    finalize_beginning = true,
+    oneloop = true,
+    verbosity = 1,
+)
     data = []
 
     LoggingExtras.withlevel(; verbosity) do
