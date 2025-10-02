@@ -37,9 +37,7 @@ mutable struct ImpurityHOTRG <: TNRScheme
         ;
         finalize = (finalize!),
     ) where {E,S}
-        @assert rank(T) == 4 "Tensor T must be rank 4"
-        @assert rank(T_imp_1) == 4 "Tensor T_imp_1 must be rank 4"
-        @assert rank(T_imp_2) == 4 "Tensor T_imp_2 must be rank 4"
+
         @assert space(T, 1) == space(T_imp_1, 1) == space(T_imp_2, 1) "First index space of T, T_imp_1 and T_imp_2 must be the same"
         @assert space(T, 2) == space(T_imp_1, 2) == space(T_imp_2, 2) "Second index space of T, T_imp_1 and T_imp_2 must be the same"
         @assert space(T, 3) == space(T_imp_1, 3) == space(T_imp_2, 3) "Third index space of T, T_imp_1 and T_imp_2 must be the same"
