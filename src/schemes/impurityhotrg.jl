@@ -46,7 +46,7 @@ mutable struct ImpurityHOTRG <: TNRScheme
     end
 end
 
-function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     # join vertically
     @tensor MMdag[-1 -2; -3 -4] :=
         scheme.T[-1 5; 1 2] *
