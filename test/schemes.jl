@@ -96,8 +96,12 @@ end
     loop_criterion = maxiter(5) & convcrit(1.0e-10, entanglement_function)
 
     data = run!(
-        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
-        loop_criterion
+        scheme,
+        truncdim(8),
+        truncbelow(1.0e-12),
+        maxiter(25),
+        entanglement_criterion,
+        loop_criterion,
     )
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6

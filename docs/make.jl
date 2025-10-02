@@ -12,7 +12,7 @@ makedocs(;
         "Library" => "lib/lib.md"
         "References" => "references.md"
     ],
-    plugins = [bib]
+    plugins = [bib],
 )
 
 deploydocs(; repo = "github.com/VictorVanthilt/TNRKit.jl.git", push_preview = true)

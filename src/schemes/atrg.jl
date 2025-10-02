@@ -27,7 +27,7 @@ mutable struct ATRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function ATRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
+    function ATRG(T::TensorMap{E,S,2,2}; finalize = (finalize!)) where {E,S}
         return new(T, finalize)
     end
 end
@@ -61,8 +61,7 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
         Y[-1; -2 -3] = sqrtS[-1; 1] * Y[1; -2 -3]
     end
 
-    @tensor Q[-1 -2; -3 -4] := A[3 -3; 2] * D[1; -2 4] * X[4 2; -4] *
-        Y[-1 1; 3]
+    @tensor Q[-1 -2; -3 -4] := A[3 -3; 2] * D[1; -2 4] * X[4 2; -4] * Y[-1 1; 3]
 
     H, S, G, _ = tsvd(Q; trunc = trunc)
     sqrtS = sqrt(S)

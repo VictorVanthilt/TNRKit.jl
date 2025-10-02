@@ -80,15 +80,15 @@ end
 
 function CTM_init(TA, TB; bc = ones, bc_free = false)
     elt = eltype(TA)
-    Vps_A = [space(TA)[i]' for i in 1:4]
-    Vps_B = [space(TB)[i]' for i in 1:4]
+    Vps_A = [space(TA)[i]' for i = 1:4]
+    Vps_B = [space(TB)[i]' for i = 1:4]
     V = oneunit(Vps_A[1])
     if bc_free
         V = Vps_A[1]
     end
     C = TensorMap(bc, elt, V ← V)
-    ElA, EbA, EtA, ErA = [TensorMap(bc, elt, V ⊗ Vps_B[i] ← V) for i in 1:4]
-    ElB, EbB, EtB, ErB = [TensorMap(bc, elt, V ⊗ Vps_A[i] ← V) for i in 1:4]
+    ElA, EbA, EtA, ErA = [TensorMap(bc, elt, V ⊗ Vps_B[i] ← V) for i = 1:4]
+    ElB, EbB, EtB, ErB = [TensorMap(bc, elt, V ⊗ Vps_A[i] ← V) for i = 1:4]
     return C, C, C, C, C, C, C, C, ElA, ElB, EbA, EbB, ErA, ErB, EtA, EtB
 end
 
@@ -206,12 +206,12 @@ end
 
 
 function run!(
-        ctm::Sublattice_CTM,
-        trunc::TensorKit.TruncationScheme,
-        criterion::maxiter;
-        conv_criterion = 1.0e-8,
-        verbosity = 1,
-    )
+    ctm::Sublattice_CTM,
+    trunc::TensorKit.TruncationScheme,
+    criterion::maxiter;
+    conv_criterion = 1.0e-8,
+    verbosity = 1,
+)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0

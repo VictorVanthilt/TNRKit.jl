@@ -1,13 +1,13 @@
-mutable struct c4CTM{A, S}
-    T::TensorMap{A, S, 2, 2}
-    C::TensorMap{A, S, 1, 1}
-    E::TensorMap{A, S, 2, 1}
+mutable struct c4CTM{A,S}
+    T::TensorMap{A,S,2,2}
+    C::TensorMap{A,S,1,1}
+    E::TensorMap{A,S,2,1}
 
-    function c4CTM(T::TensorMap{A, S, 2, 2}) where {A, S}
+    function c4CTM(T::TensorMap{A,S,2,2}) where {A,S}
         C, E = c4CTM_init(T)
 
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for c4CTM"
-        return new{A, S}(T, C, E)
+        return new{A,S}(T, C, E)
     end
 end
 
@@ -26,9 +26,11 @@ end
 =#
 
 function run!(
-        scheme::c4CTM, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
-        verbosity = 1
-    )
+    scheme::c4CTM,
+    trunc::TensorKit.TruncationScheme,
+    criterion::stopcrit;
+    verbosity = 1,
+)
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
         steps = 0
@@ -60,9 +62,8 @@ function step!(scheme::c4CTM, trunc)
     mat, U, S = find_U_sym(scheme, trunc)
 
     @tensor scheme.C[-1; -2] := mat[1 2; 3 4] * U[3 4; -2] * conj(U[1 2; -1])
-    @tensor scheme.E[-1 -2; -3] := scheme.E[1 5; 3] * scheme.T[2 -2; 5 4] *
-        U[3 4; -3] *
-        conj(U[1 2; -1])
+    @tensor scheme.E[-1 -2; -3] :=
+        scheme.E[1 5; 3] * scheme.T[2 -2; 5 4] * U[3 4; -3] * conj(U[1 2; -1])
 
     scheme.C /= norm(scheme.C)
     scheme.E /= norm(scheme.E)
@@ -77,7 +78,9 @@ end
 flip_Vphy(A) = flip(A, 2)
 
 function build_corner_matrix(scheme)
-    @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[1; 2] * flip_Vphy(scheme.E)[-1 3; 1] *
+    @tensor opt = true mat[-1 -2; -3 -4] :=
+        scheme.C[1; 2] *
+        flip_Vphy(scheme.E)[-1 3; 1] *
         scheme.E[2 4; -3] *
         scheme.T[3 -2; 4 -4]
     return mat
@@ -92,7 +95,7 @@ function find_U_sym(scheme, trunc)
     return mat, U, S
 end
 
-function c4CTM_init(T::TensorMap{A, S, 2, 2}) where {A, S}
+function c4CTM_init(T::TensorMap{A,S,2,2}) where {A,S}
     S_type = scalartype(T)
     Vp = space(T)[3]'
     C = TensorMap(ones, S_type, oneunit(Vp) ← oneunit(Vp))
@@ -104,7 +107,7 @@ function tensor2env(O, C, T)
     Z = InfinitePartitionFunction(O)
     env = CTMRGEnv(Z, space(C)[1])
 
-    for i in 1:4
+    for i = 1:4
         env.corners[i] = C
         env.edges[i] = T
     end
