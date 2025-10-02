@@ -63,10 +63,10 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     end
 
     # adjoint(U) on the left, U on the right
-    @tensor scheme.T[-1 -2; -3 -4] :=
+    @tensor T[-1 -2; -3 -4] :=
         scheme.T[1 5; -3 3] * conj(U[1 2; -1]) * U[3 4; -4] * scheme.T[2 -2; 5 4]
 
-    @tensor scheme.T_imp1[-1 -2; -3 -4] :=
+    @tensor T_imp1[-1 -2; -3 -4] :=
         1/2 *
         scheme.T_imp_1[1 5; -3 3] *
         conj(U[1 2; -1]) *
@@ -78,7 +78,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         U[3 4; -4] *
         scheme.T_imp_1[2 -2; 5 4]
 
-    @tensor scheme.T_imp2[-1 -2; -3 -4] :=
+    @tensor T_imp2[-1 -2; -3 -4] :=
         1/4 *
         scheme.T_imp_2[1 5; -3 3] *
         conj(U[1 2; -1]) *
@@ -94,6 +94,10 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         conj(U[1 2; -1]) *
         U[3 4; -4] *
         scheme.T_imp_1[2 -2; 5 4]
+
+    scheme.T = T
+    scheme.T_imp_1 = T_imp1
+    scheme.T_imp_2 = T_imp2
 
     # join horizontally
     @tensor MMdag[-1 -2; -3 -4] :=
@@ -111,10 +115,10 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     end
 
     # adjoint(U) on the bottom, U on top
-    @tensor scheme.T[-1 -2; -3 -4] :=
+    @tensor T[-1 -2; -3 -4] :=
         scheme.T[-1 1; 3 5] * scheme.T[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
 
-    @tensor scheme.T_imp1[-1 -2; -3 -4] :=
+    @tensor T_imp1[-1 -2; -3 -4] :=
         1/2 *
         scheme.T_imp1[-1 1; 3 5] *
         scheme.T[5 2; 4 -4] *
@@ -122,7 +126,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         U[3 4; -3] +
         1/2 * scheme.T[-1 1; 3 5] * scheme.T_imp1[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
 
-    @tensor scheme.T_imp2[-1 -2; -3 -4] :=
+    @tensor T_imp2[-1 -2; -3 -4] :=
         1/4 *
         scheme.T_imp2[-1 1; 3 5] *
         scheme.T[5 2; 4 -4] *
@@ -138,6 +142,10 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         scheme.T_imp1[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3]
+    
+    scheme.T = T
+    scheme.T_imp_1 = T_imp1
+    scheme.T_imp_2 = T_imp2
 
     return scheme
 end
