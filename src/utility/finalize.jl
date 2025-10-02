@@ -76,8 +76,8 @@ function finalize!(scheme::ImpurityHOTRG)
     n_1 = norm(@tensor scheme.T_imp_1[1 2; 2 1])
     n_2 = norm(@tensor scheme.T_imp_2[1 2; 2 1])
     scheme.T /= n
-    scheme.T_imp_1 /= n_1
-    scheme.T_imp_2 /= n_2
+    scheme.T_imp_1 /= n
+    scheme.T_imp_2 /= n
     return n, n_1, n_2
 end
 
