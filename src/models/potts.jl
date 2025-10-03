@@ -39,7 +39,7 @@ function classical_potts(q::Int, β::Float64)
 end
 classical_potts(q::Int) = classical_potts(q, potts_βc(q))
 
-function weyl_heisenberg_matrices(Q::Int, elt = ComplexF64)
+function weyl_heisenberg_matrices(Q::Int, elt=ComplexF64)
     U = zeros(elt, Q, Q) # clock matrix
     V = zeros(elt, Q, Q) # shift matrix
     W = zeros(elt, Q, Q) # DFT
@@ -94,3 +94,30 @@ function classical_potts_symmetric(q::Int64, β::Float64)
     return A_potts
 end
 classical_potts_symmetric(q::Int) = classical_potts_symmetric(q, potts_βc(q))
+
+function classical_potts_impurity(q::Int64, β::Float64, k1::Int64=1, k2::Int64=1)
+    bond_tensor = zeros(ComplexF64, q, q)
+    for i = 1:q
+        bond_tensor[i, i] = exp(-β) + 1 + q * (i == 1)
+    end
+    Vp = Vect[ZNIrrep{q}](sector => 1 for sector = 0:(q-1))
+    bond_tensor = TensorMap(bond_tensor, Vp ← Vp)
+
+    core_tensor = zeros(ComplexF64, q, q, q, q)
+    for (i, j, k, l) in Iterators.product(0:q-1, 0:q-1, 0:q-1, 0:q-1)
+        core_tensor[i+1, j+1, k+1, l+1] =
+            mod(i + j + k + l + k1 - k2, q) == 0 ? 1 : 0
+    end
+    core_tensor = TensorMap(core_tensor, Vp ⊗ Vp ← Vp ⊗ Vp)
+
+    @tensor T[-1 -2; -3 -4] :=
+        core_tensor[1 2; 3 4] *
+        bond_tensor[-1; 1] *
+        bond_tensor[-2; 2] *
+        bond_tensor[3; -3] *
+        bond_tensor[4; -4]
+
+
+    return T
+end
+
