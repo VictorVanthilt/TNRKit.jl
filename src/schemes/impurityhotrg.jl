@@ -4,10 +4,10 @@ $(TYPEDEF)
 Single impurity method for Higher-Order Tensor Renormalization Group (for 2nd order)
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2 [, finalize=finalize!])
 
 ### Running the algorithm
-    run!(::HOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::ImpurityHOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 
@@ -34,7 +34,7 @@ mutable struct ImpurityHOTRG <: TNRScheme
     function ImpurityHOTRG(
         T::TensorMap{E,S,2,2},
         T_imp_order1_1::TensorMap{E,S,2,2},
-        T_imp_order1_2::TensorMap{E,S,2,2}=T_imp_order1_1,
+        T_imp_order1_2::TensorMap{E,S,2,2},
         T_imp_order2::TensorMap{E,S,2,2},
         ;
         finalize=(finalize!),
@@ -107,12 +107,12 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         scheme.T_imp_order1_1[1 5; -3 3] *
         conj(U[1 2; -1]) *
         U[3 4; -4] *
-        scheme.T_imp_order1_2[2 -2; 5 4]
-    +1 / 4 *
-    scheme.T_imp_order1_2[1 5; -3 3] *
-    conj(U[1 2; -1]) *
-    U[3 4; -4] *
-    scheme.T_imp_order1_1[2 -2; 5 4]
+        scheme.T_imp_order1_2[2 -2; 5 4] +
+        1 / 4 *
+        scheme.T_imp_order1_2[1 5; -3 3] *
+        conj(U[1 2; -1]) *
+        U[3 4; -4] *
+        scheme.T_imp_order1_1[2 -2; 5 4]
 
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
@@ -177,12 +177,12 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         scheme.T_imp_order1_1[-1 1; 3 5] *
         scheme.T_imp_order1_2[5 2; 4 -4] *
         conj(U[1 2; -2]) *
+        U[3 4; -3] +
+        1 / 4 *
+        scheme.T_imp_order1_2[-1 1; 3 5] *
+        scheme.T_imp_order1_1[5 2; 4 -4] *
+        conj(U[1 2; -2]) *
         U[3 4; -3]
-    +1 / 4 *
-    scheme.T_imp_order1_2[-1 1; 3 5] *
-    scheme.T_imp_order1_1[5 2; 4 -4] *
-    conj(U[1 2; -2]) *
-    U[3 4; -3]
 
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
