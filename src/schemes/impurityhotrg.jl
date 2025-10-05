@@ -68,6 +68,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     @tensor T[-1 -2; -3 -4] :=
         scheme.T[1 5; -3 3] * conj(U[1 2; -1]) * U[3 4; -4] * scheme.T[2 -2; 5 4]
 
+    #evolve order 1 impurities with the same unitaries
     @tensor T_imp_order1_1[-1 -2; -3 -4] :=
         1 / 2 *
         scheme.T_imp_order1_1[1 5; -3 3] *
@@ -92,6 +93,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         U[3 4; -4] *
         scheme.T_imp_order1_2[2 -2; 5 4]
 
+    #evolve order 2 impurity with the same unitaries and both order 1 impurities
     @tensor T_imp_order2[-1 -2; -3 -4] :=
         1 / 4 *
         scheme.T_imp_order2[1 5; -3 3] *
@@ -138,6 +140,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     @tensor T[-1 -2; -3 -4] :=
         scheme.T[-1 1; 3 5] * scheme.T[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
 
+    #evolve order 1 impurities with the same unitaries
     @tensor T_imp_order1_1[-1 -2; -3 -4] :=
         1 / 2 *
         scheme.T_imp_order1_1[-1 1; 3 5] *
@@ -162,6 +165,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         conj(U[1 2; -2]) *
         U[3 4; -3]
 
+    #evolve order 2 impurity with the same unitaries and both order 1 impurities
     @tensor T_imp_order2[-1 -2; -3 -4] :=
         1 / 4 *
         scheme.T_imp_order2[-1 1; 3 5] *
