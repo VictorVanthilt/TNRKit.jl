@@ -98,7 +98,7 @@ classical_potts_symmetric(q::Int) = classical_potts_symmetric(q, potts_βc(q))
 function classical_potts_impurity(q::Int64, β::Float64, k1::Int64=1, k2::Int64=1)
     bond_tensor = zeros(ComplexF64, q, q)
     for i = 0:q-1
-        bond_tensor[i+1, i+1] = sqrt(exp(β) + 1 + q * (i == 0))
+        bond_tensor[i+1, i+1] = sqrt(exp(β) - 1 + q * (i == 0))
     end
     Vp = ℂ^q
     bond_tensor = TensorMap(bond_tensor, Vp ← Vp)
