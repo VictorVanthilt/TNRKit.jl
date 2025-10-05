@@ -28,16 +28,16 @@ mutable struct HOTRG_3D <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function HOTRG_3D(T::TensorMap{E,S,2,4}; finalize = (finalize!)) where {E,S}
+    function HOTRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
 
 function _step_hotrg3d(
-    A1::TensorMap{E,S,2,4},
-    A2::TensorMap{E,S,2,4},
-    trunc::TensorKit.TruncationScheme,
-) where {E,S}
+        A1::TensorMap{E, S, 2, 4},
+        A2::TensorMap{E, S, 2, 4},
+        trunc::TensorKit.TruncationScheme,
+    ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
     @tensoropt MMdag2[x2 z z′ x2′] := A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MMdag[x1 x2; x1′ x2′] :=

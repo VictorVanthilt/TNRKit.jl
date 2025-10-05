@@ -4,12 +4,12 @@ function step! end
 function finalize! end
 
 function run!(
-    scheme::TNRScheme,
-    trscheme::TensorKit.TruncationScheme,
-    criterion::stopcrit;
-    finalize_beginning = true,
-    verbosity = 1,
-)
+        scheme::TNRScheme,
+        trscheme::TensorKit.TruncationScheme,
+        criterion::stopcrit;
+        finalize_beginning = true,
+        verbosity = 1,
+    )
 
     data = []
 

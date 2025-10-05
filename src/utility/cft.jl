@@ -4,13 +4,13 @@ end
 
 function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     # make the indices
-    indices = [[i, -i, -(i + unitcell), i + 1] for i = 1:unitcell]
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
     indices[end][4] = 1
 
     T = ncon(fill(scheme.T, unitcell), indices)
 
     outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell+1):(2unitcell)))
+    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
     D, _ = eig(T)
@@ -38,7 +38,7 @@ end
 
 function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     # make the indices
-    indices = [[i, -i, -(i + unitcell), i + 1] for i = 1:unitcell]
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
     indices[end][4] = 1
 
     @tensor T_unit[-1 -2; -3 -4] :=
@@ -46,7 +46,7 @@ function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     T = ncon(fill(T_unit, unitcell), indices)
 
     outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell+1):(2unitcell)))
+    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
     D, _ = eig(T)
@@ -94,11 +94,11 @@ function area_term(A, B; is_real = true)
 end
 
 function MPO_opt(
-    TA::TensorMap,
-    TB::TensorMap,
-    trunc::TensorKit.TruncationScheme,
-    truncentanglement::TensorKit.TruncationScheme,
-)
+        TA::TensorMap,
+        TB::TensorMap,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+    )
     pretrunc = truncdim(2 * trunc.dim)
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, ((2, 4), (1, 3))), pretrunc)
@@ -127,12 +127,12 @@ function MPO_opt(
 end
 
 function reduced_MPO(
-    dl::TensorMap,
-    ur::TensorMap,
-    ul::TensorMap,
-    dr::TensorMap,
-    trunc::TensorKit.TruncationScheme,
-)
+        dl::TensorMap,
+        ur::TensorMap,
+        ul::TensorMap,
+        dr::TensorMap,
+        trunc::TensorKit.TruncationScheme,
+    )
     @planar temp[-1 -2; -3 -4] := ur[-1; 1 4] * ul[4; 3 -2] * dr[-3; 2 1] * dl[2; -4 3]
     D, U = SVD12(temp, trunc)
     @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
@@ -189,7 +189,7 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
             x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
             f = MPO_action_1x4
         elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0] ||
-               shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
+                shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
             x = rand(domain(TB) ⊗ domain(TB) ← V)
             f = MPO_action_2gates
         end
@@ -230,11 +230,11 @@ end
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
 function cft_data!(
-    scheme::LoopTNR,
-    shape::Array,
-    trunc::TensorKit.TruncationScheme,
-    truncentanglement::TensorKit.TruncationScheme,
-)
+        scheme::LoopTNR,
+        shape::Array,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+    )
     if !(shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]])
         throw(ArgumentError("The shape $shape is not correct."))
     end

@@ -1,15 +1,15 @@
-mutable struct ctm_TRG{A,S} <: TNRScheme
-    T::TensorMap{A,S,2,2}
-    C2::TensorMap{A,S,1,1}
-    E1::TensorMap{A,S,2,1}
-    E2::TensorMap{A,S,2,1}
+mutable struct ctm_TRG{A, S} <: TNRScheme
+    T::TensorMap{A, S, 2, 2}
+    C2::TensorMap{A, S, 1, 1}
+    E1::TensorMap{A, S, 2, 1}
+    E2::TensorMap{A, S, 2, 1}
     χenv::Int64
     function ctm_TRG(
-        T::TensorMap{A,S,2,2},
-        χenv::Int64;
-        ctm_iter = 2.0e4,
-        ctm_tol = 1.0e-9,
-    ) where {A,S}
+            T::TensorMap{A, S, 2, 2},
+            χenv::Int64;
+            ctm_iter = 2.0e4,
+            ctm_tol = 1.0e-9,
+        ) where {A, S}
         if eltype(T) != Float64
             @error "This scheme only support tensors with real numbers"
         end
@@ -24,7 +24,7 @@ mutable struct ctm_TRG{A,S} <: TNRScheme
         @info "rCTM finished"
         C2, E1, E2 = scheme_init.C2, scheme_init.E1, scheme_init.E2
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A,S}(T, C2, E1, E2, χenv)
+        return new{A, S}(T, C2, E1, E2, χenv)
     end
 end
 
@@ -101,14 +101,14 @@ function hotrg_projector_modified(scheme, trunc)
 end
 
 function step!(
-    scheme::ctm_TRG,
-    trunc::TensorKit.TruncationScheme,
-    ;
-    sweep = 30,
-    enlarge = true,
-    inv = false,
-    modified = true,
-)
+        scheme::ctm_TRG,
+        trunc::TensorKit.TruncationScheme,
+        ;
+        sweep = 30,
+        enlarge = true,
+        inv = false,
+        modified = true,
+    )
     χenv = dim(scheme.C2.space.domain)
     S1, S2 = insert_PtoS(scheme, trunc; enlarge = enlarge)
     Pv1, Pv2, Ph1, Ph2 = hotrg_projector(scheme, trunc; modified)
@@ -139,23 +139,23 @@ function step!(
     scheme.T /= tr_norm
     scheme.E1 /= norm(scheme.E1)
     scheme.E2 /= norm(scheme.E2)
-    for _ = 0:sweep
+    for _ in 0:sweep
         rctm_step!(scheme)
     end
     return tr_norm
 end
 
 function run!(
-    scheme::ctm_TRG,
-    trunc::TensorKit.TruncationScheme,
-    criterion::maxiter;
-    sweep = 30,
-    enlarge = true,
-    return_cft = false,
-    inv = false,
-    conv_criterion = 1.0e-12,
-    modified = true,
-)
+        scheme::ctm_TRG,
+        trunc::TensorKit.TruncationScheme,
+        criterion::maxiter;
+        sweep = 30,
+        enlarge = true,
+        return_cft = false,
+        inv = false,
+        conv_criterion = 1.0e-12,
+        modified = true,
+    )
     area = 1
     lnz = 0.0
     cft = []

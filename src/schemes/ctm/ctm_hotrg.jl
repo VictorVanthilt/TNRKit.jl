@@ -1,17 +1,17 @@
-mutable struct ctm_HOTRG{A,S} <: TNRScheme
-    T::TensorMap{A,S,2,2}
-    C2::TensorMap{A,S,1,1}
-    E1::TensorMap{A,S,2,1}
-    E2::TensorMap{A,S,2,1}
+mutable struct ctm_HOTRG{A, S} <: TNRScheme
+    T::TensorMap{A, S, 2, 2}
+    C2::TensorMap{A, S, 1, 1}
+    E1::TensorMap{A, S, 2, 1}
+    E2::TensorMap{A, S, 2, 1}
     χenv::Int64
     function ctm_HOTRG(
-        T::TensorMap{A,S,2,2},
-        χenv::Int64;
-        ctm_iter = maxiter(2.0e4),
-        ctm_tol = trivial_convcrit(1.0e-9),
-        ctm_obc = false,
-        χenv_ini = 2,
-    ) where {A,S}
+            T::TensorMap{A, S, 2, 2},
+            χenv::Int64;
+            ctm_iter = maxiter(2.0e4),
+            ctm_tol = trivial_convcrit(1.0e-9),
+            ctm_obc = false,
+            χenv_ini = 2,
+        ) where {A, S}
         if eltype(T) != Float64
             @error "This scheme only supports tensors with real numbers"
         end
@@ -22,7 +22,7 @@ mutable struct ctm_HOTRG{A,S} <: TNRScheme
         @info "rCTM finished"
         C2, E1, E2 = scheme_init.C2, scheme_init.E1, scheme_init.E2
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A,S}(T, C2, E1, E2, χenv)
+        return new{A, S}(T, C2, E1, E2, χenv)
     end
 end
 
@@ -86,12 +86,12 @@ function horizontal_move!(scheme, trunc)
 end
 
 function step!(
-    scheme::ctm_HOTRG,
-    trunc;
-    sweep = 30,
-    χenv = dim(scheme.C2.space.domain),
-    inv = false,
-)
+        scheme::ctm_HOTRG,
+        trunc;
+        sweep = 30,
+        χenv = dim(scheme.C2.space.domain),
+        inv = false,
+    )
     vertical_move!(scheme, trunc)
     horizontal_move!(scheme, trunc)
 
@@ -99,26 +99,26 @@ function step!(
     scheme.T /= tr_norm
     scheme.E1 /= norm(scheme.E1)
     scheme.E2 /= norm(scheme.E2)
-    for _ = 0:sweep
+    for _ in 0:sweep
         rctm_step!(scheme)
     end
     return tr_norm
 end
 
 function run!(
-    scheme::ctm_HOTRG,
-    trunc::TensorKit.TruncationScheme,
-    criterion::stopcrit;
-    sweep = 30,
-    return_cft = false,
-    inv = false,
-    conv_criterion = 1.0e-12,
-)
+        scheme::ctm_HOTRG,
+        trunc::TensorKit.TruncationScheme,
+        criterion::stopcrit;
+        sweep = 30,
+        return_cft = false,
+        inv = false,
+        conv_criterion = 1.0e-12,
+    )
     area = 1
     lnz = 0.0
     cft = []
 
-    for i = 1:(criterion.n)
+    for i in 1:(criterion.n)
         area *= 4.0
         tr_norm = step!(scheme, trunc; sweep = sweep, inv = inv)
         if return_cft

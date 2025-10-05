@@ -49,9 +49,9 @@ function classical_ising(β::Number; h = 0)
 
     T_array = Float64[
         exp(
-            β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
-            h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l)),
-        ) for i = 1:2, j = 1:2, k = 1:2, l = 1:2
+                β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
+                h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l)),
+            ) for i in 1:2, j in 1:2, k in 1:2, l in 1:2
     ]
 
     T = TensorMap(T_array, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
@@ -62,7 +62,7 @@ classical_ising() = classical_ising(ising_βc)
 
 function Ising_magnetisation(β::Number; h = 0, impurity = false)
     init = zeros(ComplexF64, 2, 2, 2, 2)
-    for (i, j, k, l) in Iterators.product([1:2 for _ = 1:4]...)
+    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
         init[i, j, k, l] =
             mod(i + j + k + l, 2) == 0 ? (impurity ? sinh(h * β) : cosh(h * β)) :
             (impurity ? cosh(h * β) : sinh(h * β))
@@ -107,8 +107,8 @@ function classical_ising_symmetric(β)
 
     S = ℤ₂Space(0 => 1, 1 => 1)
     T = zeros(Float64, S ⊗ S ← S ⊗ S)
-    block(T, Irrep[ℤ₂](0)) .= [2x^2 2x*y; 2x*y 2y^2]
-    block(T, Irrep[ℤ₂](1)) .= [2x*y 2x*y; 2x*y 2x*y]
+    block(T, Irrep[ℤ₂](0)) .= [2x^2 2x * y; 2x * y 2y^2]
+    block(T, Irrep[ℤ₂](1)) .= [2x * y 2x * y; 2x * y 2x * y]
 
     return T
 end
@@ -138,8 +138,8 @@ function classical_ising_symmetric_3D(β)
     y = sinh(β)
     W = [sqrt(x) sqrt(y); sqrt(x) -sqrt(y)]
     T_array = zeros(Float64, 2, 2, 2, 2, 2, 2)
-    for (i, j, k, l, m, n) in Iterators.product([1:2 for _ = 1:6]...)
-        for a = 1:2
+    for (i, j, k, l, m, n) in Iterators.product([1:2 for _ in 1:6]...)
+        for a in 1:2
             # Outer product of W[a, :] with itself 6 times
             T_array[i, j, k, l, m, n] +=
                 W[a, i] * W[a, j] * W[a, k] * W[a, l] * W[a, m] * W[a, n]

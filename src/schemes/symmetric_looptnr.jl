@@ -27,10 +27,10 @@ mutable struct SLoopTNR <: TNRScheme
     gradalg::OptimKit.LBFGS
     finalize!::Function
     function SLoopTNR(
-        T::TensorMap;
-        gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
-        finalize = (finalize!),
-    )
+            T::TensorMap;
+            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
+            finalize = (finalize!),
+        )
         return new(T, gradalg, finalize)
     end
 end
@@ -166,7 +166,7 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
     ΨB = []
 
-    for i = 1:4
+    for i in 1:4
         s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
         push!(ΨB, s1)
         push!(ΨB, s2)
@@ -183,8 +183,8 @@ function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     )
 
     ΨB_disentangled = []
-    for i = 1:1
-        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] * PR_list[mod(i, 8)+1][2; -3]
+    for i in 1:1
+        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] * PR_list[mod(i, 8) + 1][2; -3]
         push!(ΨB_disentangled, B1)
     end
     S = ΨB_disentangled[1]
@@ -212,13 +212,13 @@ function step!(scheme, trunc, oneloop)
 end
 
 function run!(
-    scheme::SLoopTNR,
-    trscheme::TensorKit.TruncationScheme,
-    criterion::TNRKit.stopcrit;
-    finalize_beginning = true,
-    oneloop = true,
-    verbosity = 1,
-)
+        scheme::SLoopTNR,
+        trscheme::TensorKit.TruncationScheme,
+        criterion::TNRKit.stopcrit;
+        finalize_beginning = true,
+        oneloop = true,
+        verbosity = 1,
+    )
     data = []
 
     LoggingExtras.withlevel(; verbosity) do

@@ -32,13 +32,13 @@ mutable struct ImpurityHOTRG <: TNRScheme
     T_imp_order2::TensorMap
     finalize!::Function
     function ImpurityHOTRG(
-        T::TensorMap{E,S,2,2},
-        T_imp_order1_1::TensorMap{E,S,2,2},
-        T_imp_order1_2::TensorMap{E,S,2,2},
-        T_imp_order2::TensorMap{E,S,2,2},
-        ;
-        finalize=(finalize!),
-    ) where {E,S}
+            T::TensorMap{E, S, 2, 2},
+            T_imp_order1_1::TensorMap{E, S, 2, 2},
+            T_imp_order1_2::TensorMap{E, S, 2, 2},
+            T_imp_order2::TensorMap{E, S, 2, 2},
+            ;
+            finalize = (finalize!),
+        ) where {E, S}
 
         @assert space(T, 1) == space(T_imp_order1_1, 1) == space(T_imp_order1_2, 1) "First index space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 2) == space(T_imp_order1_1, 2) == space(T_imp_order1_2, 2) "Second index space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
@@ -57,8 +57,8 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         conj(scheme.T[-4 3; 6 4])
 
     # get unitaries
-    U, _, _, εₗ = tsvd(MMdag; trunc=trunc)
-    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc=trunc)
+    U, _, _, εₗ = tsvd(MMdag; trunc = trunc)
+    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc = trunc)
 
     if εₗ > εᵣ
         U = adjoint(Uᵣ)
@@ -129,8 +129,8 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         conj(scheme.T[6 -4; 4 3])
 
     # get unitaries
-    U, _, _, εₗ = tsvd(MMdag; trunc=trunc)
-    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc=trunc)
+    U, _, _, εₗ = tsvd(MMdag; trunc = trunc)
+    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc = trunc)
 
     if εₗ > εᵣ
         U = adjoint(Uᵣ)
@@ -152,7 +152,7 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
         scheme.T_imp_order1_1[5 2; 4 -4] *
         conj(U[1 2; -2]) *
         U[3 4; -3]
-    
+
     @tensor T_imp_order1_2[-1 -2; -3 -4] :=
         1 / 2 *
         scheme.T_imp_order1_2[-1 1; 3 5] *

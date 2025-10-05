@@ -15,19 +15,19 @@ The corner tensors are related by its mirror images.
                │  
                ▼  
 =#
-mutable struct rCTM{A,S}
-    T::TensorMap{A,S,2,2}
-    C2::TensorMap{A,S,1,1}
-    E1::TensorMap{A,S,2,1}
-    E2::TensorMap{A,S,2,1}
+mutable struct rCTM{A, S}
+    T::TensorMap{A, S, 2, 2}
+    C2::TensorMap{A, S, 1, 1}
+    E1::TensorMap{A, S, 2, 1}
+    E2::TensorMap{A, S, 2, 1}
 
-    function rCTM(T::TensorMap{A,S,2,2}) where {A,S}
+    function rCTM(T::TensorMap{A, S, 2, 2}) where {A, S}
         if typeof(T.data[1]) != Float64
             @error "This scheme only support tensors with real numbers"
         end
         C, E1, E2 = rCTM_init(T)
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A,S}(T, C, E1, E2)
+        return new{A, S}(T, C, E1, E2)
     end
 end
 
@@ -72,11 +72,11 @@ function step!(scheme::rCTM, trunc)
 end
 
 function run!(
-    scheme::rCTM,
-    trunc::TensorKit.TruncationScheme,
-    criterion::TNRKit.stopcrit;
-    verbosity = 1,
-)
+        scheme::rCTM,
+        trunc::TensorKit.TruncationScheme,
+        criterion::TNRKit.stopcrit;
+        verbosity = 1,
+    )
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
         steps = 0
@@ -112,11 +112,11 @@ end
 function tensor2env(T, C2, E1, E2)
     Z = InfinitePartitionFunction(T)
     env = CTMRGEnv(Z, space(C2)[1])
-    for i = 1:2
-        env.corners[2*i] = C2
-        env.edges[2*i] = E2
-        env.corners[2*i-1] = adjoint(C2)
-        env.edges[2*i-1] = E1
+    for i in 1:2
+        env.corners[2 * i] = C2
+        env.edges[2 * i] = E2
+        env.corners[2 * i - 1] = adjoint(C2)
+        env.edges[2 * i - 1] = E1
     end
     env.edges[3] = flip(env.edges[3], 2)
     env.edges[4] = flip(env.edges[4], 2)

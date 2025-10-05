@@ -56,13 +56,13 @@ end
 
 function CTM_init(T; bc = ones, bc_free = false)
     elt = eltype(T)
-    Vps = [space(T)[i]' for i = 1:4]
+    Vps = [space(T)[i]' for i in 1:4]
     V = oneunit(Vps[1])
     if bc_free
         V = Vps[1]
     end
     C = TensorMap(bc, elt, V ← V)
-    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i = 1:4]
+    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i in 1:4]
     return C, C, C, C, El, Eb, Et, Er
 end
 
@@ -98,7 +98,7 @@ end
 # Rotate the tensor T by 90 degrees counter-clockwise
 function rotate_T(T; num = 1)
     Tnew = copy(T)
-    for _ = 1:num
+    for _ in 1:num
         Tnew = permute(Tnew, (3, 1), (4, 2))
     end
     return Tnew
@@ -149,12 +149,12 @@ end
 
 
 function run!(
-    ctm::CTM,
-    trunc::TensorKit.TruncationScheme,
-    criterion::maxiter;
-    conv_criterion = 1.0e-8,
-    verbosity = 1,
-)
+        ctm::CTM,
+        trunc::TensorKit.TruncationScheme,
+        criterion::maxiter;
+        conv_criterion = 1.0e-8,
+        verbosity = 1,
+    )
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0

@@ -22,12 +22,12 @@ Constructs the partition function tensor for the six-vertex model with a given s
 Note: The free energy density depends on the boundary conditions.  
 """
 function sixvertex(
-    elt::Type{<:Number} = ComplexF64,
-    (::Type{Trivial}) = Trivial;
-    a = 1.0,
-    b = 1.0,
-    c = 1.0,
-)
+        elt::Type{<:Number} = ComplexF64,
+        (::Type{Trivial}) = Trivial;
+        a = 1.0,
+        b = 1.0,
+        c = 1.0,
+    )
     d = elt[
         a 0 0 0
         0 c b 0

@@ -27,7 +27,7 @@ mutable struct ATRG_3D <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function ATRG_3D(T::TensorMap{E,S,2,4}; finalize = (finalize!)) where {E,S}
+    function ATRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
