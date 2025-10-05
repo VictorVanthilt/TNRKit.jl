@@ -29,8 +29,8 @@ mutable struct ctm_TRG{A, S} <: TNRScheme
 end
 
 function corner_matrix(scheme::ctm_TRG)
-    @tensor opt = true mat[-1 -2; -3 -4] := scheme.E1[-1 3; 1] * scheme.C2[1; 2] *
-        scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
+    @tensor opt = true mat[-1 -2; -3 -4] :=
+        scheme.E1[-1 3; 1] * scheme.C2[1; 2] * scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
     return mat
 end
 
@@ -51,21 +51,21 @@ end
 function insert_PtoS(scheme, trunc; enlarge = true)
     S1, S2 = Levin_decomposition(scheme.T, notrunc())
 
-    @tensoropt env_left_top[-1 -2; -3] := S1[3 4; -3] *
+    @tensoropt env_left_top[-1 -2; -3] :=
+        S1[3 4; -3] *
         scheme.E1[2 4; -1] *
         conj(scheme.E2[1 3; 5]) *
         conj(scheme.C2[2; 1]) *
         scheme.C2[-2; 5]
-    @tensoropt env_right_bottom[-1; -2 -3] := S2[-1; 1 2] *
+    @tensoropt env_right_bottom[-1; -2 -3] :=
+        S2[-1; 1 2] *
         scheme.E2[3 2; 4] *
         conj(scheme.E1[-3 1; 5]) *
         scheme.C2[-2; 3] *
         conj(scheme.C2[5; 4])
     if enlarge
-        P1, P2 = find_P1P2(
-            env_left_top, env_right_bottom, (3,), (1,),
-            truncdim(trunc.dim * 2)
-        )
+        P1, P2 =
+            find_P1P2(env_left_top, env_right_bottom, (3,), (1,), truncdim(trunc.dim * 2))
     else
         P1, P2 = find_P1P2(env_left_top, env_right_bottom, (3,), (1,), trunc)
     end
@@ -102,7 +102,8 @@ end
 
 function step!(
         scheme::ctm_TRG,
-        trunc::TensorKit.TruncationScheme, ;
+        trunc::TensorKit.TruncationScheme,
+        ;
         sweep = 30,
         enlarge = true,
         inv = false,
@@ -113,7 +114,8 @@ function step!(
     Pv1, Pv2, Ph1, Ph2 = hotrg_projector(scheme, trunc; modified)
     # My apologies for the unreadable contraction ~ A.U.
     # It just combines tensors and projectors to build the new tensor
-    @tensoropt Tnew[-1 -2; -3 -4] := Pv1[2 3; -1] *
+    @tensoropt Tnew[-1 -2; -3 -4] :=
+        Pv1[2 3; -1] *
         S2[13; 1 3] *
         conj(S2[16; 1 2]) *
         Pv2[-4; 11 12] *
@@ -125,10 +127,10 @@ function step!(
         Ph2[-3; 8 9] *
         S1[7 9; 15] *
         conj(S1[7 8; 16])
-    @tensoropt E1new[-1 -2; -3] := Ph1[1 2; -2] * scheme.E1[3 2; -3] *
-        conj(scheme.E1[3 1; -1])
-    @tensoropt E2new[-1 -2; -3] := Pv1[1 2; -2] * scheme.E2[-1 1; 3] *
-        conj(scheme.E2[-3 2; 3])
+    @tensoropt E1new[-1 -2; -3] :=
+        Ph1[1 2; -2] * scheme.E1[3 2; -3] * conj(scheme.E1[3 1; -1])
+    @tensoropt E2new[-1 -2; -3] :=
+        Pv1[1 2; -2] * scheme.E2[-1 1; 3] * conj(scheme.E2[-3 2; 3])
     scheme.T = Tnew
     scheme.E1 = E1new
     scheme.E2 = E2new
@@ -162,7 +164,8 @@ function run!(
     crit = true
     while crit
         area *= 4.0
-        tr_norm = step!(scheme, trunc; sweep = sweep, enlarge = enlarge, inv = inv, modified)
+        tr_norm =
+            step!(scheme, trunc; sweep = sweep, enlarge = enlarge, inv = inv, modified)
         lnz += log(tr_norm) / area
         if return_cft
             push!(cft, cft_data(scheme; unitcell = 2))

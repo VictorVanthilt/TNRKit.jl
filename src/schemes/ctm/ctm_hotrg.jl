@@ -18,12 +18,7 @@ mutable struct ctm_HOTRG{A, S} <: TNRScheme
         scheme_init = TNRKit.rCTM(T)
 
         @info "Finding the environment using rCTM..."
-        run!(
-            scheme_init,
-            truncdim(χenv),
-            ctm_tol & ctm_iter;
-            verbosity = 0,
-        )
+        run!(scheme_init, truncdim(χenv), ctm_tol & ctm_iter; verbosity = 0)
         @info "rCTM finished"
         C2, E1, E2 = scheme_init.C2, scheme_init.E1, scheme_init.E2
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
@@ -53,8 +48,8 @@ function rCTM_init_OBC(T; χenv_ini = 2)
 end
 
 function corner_matrix(scheme::ctm_HOTRG)
-    @tensor opt = true mat[-1 -2; -3 -4] := scheme.E1[-1 3; 1] * scheme.C2[1; 2] *
-        scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
+    @tensor opt = true mat[-1 -2; -3 -4] :=
+        scheme.E1[-1 3; 1] * scheme.C2[1; 2] * scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
     return mat
 end
 
@@ -68,10 +63,10 @@ function vertical_move!(scheme, trunc)
     mat = corner_matrix(scheme)
     mat2 = mat * adjoint(mat)
     P1, P2 = find_P1P2(mat2, adjoint(mat2), (2, 4), (4, 2), trunc)
-    @tensoropt Tnew[-1 -2; -3 -4] := P1[1 3; -1] * P2[-4; 2 4] * scheme.T[1 5; -3 2] *
-        conj(scheme.T[3 5; -2 4])
-    @tensoropt E2new[-1 -2; -3] := P1[1 2; -2] * scheme.E2[-1 1; 3] *
-        conj(scheme.E2[-3 2; 3])
+    @tensoropt Tnew[-1 -2; -3 -4] :=
+        P1[1 3; -1] * P2[-4; 2 4] * scheme.T[1 5; -3 2] * conj(scheme.T[3 5; -2 4])
+    @tensoropt E2new[-1 -2; -3] :=
+        P1[1 2; -2] * scheme.E2[-1 1; 3] * conj(scheme.E2[-3 2; 3])
 
     scheme.T = Tnew
     return scheme.E2 = E2new
@@ -81,10 +76,10 @@ function horizontal_move!(scheme, trunc)
     mat = corner_matrix(scheme)
     mat2 = adjoint(mat) * mat
     P1, P2 = find_P1P2(mat2, adjoint(mat2), (2, 4), (4, 2), trunc)
-    @tensoropt Tnew[-1 -2; -3 -4] := P1[3 4; -2] * P2[-3; 1 2] * scheme.T[5 4; 2 -4] *
-        conj(scheme.T[5 3; 1 -1])
-    @tensoropt E1new[-1 -2; -3] := P1[1 2; -2] * scheme.E1[3 2; -3] *
-        conj(scheme.E1[3 1; -1])
+    @tensoropt Tnew[-1 -2; -3 -4] :=
+        P1[3 4; -2] * P2[-3; 1 2] * scheme.T[5 4; 2 -4] * conj(scheme.T[5 3; 1 -1])
+    @tensoropt E1new[-1 -2; -3] :=
+        P1[1 2; -2] * scheme.E1[3 2; -3] * conj(scheme.E1[3 1; -1])
 
     scheme.T = Tnew
     return scheme.E1 = E1new
@@ -111,8 +106,13 @@ function step!(
 end
 
 function run!(
-        scheme::ctm_HOTRG, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
-        sweep = 30, return_cft = false, inv = false, conv_criterion = 1.0e-12
+        scheme::ctm_HOTRG,
+        trunc::TensorKit.TruncationScheme,
+        criterion::stopcrit;
+        sweep = 30,
+        return_cft = false,
+        inv = false,
+        conv_criterion = 1.0e-12,
     )
     area = 1
     lnz = 0.0

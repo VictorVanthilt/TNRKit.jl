@@ -19,7 +19,7 @@ include("schemes/hotrg.jl")
 include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
-
+include("schemes/impurityhotrg.jl")
 # CTM methods
 include("schemes/ctm/utility.jl")
 include("schemes/ctm/c4ctm.jl")
@@ -42,6 +42,7 @@ export HOTRG
 export HOTRG_3D
 export ATRG
 export ATRG_3D
+export ImpurityHOTRG
 
 export CTM
 export Sublattice_CTM
@@ -58,8 +59,15 @@ export run!
 
 # models
 include("models/ising.jl")
-export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
-    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D
+export classical_ising,
+    classical_ising_symmetric,
+    ising_βc,
+    f_onsager,
+    ising_cft_exact,
+    ising_βc_3D,
+    classical_ising_symmetric_3D,
+    classical_ising_3D,
+    Ising_magnetisation
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
@@ -68,7 +76,7 @@ include("models/sixvertex.jl")
 export sixvertex
 
 include("models/potts.jl")
-export classical_potts, classical_potts_symmetric, potts_βc
+export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_impurity
 
 include("models/clock.jl")
 export classical_clock

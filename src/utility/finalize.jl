@@ -16,7 +16,9 @@ end
 # 2x2 unitcell finalize
 function finalize_two_by_two!(scheme::simple_scheme)
     n = norm(
-        @tensor scheme.T[7 1; 5 4] * scheme.T[4 2; 6 7] * scheme.T[3 6; 2 8] *
+        @tensor scheme.T[7 1; 5 4] *
+            scheme.T[4 2; 6 7] *
+            scheme.T[3 6; 2 8] *
             scheme.T[8 5; 1 3]
     )
 
@@ -43,10 +45,7 @@ end
 function finalize!(scheme::LoopTNR)
     T1 = permute(scheme.TA, ((1, 2), (4, 3)))
     T2 = permute(scheme.TB, ((1, 2), (4, 3)))
-    n = norm(
-        @tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
-            T2[7 4; 8 2] * T1[8 6; 7 5]
-    )
+    n = norm(@tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] * T2[7 4; 8 2] * T1[8 6; 7 5])
 
     scheme.TA /= n^(1 / 4)
     scheme.TB /= n^(1 / 4)
@@ -71,6 +70,19 @@ function finalize!(scheme::SLoopTNR)
     return tr_norm^0.25
 end
 
+# finalize! for ImpurityHOTRG
+function finalize!(scheme::ImpurityHOTRG)
+    n = norm(@tensor scheme.T[1 2; 2 1])
+    n_11 = norm(@tensor scheme.T_imp_order1_1[1 2; 2 1])
+    n_12 = norm(@tensor scheme.T_imp_order1_2[1 2; 2 1])
+    n_2 = norm(@tensor scheme.T_imp_order2[1 2; 2 1])
+    scheme.T /= n
+    scheme.T_imp_order1_1 /= n
+    scheme.T_imp_order1_2 /= n
+    scheme.T_imp_order2 /= n
+    return n, n_11, n_12, n_2
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
@@ -81,8 +93,8 @@ function finalize_cft!(scheme::SLoopTNR)
     tr_norm = trnorm_2x2(scheme.T)
     scheme.T /= tr_norm^0.25
     Tflip = flip(scheme.T, (1, 2, 3, 4))
-    @tensoropt mat[-1 -2; -3 -4] := scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] *
-        Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
+    @tensoropt mat[-1 -2; -3 -4] :=
+        scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] * Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
     val, vec = eig(mat)
     val = sort(real(val).data; rev = true)
     data = -log.(abs.(val ./ val[1])) / 2 / π

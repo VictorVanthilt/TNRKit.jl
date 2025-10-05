@@ -42,8 +42,8 @@ function rCTM_init(T)
 end
 
 function rt_build_corner_matrix(scheme::rCTM)
-    @tensor opt = true mat[-1 -2; -3 -4] := scheme.E1[-1 3; 1] * scheme.C2[1; 2] *
-        scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
+    @tensor opt = true mat[-1 -2; -3 -4] :=
+        scheme.E1[-1 3; 1] * scheme.C2[1; 2] * scheme.E2[2 4; -3] * scheme.T[-2 -4; 3 4]
     return mat
 end
 
@@ -57,10 +57,10 @@ function step!(scheme::rCTM, trunc)
     mat, U, S, Vt = find_UVt(scheme, trunc)
 
     scheme.C2 = adjoint(U) * mat * adjoint(Vt)
-    @tensor opt = true scheme.E1[-1 -2; -3] := scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] *
-        U[3 4; -3] * conj(U[1 2; -1])
-    @tensor opt = true scheme.E2[-1 -2; -3] := scheme.E2[1 5; 3] * scheme.T[-2 4; 2 5] *
-        conj(Vt[-3; 3 4]) * Vt[-1; 1 2]
+    @tensor opt = true scheme.E1[-1 -2; -3] :=
+        scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] * U[3 4; -3] * conj(U[1 2; -1])
+    @tensor opt = true scheme.E2[-1 -2; -3] :=
+        scheme.E2[1 5; 3] * scheme.T[-2 4; 2 5] * conj(Vt[-3; 3 4]) * Vt[-1; 1 2]
 
     scheme.C2 /= norm(scheme.C2)
     scheme.E1 /= norm(scheme.E1)
@@ -72,8 +72,10 @@ function step!(scheme::rCTM, trunc)
 end
 
 function run!(
-        scheme::rCTM, trunc::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; verbosity = 1
+        scheme::rCTM,
+        trunc::TensorKit.TruncationScheme,
+        criterion::TNRKit.stopcrit;
+        verbosity = 1,
     )
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"

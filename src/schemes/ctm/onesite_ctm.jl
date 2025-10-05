@@ -105,7 +105,8 @@ function rotate_T(T; num = 1)
 end
 
 function contract_E(T, E, U, Vt)
-    @tensor opt = true Enew[-1 -2; -3] := T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
+    @tensor opt = true Enew[-1 -2; -3] :=
+        T[2 -2; 3 5] * E[1 3; 4] * U[-1; 1 2] * Vt[4 5; -3]
     return Enew
 end
 
@@ -147,7 +148,13 @@ function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
 end
 
 
-function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterion = 1.0e-8, verbosity = 1)
+function run!(
+        ctm::CTM,
+        trunc::TensorKit.TruncationScheme,
+        criterion::maxiter;
+        conv_criterion = 1.0e-8,
+        verbosity = 1,
+    )
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0

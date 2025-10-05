@@ -14,16 +14,7 @@ models_2D = [
     sixvertex(Float64, CU1Irrep),
 ]
 
-temperatures = [
-    ising_βc,
-    ising_βc,
-    1.0,
-    potts_βc(3),
-    potts_βc(3),
-    1.0,
-    1.0,
-    1.0,
-]
+temperatures = [ising_βc, ising_βc, 1.0, potts_βc(3), potts_βc(3), 1.0, 1.0, 1.0]
 
 answers = [
     f_onsager, # Hack because classical_ising starts from larger lattice
@@ -39,7 +30,8 @@ answers = [
 lattice_sizes = vcat([2.0], fill(1.0, length(models_2D) - 1))
 
 @testset "2D Models" begin
-    for (model, temp, answer, unitcell) in zip(models_2D, temperatures, answers, lattice_sizes)
+    for (model, temp, answer, unitcell) in
+        zip(models_2D, temperatures, answers, lattice_sizes)
         scheme = TRG(model)
         data = run!(scheme, truncdim(16), maxiter(25))
         @test free_energy(data, temp; initial_size = unitcell) ≈ answer rtol = 1.0e-3
