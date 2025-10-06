@@ -25,48 +25,55 @@ $(TYPEDFIELDS)
 
 """
 mutable struct HOTRG_3D <: TNRScheme
-    T::TensorMap
+    T::PEPOTensor
 
     finalize!::Function
-    function HOTRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
+    function HOTRG_3D(T::PEPOTensor; finalize = (finalize!))
         return new(T, finalize)
     end
 end
 
-function _step_hotrg3d(
-        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
+function _get_hotrg3d_xproj(
+    A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
+)
     # join in z-direction, keep x-indices open (A1 below A2)
-    @tensoropt MMdag2[x2 z z′ x2′] :=
-        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2 x2′])
-    @tensoropt MMdag[x1 x2; x1′ x2′] := MMdag2[x2 z z′ x2′] *
-        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1 x1′])
-    TensorKit.normalize!(MMdag, Inf)
-    U, s₁, _, ε₁ = tsvd(MMdag; trunc)
-    _, s₂, U₂, ε₂ = tsvd(adjoint(MMdag); trunc)
-    @debug "SVD of MM† (for x-truncation)" singular_values = s₁ trunc_err = ε₁
-    @debug "SVD of M†M (for x-truncation)" singular_values = s₂ trunc_err = ε₂
-    if ε₁ > ε₂
-        U = adjoint(U₂)
+    # left unitary
+    A2′ = twistdual(A2, [2, 3, 4, 5])
+    A1′ = twistdual(A1, [1, 3, 4, 5])
+    @tensoropt MM[x2 z z′ x2′] :=
+        A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
+    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
+        A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
+    TensorKit.normalize!(MM, Inf)
+    U, s, _, ε = tsvd!(MM; trunc)
+    @debug "Ux left truncation" singular_values = s trunc_err = ε
+    # right unitary
+    A2′ = twistdual(A2, [2, 3, 5, 6])
+    A1′ = twistdual(A1, [1, 3, 5, 6])
+    @tensoropt MM[x2 z z′ x2′] :=
+        conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
+    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
+        conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
+    TensorKit.normalize!(MM, Inf)
+    _, s′, U′, ε′ = tsvd!(MM; trunc)
+    @debug "Ux right truncation" singular_values = s′ trunc_err = ε′
+    if ε > ε′
+        U, s, ε = adjoint(U′), s′, ε′
     end
-    # join in z-direction, keep y-indices open
-    @tensoropt MMdag2[y2 z z′ y2′] :=
-        A2[z z2; Y2 X2 y2 x2] * conj(A2[z′ z2; Y2 X2 y2′ x2])
-    @tensoropt MMdag[y1 y2; y1′ y2′] := MMdag2[y2 z z′ y2′] *
-        A1[z1 z; Y1 X1 y1 x1] * conj(A1[z1 z′; Y1 X1 y1′ x1])
-    TensorKit.normalize!(MMdag, Inf)
-    V, s₁, _, ε₁ = tsvd(MMdag; trunc)
-    _, s₂, V₂, ε₂ = tsvd(adjoint(MMdag); trunc)
-    @debug "SVD of MM† (for y-truncation)" singular_values = s₁ trunc_err = ε₁
-    @debug "SVD of M†M (for y-truncation)" singular_values = s₂ trunc_err = ε₂
-    if ε₁ > ε₂
-        V = adjoint(V₂)
-    end
+    return U, s, ε
+end
+
+function _step_hotrg3d(
+        A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
+    )
+    Ux, = _get_hotrg3d_xproj(A1, A2, trunc)
+    # switch x/y directions
+    perm = ((1, 2), (4, 3, 6, 5))
+    Uy, = _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc)
     # apply the truncation
     @tensoropt T[-1 -2; -3 -4 -5 -6] :=
-        conj(U[x1 x2; -6]) * U[x1′ x2′; -4] *
-        conj(V[y1 y2; -5]) * V[y1′ y2′; -3] *
+        conj(Ux[x1 x2; -6]) * Ux[x1′ x2′; -4] *
+        conj(Uy[y1 y2; -5]) * Uy[y1′ y2′; -3] *
         A1[-1 z; y1′ x1′ y1 x1] * A2[z -2; y2′ x2′ y2 x2]
     return T
 end
