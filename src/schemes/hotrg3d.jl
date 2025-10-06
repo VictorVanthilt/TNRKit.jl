@@ -34,8 +34,8 @@ mutable struct HOTRG_3D <: TNRScheme
 end
 
 function _get_hotrg3d_xproj(
-    A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
-)
+        A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
+    )
     # join in z-direction, keep x-indices open (A1 below A2)
     # left unitary
     A2′ = twistdual(A2, [2, 3, 4, 5])
