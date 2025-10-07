@@ -60,13 +60,11 @@ function _get_hotrg_xproj(
         A2[-1 5; 1 2] * A1[-2 3; 5 4] *
         conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
     U, s, _, ε = tsvd!(MM; trunc)
-    @debug "Ux left truncation" singular_values = s trunc_err = ε
     # get right unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
         A2[2 6; 1 -3] * A1[4 3; 6 -4]
     _, s′, U′, ε′ = tsvd!(MM; trunc)
-    @debug "Ux right truncation" singular_values = s′ trunc_err = ε′
     if ε > ε′
         U, s, ε = adjoint(U′), s′, ε′
     end
@@ -94,13 +92,11 @@ function _get_hotrg_yproj(
         A1[1 -1; 2 5] * A2[5 -2; 4 3] *
         conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
     U, s, _, ε = tsvd!(MM; trunc)
-    @debug "Uy bottom truncation" singular_values = s trunc_err = ε
     # get top unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
         A1[1 2; -3 6] * A2[6 4; -4 3]
     _, s′, U′, ε′ = tsvd!(MM; trunc)
-    @debug "Uy top truncation" singular_values = s′ trunc_err = ε′
     if ε > ε′
         U, s, ε = adjoint(U′), s′, ε′
     end

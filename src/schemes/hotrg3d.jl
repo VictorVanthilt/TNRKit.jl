@@ -46,7 +46,6 @@ function _get_hotrg3d_xproj(
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
     U, s, _, ε = tsvd!(MM; trunc)
-    @debug "Ux left truncation" singular_values = s trunc_err = ε
     # right unitary
     A2′ = twistdual(A2, [2, 3, 5, 6])
     A1′ = twistdual(A1, [1, 3, 5, 6])
@@ -55,7 +54,6 @@ function _get_hotrg3d_xproj(
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
     _, s′, U′, ε′ = tsvd!(MM; trunc)
-    @debug "Ux right truncation" singular_values = s′ trunc_err = ε′
     if ε > ε′
         U, s, ε = adjoint(U′), s′, ε′
     end
