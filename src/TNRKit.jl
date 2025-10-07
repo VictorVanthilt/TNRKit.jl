@@ -3,7 +3,7 @@ using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
-using PEPSKit: InfinitePartitionFunction, CTMRGEnv, PEPOTensor, PFTensor
+using PEPSKit: InfinitePartitionFunction, CTMRGEnv
 using PEPSKit: network_value, twistdual, twistdual!
 using DocStringExtensions
 

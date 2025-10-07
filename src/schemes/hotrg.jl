@@ -25,10 +25,10 @@ $(TYPEDFIELDS)
 
 """
 mutable struct HOTRG <: TNRScheme
-    T::PFTensor
+    T::TensorMap
 
     finalize!::Function
-    function HOTRG(T::PFTensor; finalize = (finalize!))
+    function HOTRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
@@ -40,8 +40,9 @@ Hence both are written explicitly.
 =#
 
 function _get_hotrg_xproj(
-        A1::PFTensor, A2::PFTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     #= join in y-direction, keep x-indices open (A1 below A2)
     M M†                        M† M
             ┌---1---┐                   ┌---1---┐
@@ -73,8 +74,9 @@ function _get_hotrg_xproj(
 end
 
 function _get_hotrg_yproj(
-        A1::PFTensor, A2::PFTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     #= join in x-direction, keep y-indices open (A1 on the left of A2)
     M M†                        M† M
             -3      -4              -3      -4
@@ -106,8 +108,9 @@ function _get_hotrg_yproj(
 end
 
 function _step_hotrg_y(
-        A1::PFTensor, A2::PFTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     #= compression along the y-direction
                     -3
                     |
@@ -126,8 +129,9 @@ function _step_hotrg_y(
 end
 
 function _step_hotrg_x(
-        A1::PFTensor, A2::PFTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     #= compression along the x-direction
                 -3
                 |

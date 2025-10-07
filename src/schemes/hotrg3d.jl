@@ -25,17 +25,18 @@ $(TYPEDFIELDS)
 
 """
 mutable struct HOTRG_3D <: TNRScheme
-    T::PEPOTensor
+    T::TensorMap
 
     finalize!::Function
-    function HOTRG_3D(T::PEPOTensor; finalize = (finalize!))
+    function HOTRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
         return new(T, finalize)
     end
 end
 
 function _get_hotrg3d_xproj(
-        A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
     # left unitary
     A2′ = twistdual(A2, [2, 3, 4, 5])
@@ -64,8 +65,9 @@ function _get_hotrg3d_xproj(
 end
 
 function _step_hotrg3d(
-        A1::PEPOTensor, A2::PEPOTensor, trunc::TensorKit.TruncationScheme
-    )
+        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     Ux, = _get_hotrg3d_xproj(A1, A2, trunc)
     # switch x/y directions
     perm = ((1, 2), (4, 3, 6, 5))
