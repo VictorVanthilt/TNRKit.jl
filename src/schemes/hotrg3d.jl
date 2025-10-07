@@ -45,7 +45,6 @@ function _get_hotrg3d_xproj(
         A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
-    TensorKit.normalize!(MM, Inf)
     U, s, _, ε = tsvd!(MM; trunc)
     @debug "Ux left truncation" singular_values = s trunc_err = ε
     # right unitary
@@ -55,7 +54,6 @@ function _get_hotrg3d_xproj(
         conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
-    TensorKit.normalize!(MM, Inf)
     _, s′, U′, ε′ = tsvd!(MM; trunc)
     @debug "Ux right truncation" singular_values = s′ trunc_err = ε′
     if ε > ε′
