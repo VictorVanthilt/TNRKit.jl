@@ -80,7 +80,7 @@ function ΨAΨA(psiA)
     NA = length(psiA)
     ΨAΨA_list = []
     for i in 1:NA
-        @planar tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
+        @plansor tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
         push!(ΨAΨA_list, tmp)
     end
     return ΨAΨA_list
@@ -97,7 +97,7 @@ function ΨBΨB(psiB)
     NB = length(psiB)
     ΨBΨB_list = []
     for i in 1:NB
-        @planar tmp[-1 -2; -3 -4] := psiB[i][-2; 1 -4] * psiB[i]'[1 -3; -1]
+        @plansor tmp[-1 -2; -3 -4] := psiB[i][-2; 1 -4] * psiB[i]'[1 -3; -1]
         push!(ΨBΨB_list, tmp)
     end
     return ΨBΨB_list
@@ -114,7 +114,7 @@ function ΨBΨA(psiB, psiA)
     NA = length(psiA)
     ΨBΨA_list = []
     for i in 1:NA
-        @planar temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
+        @plansor temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
             psiB[2 * i]'[2 -3; 3]
         push!(ΨBΨA_list, temp)
     end
@@ -147,10 +147,10 @@ function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcr
     TA = copy(scheme.TA)
     TB = copy(scheme.TB)
 
-    @planar scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
+    @plansor scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
         PL_list[1][-2; 2] * PR_list[2][4; -4] *
         PL_list[3][-3; 3]
-    @planar scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
+    @plansor scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
         PR_list[3][2; -2] * PL_list[4][-4; 4] *
         PR_list[1][3; -3]
 
@@ -181,7 +181,7 @@ function tW(pos, psiA, psiB, TSS_left, TSS_right)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @planar W[-1; -3 -2] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
+        @plansor W[-1; -3 -2] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
         ΨB = psiB[pos + 1]
         #-1'--   --2'--ΨB--2----------1'-
@@ -191,7 +191,7 @@ function tW(pos, psiA, psiB, TSS_left, TSS_right)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @planar W[-1; -3 -2] := ΨB'[4 2; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
+        @plansor W[-1; -3 -2] := ΨB'[4 2; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
     return W
@@ -207,7 +207,7 @@ function opt_T(N, W, psi)
         #          |            |
         #          |            |
         #---1------x-------2---------1---
-        @planar b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
+        @plansor b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
         return b
     end
     new_T, info = linsolve(
@@ -284,12 +284,12 @@ function loop_opt(
 
             psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B
 
-            @planar BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
+            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @planar BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
+                @plansor BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
                     psiA[pos_psiA][-2; 1 2 -4] *
                     psiB[2 * pos_psiA]'[2 -3; 3]
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
@@ -321,9 +321,9 @@ function loop_opt!(
     )
     psiA = Ψ_A(scheme)
     psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
-    @planar scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
+    @plansor scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
         psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
-    @planar scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
+    @plansor scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
         psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     return scheme
 end

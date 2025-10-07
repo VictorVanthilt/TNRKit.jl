@@ -79,8 +79,8 @@ function area_term(A, B; is_real = true)
     x0 = rand(a_in ⊗ b_in)
 
     function f0(x)
-        @planar fx[-1 -2] := A[c -1; 1 m] * x[1 2] * B[m -2; 2 c]
-        @planar ffx[-1 -2] := B[c -1; 1 m] * fx[1 2] * A[m -2; 2 c]
+        @plansor fx[-1 -2] := A[c -1; 1 m] * x[1 2] * B[m -2; 2 c]
+        @plansor ffx[-1 -2] := B[c -1; 1 m] * fx[1 2] * A[m -2; 2 c]
         return ffx
     end
 
@@ -123,11 +123,11 @@ function reduced_MPO(
         dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
         trunc::TensorKit.TruncationScheme
     )
-    @planar temp[-1 -2; -3 -4] := ur[-1; 1 4] *
+    @plansor temp[-1 -2; -3 -4] := ur[-1; 1 4] *
         ul[4; 3 -2] *
         dr[-3; 2 1] * dl[2; -4 3]
     D, U = SVD12(temp, trunc)
-    @planar translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
+    @plansor translate[-1 -2; -3 -4] := U[-2; 1 -4] * D[-1 1; -3]
     return translate
 end
 
