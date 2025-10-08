@@ -20,7 +20,7 @@ KrylovKit = "0.9.5"
 LoggingExtras = "~1.0"
 OptimKit = "0.4.0"
 PEPSKit = "0.6"
-TensorKit = "0.14"
+TensorKit = "0.15"
 Zygote = "0.7.7"
 julia = "1.10"
 
