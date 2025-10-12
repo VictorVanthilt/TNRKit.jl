@@ -298,7 +298,7 @@ function loop_opt(
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @plansor BA_temp[-1 -2; -3 -4] := 
+                @plansor BA_temp[-1 -2; -3 -4] :=
                     conj(psiB[2 * pos_psiA - 1][-1; 1 3]) *
                     psiA[pos_psiA][-2; 1 2 -4] *
                     conj(psiB[2 * pos_psiA][3; 2 -3])
