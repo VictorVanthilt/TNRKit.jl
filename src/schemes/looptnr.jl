@@ -187,7 +187,7 @@ function tW(
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @plansor W[-1; -3 -2] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
+        @plansor W[-1; -3 -2] := conj(ΨB[2; 4 -1]) * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
         ΨB = psiB[pos + 1]
         #-1'--   --2'--ΨB--2----------1'-
@@ -197,7 +197,7 @@ function tW(
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @plansor W[-1; -3 -2] := ΨB'[4 2; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
+        @plansor W[-1; -3 -2] := conj(ΨB[-2; 4 2]) * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
     return W
@@ -293,14 +293,15 @@ function loop_opt(
 
             psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B
 
-            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
+            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * conj(new_psiB[-1; 1 -3])
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @plansor BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
+                @plansor BA_temp[-1 -2; -3 -4] := 
+                    conj(psiB[2 * pos_psiA - 1][-1; 1 3]) *
                     psiA[pos_psiA][-2; 1 2 -4] *
-                    psiB[2 * pos_psiA]'[2 -3; 3]
+                    conj(psiB[2 * pos_psiA][3; 2 -3])
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
                 left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
             end
