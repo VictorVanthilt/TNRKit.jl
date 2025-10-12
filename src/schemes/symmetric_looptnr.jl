@@ -107,7 +107,7 @@ end
 ########## Entanglement filtering ##########
 function Ψ_center(T)
     Tflip = flip(T, (1, 2, 3, 4))
-    psi = AbstractTensorMap[
+    psi = [
         permute(T, ((2,), (1, 3, 4))),
         permute(Tflip, ((4,), (3, 1, 2))),
         permute(T, ((2,), (1, 3, 4))),
@@ -118,7 +118,7 @@ end
 
 function Ψ_corner(T)
     Tflip = flip(T, (1, 2, 3, 4))
-    psi = AbstractTensorMap[
+    psi = [
         permute(T, ((3,), (4, 2, 1))),
         permute(Tflip, ((1,), (2, 4, 3))),
         permute(T, ((3,), (4, 2, 1))),
@@ -162,28 +162,16 @@ end
 
 function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
-    ΨB = []
-
-    for i in 1:4
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        push!(ΨB, s1)
-        push!(ΨB, s2)
-    end
+    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)
-    PR_list, _ = find_projectors(
+    PRs, _ = find_projectors(
         ΨB, [1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2, 2],
         criterion, trunc
     )
-
-    ΨB_disentangled = []
-    for i in 1:1
-        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] *
-            PR_list[mod(i, 8) + 1][2; -3]
-        push!(ΨB_disentangled, B1)
-    end
-    S = ΨB_disentangled[1]
+    i = 1
+    @tensor S[-2 -1; -3] := ΨB[i][-1; -2 2] * PRs[mod(i, 8) + 1][2; -3]
     return S
 end
 
