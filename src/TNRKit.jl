@@ -61,7 +61,7 @@ export run!
 # models
 include("models/ising.jl")
 export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
-    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, Ising_magnetisation
+    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, ising_magnetisation
 
 include("models/gross-neveu.jl")
 export gross_neveu_start

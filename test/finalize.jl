@@ -72,9 +72,9 @@ end
 
 # ImpurityHOTRG
 @testset "ImpurityHOTRG - Ising Model" begin
-    T = Ising_magnetisation(ising_βc; impurity = false)
-    T_imp1 = Ising_magnetisation(ising_βc; impurity = true)
-    scheme = ImpurityHOTRG(T, T_imp1, T)
+    T = ising_magnetisation(ising_βc; impurity = false)
+    T_imp1 = ising_magnetisation(ising_βc; impurity = true)
+    scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
     data = run!(scheme, truncdim(16), maxiter(25))
 
     lnz = 0
@@ -86,4 +86,30 @@ end
 
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3.0e-6
+end
+
+@testset "Impurity HOTRG - Magnetisation" begin
+    beta1 = 0.2
+    T = ising_magnetisation(beta1; impurity = false)
+    T_imp_order1_1 = ising_magnetisation(beta1; impurity = true)
+    T_imp_order2 = ising_magnetisation(beta1; impurity = false)
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+    data = run!(scheme, truncdim(8), maxiter(25))
+
+    m2_highT = data[end][4] / data[end][1]
+    m_actual = 0.0
+    relerror = abs((m2_highT - m_actual) / m_actual)
+    @test relerror < 1.0e-2
+
+
+    beta2 = 1.0
+    T = ising_magnetisation(beta2; impurity = false)
+    T_imp_order1_1 = ising_magnetisation(beta2; impurity = true)
+    T_imp_order2 = ising_magnetisation(beta2; impurity = false)
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+    data = run!(scheme, truncdim(8), maxiter(25))
+    m2_lowT = data[end][4] / data[end][1]
+    m_actual = 1.0
+    relerror = abs((m2_lowT - m_actual) / m_actual)
+    @test relerror < 1.0e-2
 end
