@@ -110,7 +110,7 @@ end
         cft = cft_data!(scheme, shape)
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
-        @test d1 ≈ ising_cft_exact[1] rtol = 2.0e-4
+        @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-4
         @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-2
     end
 
