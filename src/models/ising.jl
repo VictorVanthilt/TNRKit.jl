@@ -42,6 +42,31 @@ function classical_ising(β::Number; h = 0)
 end
 classical_ising() = classical_ising(ising_βc)
 
+function Ising_magnetisation(β::Number; h = 0, impurity = false)
+    init = zeros(ComplexF64, 2, 2, 2, 2)
+    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
+        init[i, j, k, l] =
+            mod(i + j + k + l, 2) == 0 ? (impurity ? sinh(h * β) : cosh(h * β)) :
+            (impurity ? cosh(h * β) : sinh(h * β))
+    end
+    init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
+
+    bond_tensor = zeros(ComplexF64, 2, 2)
+    bond_tensor[1, 1] = sqrt(cosh(β))
+    bond_tensor[2, 2] = sqrt(sinh(β))
+    bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
+
+    @tensor T[-1 -2; -3 -4] :=
+        2 *
+        init[1 2; 3 4] *
+        bond_tensor[-1; 1] *
+        bond_tensor[-2; 2] *
+        bond_tensor[3; -3] *
+        bond_tensor[4; -4]
+    return T
+end
+Ising_magnetisation() = Ising_magnetisation(ising_βc; impurity = true)
+
 """
 $(SIGNATURES)
 
