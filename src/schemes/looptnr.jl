@@ -233,10 +233,10 @@ end
 # ...
 # cache[7] = T8
 # cache[8] = I
-function right_cache(transfer_mats::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+function right_cache(transfer_mats::Vector{T}) where {T <: AbstractTensorMap{E, S, 2, 2}} where {E, S}
     n = length(transfer_mats)
     cache = similar(transfer_mats)
-    cache[end] = id(domain(transfer_mats[end]))
+    cache[end] = id(E, domain(transfer_mats[end]))
 
     for i in (n - 1):-1:1
         cache[i] = transfer_mats[i + 1] * cache[i + 1]
@@ -254,7 +254,7 @@ function loop_opt(
         psiA::Vector{T}, loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme, verbosity::Int
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+    ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
     psiB = Ψ_B(psiA, trunc, truncentanglement)
     NB = length(psiB) # Number of tensors in the MPS Ψ_B
     psiBpsiB = ΨBΨB(psiB)
@@ -267,8 +267,8 @@ function loop_opt(
     while crit
         right_cache_BB = right_cache(psiBpsiB)
         right_cache_BA = right_cache(psiBpsiA)
-        left_BB = id(codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
-        left_BA = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
+        left_BB = id(E, codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
+        left_BA = id(E, codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
 
         t_start = time()
 
