@@ -17,7 +17,7 @@ Each step rescales the lattice by a (linear) factor of √2
     - 2: Print information at each step
 
 ### Fields
-
+ 
 $(TYPEDFIELDS)
 
 ### References

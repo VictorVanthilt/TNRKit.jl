@@ -3,7 +3,8 @@ using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
-using PEPSKit: network_value, InfinitePartitionFunction, CTMRGEnv
+using PEPSKit: InfinitePartitionFunction, CTMRGEnv
+using PEPSKit: network_value, twistdual, twistdual!
 using DocStringExtensions
 
 # stop criteria

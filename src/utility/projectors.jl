@@ -194,8 +194,8 @@ end
 function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
     U, s, V, e = tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
-    @planar S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
-    @planar S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
+    @plansor S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
+    @plansor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 

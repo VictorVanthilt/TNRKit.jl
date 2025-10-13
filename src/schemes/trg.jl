@@ -38,7 +38,7 @@ function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
     A, B = SVD12(scheme.T, trunc)
     Tp = transpose(scheme.T, ((2, 4), (1, 3)))
     C, D = SVD12(Tp, trunc)
-    @planar scheme.T[-1 -2; -3 -4] := D[-2; 1 2] * B[-1; 4 1] * C[4 3; -3] * A[3 2; -4]
+    @plansor scheme.T[-1 -2; -3 -4] := D[-2; 1 2] * B[-1; 4 1] * C[4 3; -3] * A[3 2; -4]
     return scheme
 end
 
