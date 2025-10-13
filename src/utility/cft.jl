@@ -162,45 +162,40 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
 
-    spec_sector = Dict()
-    conformal_data = Dict()
-
-    for charge in values(I)
-        if I == Trivial
-            V = 𝔽^1
-        else
-            V = Vect[I](charge => 1)
-        end
-
-        if shape ≈ [1, 4, 1]
-            x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
-            f = MPO_action_1x4_twist
-        elseif shape ≈ [1, 8, 1]
-            x = rand(domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1] ← V)
-            f = MPO_action_1x4
-        elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0] ||
-                shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
-            x = rand(domain(TB) ⊗ domain(TB) ← V)
-            f = MPO_action_2gates
-        end
-
-        if dim(x) == 0
-            spec_sector[charge] = [0.0]
-        else
-            spec, _, _ = eigsolve(
-                a -> f(TA, TB, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
-                tol = 1.0e-12,
-                verbosity = 0
-            )
-
-            spec_sector[charge] = filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
-        end
+    xspace, f = if shape ≈ [1, 4, 1]
+        domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1],
+            MPO_action_1x4_twist
+    elseif shape ≈ [1, 8, 1]
+        domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1],
+            MPO_action_1x4
+    elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0] ||
+            shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
+        domain(TB) ⊗ domain(TB), MPO_action_2gates
     end
+
+    spec_sector = Dict(
+        map(sectors(fuse(xspace))) do charge
+            V = (I == Trivial) ? 𝔽^1 : Vect[I](charge => 1)
+            x = rand(xspace ← V)
+            if dim(x) == 0
+                return charge => [0.0]
+            else
+                spec, _, _ = eigsolve(
+                    a -> f(TA, TB, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
+                    tol = 1.0e-12,
+                    verbosity = 0
+                )
+                return charge => filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
+            end
+        end
+    )
+
+    conformal_data = Dict()
 
     norm_const_0 = spec_sector[one(I)][1]
     conformal_data["c"] = 6 / pi / (Reτ - area / 4) * log(norm_const_0)
 
-    for charge in values(I)
+    for charge in sectors(fuse(xspace))
         DeltaS = -1 / (2 * pi * shape[1] / shape[2]) *
             log.(spec_sector[charge] / norm_const_0)
         if !(relative_shift ≈ 0)
