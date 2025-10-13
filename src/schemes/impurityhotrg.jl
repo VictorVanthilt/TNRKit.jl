@@ -48,146 +48,73 @@ mutable struct ImpurityHOTRG <: TNRScheme
     end
 end
 
-function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
-    # join vertically
-    @tensor MMdag[-1 -2; -3 -4] :=
-        scheme.T[-1 5; 1 2] *
-        scheme.T[-2 3; 5 4] *
-        conj(scheme.T[-3 6; 1 2]) *
-        conj(scheme.T[-4 3; 6 4])
+function _step_impurityhotrg_x(
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        U::TensorMap{E, S, 2, 1}
+    ) where {E, S}
+    #= compression along the x-direction
+                -3
+                |
+            ┌3--U--4┐
+            |       |
+        -1--A1--5---A2-- -4
+            |       |
+            └1--U†-2┘
+                |
+                -2
+    =#
 
-    # get unitaries
-    U, _, _, εₗ = tsvd(MMdag; trunc = trunc)
-    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc = trunc)
-
-    if εₗ > εᵣ
-        U = adjoint(Uᵣ)
-    end
-
-    # adjoint(U) on the left, U on the right
     @tensor T[-1 -2; -3 -4] :=
-        scheme.T[1 5; -3 3] * conj(U[1 2; -1]) * U[3 4; -4] * scheme.T[2 -2; 5 4]
+        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
+    return T
+end
 
-    #evolve order 1 impurities with the same unitaries
-    @tensor T_imp_order1_1[-1 -2; -3 -4] :=
-        1 / 2 *
-        scheme.T_imp_order1_1[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T[2 -2; 5 4] +
-        1 / 2 *
-        scheme.T[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T_imp_order1_1[2 -2; 5 4]
+function _step_impurityhotrg_y(
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        U::TensorMap{E, S, 2, 1}
+    ) where {E, S}
+    #= compression along the y-direction
+                    -3
+                    |
+            ┌---1---A2---3--┐
+            |       |       |
+        -1--U†      5       U-- -4
+            |       |       |
+            └---2---A1---4--┘
+                    |
+                    -2
+    =#
 
-    @tensor T_imp_order1_2[-1 -2; -3 -4] :=
-        1 / 2 *
-        scheme.T_imp_order1_2[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T[2 -2; 5 4] +
-        1 / 2 *
-        scheme.T[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T_imp_order1_2[2 -2; 5 4]
+    @tensor T[-1 -2; -3 -4] :=
+        conj(U[1 2; -1]) * U[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
+    return T
+end
 
-    #evolve order 2 impurity with the same unitaries and both order 1 impurities
-    @tensor T_imp_order2[-1 -2; -3 -4] :=
-        1 / 4 *
-        scheme.T_imp_order2[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T[2 -2; 5 4] +
-        1 / 4 *
-        scheme.T[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T_imp_order2[2 -2; 5 4] +
-        1 / 4 *
-        scheme.T_imp_order1_1[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T_imp_order1_2[2 -2; 5 4] +
-        1 / 4 *
-        scheme.T_imp_order1_2[1 5; -3 3] *
-        conj(U[1 2; -1]) *
-        U[3 4; -4] *
-        scheme.T_imp_order1_1[2 -2; 5 4]
-
+function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
+    U, _ = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
+    T = _step_hotrg_x(scheme.T, scheme.T, trunc)
+    T_imp_order1_1 = 0.5 * (_step_impurityhotrg_x(scheme.T_imp_order1_1, scheme.T, U) + _step_impurityhotrg_x(scheme.T, scheme.T_imp_order1_1, U))
+    T_imp_order1_2 = 0.5 * (_step_impurityhotrg_x(scheme.T_imp_order1_2, scheme.T, U) + _step_impurityhotrg_x(scheme.T, scheme.T_imp_order1_2, U))
+    T_imp_order2 = 0.25 * (
+        _step_impurityhotrg_x(scheme.T_imp_order2, scheme.T, U) +
+            _step_impurityhotrg_x(scheme.T, scheme.T_imp_order2, U) +
+            _step_impurityhotrg_x(scheme.T_imp_order1_1, scheme.T_imp_order1_2, U) +
+            _step_impurityhotrg_x(scheme.T_imp_order1_2, scheme.T_imp_order1_1, U)
+    )
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
     scheme.T_imp_order1_2 = T_imp_order1_2
     scheme.T_imp_order2 = T_imp_order2
-
-    # join horizontally
-    @tensor MMdag[-1 -2; -3 -4] :=
-        scheme.T[1 -1; 2 5] *
-        scheme.T[5 -2; 4 3] *
-        conj(scheme.T[1 -3; 2 6]) *
-        conj(scheme.T[6 -4; 4 3])
-
-    # get unitaries
-    U, _, _, εₗ = tsvd(MMdag; trunc = trunc)
-    _, _, Uᵣ, εᵣ = tsvd(adjoint(MMdag); trunc = trunc)
-
-    if εₗ > εᵣ
-        U = adjoint(Uᵣ)
-    end
-
-    # adjoint(U) on the bottom, U on top
-    @tensor T[-1 -2; -3 -4] :=
-        scheme.T[-1 1; 3 5] * scheme.T[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
-
-    #evolve order 1 impurities with the same unitaries
-    @tensor T_imp_order1_1[-1 -2; -3 -4] :=
-        1 / 2 *
-        scheme.T_imp_order1_1[-1 1; 3 5] *
-        scheme.T[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3] +
-        1 / 2 *
-        scheme.T[-1 1; 3 5] *
-        scheme.T_imp_order1_1[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3]
-
-    @tensor T_imp_order1_2[-1 -2; -3 -4] :=
-        1 / 2 *
-        scheme.T_imp_order1_2[-1 1; 3 5] *
-        scheme.T[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3] +
-        1 / 2 *
-        scheme.T[-1 1; 3 5] *
-        scheme.T_imp_order1_2[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3]
-
-    #evolve order 2 impurity with the same unitaries and both order 1 impurities
-    @tensor T_imp_order2[-1 -2; -3 -4] :=
-        1 / 4 *
-        scheme.T_imp_order2[-1 1; 3 5] *
-        scheme.T[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3] +
-        1 / 4 *
-        scheme.T[-1 1; 3 5] *
-        scheme.T_imp_order2[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3] +
-        1 / 4 *
-        scheme.T_imp_order1_1[-1 1; 3 5] *
-        scheme.T_imp_order1_2[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3] +
-        1 / 4 *
-        scheme.T_imp_order1_2[-1 1; 3 5] *
-        scheme.T_imp_order1_1[5 2; 4 -4] *
-        conj(U[1 2; -2]) *
-        U[3 4; -3]
-
+    U, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
+    T = _step_hotrg_y(scheme.T, scheme.T, trunc)
+    T_imp_order1_1 = 0.5 * (_step_impurityhotrg_y(scheme.T_imp_order1_1, scheme.T, U) + _step_impurityhotrg_y(scheme.T, scheme.T_imp_order1_1, U))
+    T_imp_order1_2 = 0.5 * (_step_impurityhotrg_y(scheme.T_imp_order1_2, scheme.T, U) + _step_impurityhotrg_y(scheme.T, scheme.T_imp_order1_2, U))
+    T_imp_order2 = 0.25 * (
+        _step_impurityhotrg_y(scheme.T_imp_order2, scheme.T, U) +
+            _step_impurityhotrg_y(scheme.T, scheme.T_imp_order2, U) +
+            _step_impurityhotrg_y(scheme.T_imp_order1_1, scheme.T_imp_order1_2, U) +
+            _step_impurityhotrg_y(scheme.T_imp_order1_2, scheme.T_imp_order1_1, U)
+    )
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
     scheme.T_imp_order1_2 = T_imp_order1_2
