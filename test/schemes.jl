@@ -56,7 +56,7 @@ end
     scheme = HOTRG(T)
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    @test free_energy(data, ising_βc; scalefactor=4.0) ≈ f_onsager rtol = 6.0e-7
+    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
 
     @info "HOTRG ising CFT data"
     scheme = HOTRG(T)
@@ -74,7 +74,7 @@ end
     scheme = ATRG(T)
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(data, ising_βc; scalefactor=4.0) ≈ f_onsager rtol = 3.0e-6
+    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 3.0e-6
 
     @info "ATRG ising CFT data"
     scheme = ATRG(T)
@@ -154,7 +154,7 @@ end
 @testset "c4CTM - Ising Model" begin
     @info "c4CTM ising free energy"
     scheme = c4CTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity=1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
@@ -165,7 +165,7 @@ end
 @testset "rCTM - Ising Model" begin
     @info "rCTM ising free energy"
     scheme = rCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity=1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
@@ -177,7 +177,7 @@ end
     @info "ATRG_3D ising free energy"
     scheme = ATRG_3D(T_3D)
     data = run!(scheme, truncdim(12), maxiter(25))
-    fs = free_energy(data, ising_βc_3D; scalefactor=8.0)
+    fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 5.0e-3
 end
@@ -187,7 +187,7 @@ end
     @info "HOTRG_3D ising free energy"
     scheme = HOTRG_3D(T_3D)
     data = run!(scheme, truncdim(8), maxiter(25))
-    fs = free_energy(data, ising_βc_3D; scalefactor=8.0)
+    fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
 end
