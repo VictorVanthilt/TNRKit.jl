@@ -95,6 +95,23 @@ function classical_potts_symmetric(q::Int64, β::Float64)
 end
 classical_potts_symmetric(q::Int) = classical_potts_symmetric(q, potts_βc(q))
 
+
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a Potts model with `q` states
+and a given inverse temperature `β` with impurities in sectors `k1` and `k2`.
+
+### Examples
+```julia
+    classical_potts_impurity(3) # Default inverse temperature is `potts_βc(3)`
+    classical_potts_impurity(3, 1, 2) # Custom inverse temperature and impurity sectors.
+    classical_potts_impurity(3, 0.5, 2, 3) # Custom inverse temperature and impurity sectors.
+```
+
+See also: [`classical_potts`](@ref), [`potts_βc`](@ref).
+"""
+
 function classical_potts_impurity(q::Int64, β::Float64, k1::Int64 = 1, k2::Int64 = 1)
     bond_tensor = zeros(ComplexF64, q, q)
     for i in 0:(q - 1)
@@ -120,3 +137,6 @@ function classical_potts_impurity(q::Int64, β::Float64, k1::Int64 = 1, k2::Int6
 
     return T
 end
+
+classical_potts_impurity(q::Int64, k1::Int64, k2::Int64) = classical_potts_impurity(q, potts_βc(q), k1, k2)
+classical_potts_impurity(q::Int64) = classical_potts_impurity(q, potts_βc(q), 1, 1)
