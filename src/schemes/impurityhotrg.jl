@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of 2
 $(TYPEDFIELDS)
 
 ### References
-* [Morita et al arxiv/1806.10275 (2017)](@cite moritaHigherOrderTensorRenormalization2017)
+* [Morita et al arxiv/1806.10275 (2018)](@cite moritaHigherOrderTensorRenormalization2017)
 
 """
 
