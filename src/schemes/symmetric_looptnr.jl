@@ -136,7 +136,7 @@ function entanglement_filtering(T; ef_trunc = truncbelow(1.0e-14))
     psi_center = Ψ_center(T)
     psi_corner = Ψ_corner(T)
 
-    PR_list, PL_list = TNRKit.find_projectors(
+    PR_list, PL_list = find_projectors(
         psi_center,
         [1, 1, 1, 1],
         [3, 3, 3, 3],
