@@ -76,7 +76,7 @@ end
 function area_term(A, B; is_real = true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
-    x0 = rand(a_in ⊗ b_in)
+    x0 = ones(a_in ⊗ b_in)
 
     function f0(x)
         @plansor fx[-1 -2] := A[c -1; 1 m] * x[1 2] * B[m -2; 2 c]
