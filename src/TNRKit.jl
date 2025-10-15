@@ -39,7 +39,7 @@ export TNRScheme
 
 export TRG
 export BTRG
-export HOTRG, _get_hotrg_xproj, _get_hotrg_yproj
+export HOTRG
 export HOTRG_3D
 export ATRG
 export ATRG_3D

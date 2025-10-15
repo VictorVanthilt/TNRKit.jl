@@ -48,7 +48,7 @@ mutable struct ImpurityHOTRG <: TNRScheme
     end
 end
 
-function _step_impurityhotrg_x(
+function _step_hotrg_x(
         A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
         U::TensorMap{E, S, 2, 1}
     ) where {E, S}
@@ -69,7 +69,7 @@ function _step_impurityhotrg_x(
     return T
 end
 
-function _step_impurityhotrg_y(
+function _step_hotrg_y(
         A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
         U::TensorMap{E, S, 2, 1}
     ) where {E, S}
@@ -90,30 +90,95 @@ function _step_impurityhotrg_y(
     return T
 end
 
+function _get_hotrg_xproj(
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
+    #= join in y-direction, keep x-indices open (A1 below A2)
+    M M†                        M† M
+            ┌---1---┐                   ┌---1---┐
+            ↓       ↑                   ↑       ↓
+    -1 -←--A2-←-2--A2†-←- -3    -1 -←--A2†--2-←-A2-←- -3
+            ↓       ↑                   ↑       ↓
+            5       6                   5       6
+            ↓       ↑                   ↑       ↓
+    -2 -←--A1-←-4--A1†-←- -4    -2 -←--A1†--4-←-A1-←- -4
+            ↓       ↑                   ↑       ↓
+            └---3---┘                   └---3---┘
+    =#
+    # get left unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        A2[-1 5; 1 2] * A1[-2 3; 5 4] *
+        conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
+    U, s, _, ε = tsvd!(MM; trunc)
+    # get right unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
+        A2[2 6; 1 -3] * A1[4 3; 6 -4]
+    _, s′, U′, ε′ = tsvd!(MM; trunc)
+    if ε > ε′
+        U, s, ε = adjoint(U′), s′, ε′
+    end
+    return U, s, ε
+end
+
+function _get_hotrg_yproj(
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
+    #= join in x-direction, keep y-indices open (A1 on the left of A2)
+    M M†                        M† M
+            -3      -4              -3      -4
+            ↓       ↓               ↓       ↓
+        ┌-→-A1†--6-→A2†-→┐      ┌-←-A1-←-6--A2-←-┐
+        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
+        1   2       4    3      1   2       4    3
+        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
+        └-←-A1-←-5--A2-←-┘      └-→-A1†--5-→A2†-→┘
+            ↓       ↓               ↓       ↓
+            -1      -2              -1      -2
+    =#
+    # get bottom unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        A1[1 -1; 2 5] * A2[5 -2; 4 3] *
+        conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
+    U, s, _, ε = tsvd!(MM; trunc)
+    # get top unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
+        A1[1 2; -3 6] * A2[6 4; -4 3]
+    _, s′, U′, ε′ = tsvd!(MM; trunc)
+    if ε > ε′
+        U, s, ε = adjoint(U′), s′, ε′
+    end
+    return U, s, ε
+end
+
+
 function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
-    U, _ = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
-    T = _step_hotrg_x(scheme.T, scheme.T, trunc)
-    T_imp_order1_1 = 0.5 * (_step_impurityhotrg_x(scheme.T_imp_order1_1, scheme.T, U) + _step_impurityhotrg_x(scheme.T, scheme.T_imp_order1_1, U))
-    T_imp_order1_2 = 0.5 * (_step_impurityhotrg_x(scheme.T_imp_order1_2, scheme.T, U) + _step_impurityhotrg_x(scheme.T, scheme.T_imp_order1_2, U))
+    Ux, _ = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
+    T = _step_hotrg_x(scheme.T, scheme.T, Ux)
+    T_imp_order1_1 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_1, scheme.T, Ux) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_1, Ux))
+    T_imp_order1_2 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_2, scheme.T, Ux) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_2, Ux))
     T_imp_order2 = 0.25 * (
-        _step_impurityhotrg_x(scheme.T_imp_order2, scheme.T, U) +
-            _step_impurityhotrg_x(scheme.T, scheme.T_imp_order2, U) +
-            _step_impurityhotrg_x(scheme.T_imp_order1_1, scheme.T_imp_order1_2, U) +
-            _step_impurityhotrg_x(scheme.T_imp_order1_2, scheme.T_imp_order1_1, U)
+        _step_hotrg_x(scheme.T_imp_order2, scheme.T, Ux) +
+            _step_hotrg_x(scheme.T, scheme.T_imp_order2, Ux) +
+            _step_hotrg_x(scheme.T_imp_order1_1, scheme.T_imp_order1_2, Ux) +
+            _step_hotrg_x(scheme.T_imp_order1_2, scheme.T_imp_order1_1, Ux)
     )
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
     scheme.T_imp_order1_2 = T_imp_order1_2
     scheme.T_imp_order2 = T_imp_order2
-    U, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
-    T = _step_hotrg_y(scheme.T, scheme.T, trunc)
-    T_imp_order1_1 = 0.5 * (_step_impurityhotrg_y(scheme.T_imp_order1_1, scheme.T, U) + _step_impurityhotrg_y(scheme.T, scheme.T_imp_order1_1, U))
-    T_imp_order1_2 = 0.5 * (_step_impurityhotrg_y(scheme.T_imp_order1_2, scheme.T, U) + _step_impurityhotrg_y(scheme.T, scheme.T_imp_order1_2, U))
+    Uy, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
+    T = _step_hotrg_y(scheme.T, scheme.T, Uy)
+    T_imp_order1_1 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_1, scheme.T, U) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_1, U))
+    T_imp_order1_2 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_2, scheme.T, U) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_2, U))
     T_imp_order2 = 0.25 * (
-        _step_impurityhotrg_y(scheme.T_imp_order2, scheme.T, U) +
-            _step_impurityhotrg_y(scheme.T, scheme.T_imp_order2, U) +
-            _step_impurityhotrg_y(scheme.T_imp_order1_1, scheme.T_imp_order1_2, U) +
-            _step_impurityhotrg_y(scheme.T_imp_order1_2, scheme.T_imp_order1_1, U)
+        _step_hotrg_y(scheme.T_imp_order2, scheme.T, U) +
+            _step_hotrg_y(scheme.T, scheme.T_imp_order2, U) +
+            _step_hotrg_y(scheme.T_imp_order1_1, scheme.T_imp_order1_2, U) +
+            _step_hotrg_y(scheme.T_imp_order1_2, scheme.T_imp_order1_1, U)
     )
     scheme.T = T
     scheme.T_imp_order1_1 = T_imp_order1_1
