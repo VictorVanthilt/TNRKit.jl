@@ -147,8 +147,10 @@ function _get_hotrg_yproj(
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
-    scheme.T = _step_hotrg_y(scheme.T, scheme.T, trunc)
-    scheme.T = _step_hotrg_x(scheme.T, scheme.T, trunc)
+    Ux = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
+    scheme.T = _step_hotrg_y(scheme.T, scheme.T, Ux)
+    Uy = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
+    scheme.T = _step_hotrg_x(scheme.T, scheme.T, Uy)
     return scheme
 end
 
