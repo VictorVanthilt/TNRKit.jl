@@ -84,8 +84,10 @@ function area_term(A, B; is_real = true)
         return ffx
     end
 
-    spec0, _, _ = eigsolve(f0, x0, 1, :LR; verbosity = 0)
-
+    spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
+    if info.converged == 0
+        @warn "The area term eigensolver did not converge."
+    end
     if is_real
         return real(spec0[1])
     else
