@@ -91,9 +91,8 @@ end
     @info "LoopTNR ising free energy"
     scheme = LoopTNR(T)
 
-    entanglement_function(steps, data) = abs(data[end])
-    entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
-    loop_criterion = maxiter(5) & convcrit(1.0e-10, entanglement_function)
+    entanglement_criterion = maxiter(100)
+    loop_criterion = maxiter(5)
 
     data = run!(
         scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
@@ -104,18 +103,22 @@ end
 
     @info "LoopTNR ising CFT data"
     scheme = LoopTNR(T)
-    run!(scheme, truncdim(8), maxiter(10))
+    run!(scheme, truncdim(12), maxiter(10))
 
     for shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]]
         cft = cft_data!(scheme, shape)
-        @test real(cft[Z2Irrep(1)][1]) ≈ ising_cft_exact[1] rtol = 2.0e-4
-        @test real(cft[Z2Irrep(0)][2]) ≈ ising_cft_exact[2] rtol = 1.0e-2
+        d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
+        @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
+        @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-4
+        @test d2 ≈ ising_cft_exact[2] rtol = 5.0e-4
     end
 
     for shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]]
-        cft = cft_data!(scheme, shape, truncdim(8), truncbelow(1.0e-10))
-        @test real(cft[Z2Irrep(1)][1]) ≈ ising_cft_exact[1] rtol = 1.0e-2
-        @test real(cft[Z2Irrep(0)][2]) ≈ ising_cft_exact[2] rtol = 1.0e-2
+        cft = cft_data!(scheme, shape, truncdim(12), truncbelow(1.0e-10))
+        d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
+        @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
+        @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
+        @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-3
     end
 end
 
