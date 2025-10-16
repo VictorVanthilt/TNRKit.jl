@@ -28,7 +28,7 @@ mutable struct HOTRG <: TNRScheme
     T::TensorMap
 
     finalize!::Function
-    function HOTRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
+    function HOTRG(T::TensorMap{E,S,2,2}; finalize=(finalize!)) where {E,S}
         return new(T, finalize)
     end
 end
@@ -39,10 +39,53 @@ in order to reuse the y-compression code for x-compression.
 Hence both are written explicitly.
 =#
 
+
+function _step_hotrg_x(
+    A1::TensorMap{E,S,2,2}, A2::TensorMap{E,S,2,2},
+    U::TensorMap{E,S,2,1}
+) where {E,S}
+    #= compression along the x-direction
+                -3
+                |
+            ┌3--U--4┐
+            |       |
+        -1--A1--5---A2-- -4
+            |       |
+            └1--U†-2┘
+                |
+                -2
+    =#
+
+    @tensor T[-1 -2; -3 -4] :=
+        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
+    return T
+end
+
+function _step_hotrg_y(
+    A1::TensorMap{E,S,2,2}, A2::TensorMap{E,S,2,2},
+    U::TensorMap{E,S,2,1}
+) where {E,S}
+    #= compression along the y-direction
+                    -3
+                    |
+            ┌---1---A2---3--┐
+            |       |       |
+        -1--U†      5       U-- -4
+            |       |       |
+            └---2---A1---4--┘
+                    |
+                    -2
+    =#
+
+    @tensor T[-1 -2; -3 -4] :=
+        conj(U[1 2; -1]) * U[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
+    return T
+end
+
 function _get_hotrg_xproj(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
+    A1::TensorMap{E,S,2,2}, A2::TensorMap{E,S,2,2},
+    trunc::TensorKit.TruncationScheme
+) where {E,S}
     #= join in y-direction, keep x-indices open (A1 below A2)
     M M†                        M† M
             ┌---1---┐                   ┌---1---┐
@@ -72,9 +115,9 @@ function _get_hotrg_xproj(
 end
 
 function _get_hotrg_yproj(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
+    A1::TensorMap{E,S,2,2}, A2::TensorMap{E,S,2,2},
+    trunc::TensorKit.TruncationScheme
+) where {E,S}
     #= join in x-direction, keep y-indices open (A1 on the left of A2)
     M M†                        M† M
             -3      -4              -3      -4
@@ -101,48 +144,6 @@ function _get_hotrg_yproj(
         U, s, ε = adjoint(U′), s′, ε′
     end
     return U, s, ε
-end
-
-function _step_hotrg_y(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
-    #= compression along the y-direction
-                    -3
-                    |
-            ┌---1---A2---3--┐
-            |       |       |
-        -1--U†      5       U-- -4
-            |       |       |
-            └---2---A1---4--┘
-                    |
-                    -2
-    =#
-    U, = _get_hotrg_xproj(A1, A2, trunc)
-    @tensor T[-1 -2; -3 -4] :=
-        conj(U[1 2; -1]) * U[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
-    return T
-end
-
-function _step_hotrg_x(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
-    #= compression along the x-direction
-                -3
-                |
-            ┌3--U--4┐
-            |       |
-        -1--A1--5---A2-- -4
-            |       |
-            └1--U†-2┘
-                |
-                -2
-    =#
-    U, = _get_hotrg_yproj(A1, A2, trunc)
-    @tensor T[-1 -2; -3 -4] :=
-        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
-    return T
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
