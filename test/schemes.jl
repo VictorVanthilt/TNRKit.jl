@@ -194,3 +194,47 @@ end
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
 end
+
+# ImpurityHOTRG
+@testset "ImpurityHOTRG - Ising Model" begin
+    T = classical_ising()
+    T_imp1 = classical_ising_impurity()
+
+    scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    fs = free_energy(data, ising_βc; scalefactor = 4.0)
+    relerror = abs((fs - f_onsager) / f_onsager)
+    @test relerror < 3.0e-6
+end
+
+@testset "Impurity HOTRG - Magnetisation" begin
+    # High temperature limit (<m^2> -> 0)
+    β = 0.2
+
+    T = classical_ising(β)
+    T_imp_order1_1 = classical_ising_impurity(β)
+    T_imp_order2 = classical_ising(β)
+
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+
+    data = run!(scheme, truncdim(8), maxiter(25))
+
+    m2_highT = data[end][4] / data[end][1]
+    @test m2_highT ≈ 0.0 rtol = 1.0e-2
+
+    # Low temperature limit (<m^2> -> 1)
+    β = 1.0
+
+    T = classical_ising(β)
+    T_imp_order1_1 = classical_ising_impurity(β)
+    T_imp_order2 = classical_ising(β)
+
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+
+    data = run!(scheme, truncdim(8), maxiter(25))
+
+    m2_lowT = data[end][4] / data[end][1]
+    @test m2_lowT ≈ 1 rtol = 1.0e-2
+end
