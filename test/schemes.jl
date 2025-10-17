@@ -197,6 +197,7 @@ end
 
 # ImpurityHOTRG
 @testset "ImpurityHOTRG - Ising Model" begin
+
     T = classical_ising()
     T_imp1 = classical_ising_impurity()
 
@@ -204,9 +205,7 @@ end
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    fs = free_energy([d[1] for d in data], ising_βc; initial_size = 2.0, scalefactor = 4.0)
-    relerror = abs((fs - f_onsager) / f_onsager)
-    @test relerror < 3.0e-6
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
 end
 
 @testset "Impurity HOTRG - Magnetisation" begin
@@ -222,7 +221,7 @@ end
     data = run!(scheme, truncdim(8), maxiter(25))
 
     m2_highT = data[end][4] / data[end][1]
-    @test m2_highT ≈ 0.0 rtol = 1.0e-2
+    @test m2_highT ≈ 0.0 atol = 1.0e-14
 
     # Low temperature limit (<m^2> -> 1)
     β = 1.0
