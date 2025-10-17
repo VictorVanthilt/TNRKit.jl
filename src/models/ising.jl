@@ -17,27 +17,22 @@ for the classical Ising model with a given inverse temperature `β` and external
     classical_ising() # Default inverse temperature is `ising_βc`
     classical_ising(0.5; h = 1.0) # Custom inverse temperature and magnetic field.
 ```
-!!! info
-    When calculating the free energy with `free_energy()`, set the `initial_size` keyword argument to `2.0`.
-    The initial lattice holds 2 spins.
 
 See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
 """
 function classical_ising(β::Number; h = 0)
-    function σ(i::Int64)
-        return 2i - 3
+    init = zeros(Float64, 2, 2, 2, 2)
+    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
+        init[i, j, k, l] = mod(i + j + k + l, 2) == 0 ? cosh(h * β) : sinh(h * β)
     end
+    init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
 
-    T_array = Float64[
-        exp(
-                β * (σ(i)σ(j) + σ(j)σ(l) + σ(l)σ(k) + σ(k)σ(i)) +
-                h / 2 * β * (σ(i) + σ(j) + σ(k) + σ(l))
-            )
-            for i in 1:2, j in 1:2, k in 1:2, l in 1:2
-    ]
+    bond_tensor = zeros(Float64, 2, 2)
+    bond_tensor[1, 1] = sqrt(cosh(β))
+    bond_tensor[2, 2] = sqrt(sinh(β))
+    bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
 
-    T = TensorMap(T_array, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
-
+    @tensor T[-1 -2; -3 -4] := 2 * init[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] * bond_tensor[3; -3] * bond_tensor[4; -4]
     return T
 end
 classical_ising() = classical_ising(ising_βc)
@@ -72,6 +67,40 @@ end
 classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
+
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a 2D square lattice
+for the classical Ising model with a given inverse temperature `β` and external magnetic field `h` with a magnetisation impurity
+
+### Examples
+```julia
+    classical_ising_impurity() # Default inverse temperature is `ising_βc`
+    classical_ising_impurity(0.5; h = 1.0) # Custom inverse temperature and magnetic field
+```
+!!! info
+    When calculating the free energy with `free_energy()`, set the `initial_size` keyword argument to `2.0`.
+    The initial lattice holds 2 spins.
+
+See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
+"""
+function classical_ising_impurity(β::Number; h = 0)
+    init = zeros(Float64, 2, 2, 2, 2)
+    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
+        init[i, j, k, l] = mod(i + j + k + l, 2) == 0 ? sinh(h * β) : cosh(h * β)
+    end
+    init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
+
+    bond_tensor = zeros(Float64, 2, 2)
+    bond_tensor[1, 1] = sqrt(cosh(β))
+    bond_tensor[2, 2] = sqrt(sinh(β))
+    bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
+
+    @tensor T[-1 -2; -3 -4] := 2 * init[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] * bond_tensor[3; -3] * bond_tensor[4; -4]
+    return T
+end
+classical_ising_impurity() = classical_ising_impurity(ising_βc)
 
 """
 $(SIGNATURES)
