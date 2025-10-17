@@ -45,48 +45,6 @@ classical_ising() = classical_ising(ising_βc)
 """
 $(SIGNATURES)
 
-Constructs the partition function tensor for a 2D square lattice
-for the classical Ising model with a given inverse temperature `β` and external magnetic field `h` with a magnetisation impurity
-    if `impurity = true`.
-
-### Examples
-```julia
-    ising_magnetisation() # Default inverse temperature is `ising_βc`
-    ising_magnetisation(0.5; h = 1.0) # Custom inverse temperature and magnetic field without impurity
-    ising_magnetisation(0.5; h = 1.0, impurity = true) # Custom inverse temperature and magnetic field with impurity
-```
-
-
-See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
-"""
-function ising_magnetisation(β::Number; h = 0, impurity = false)
-    init = zeros(ComplexF64, 2, 2, 2, 2)
-    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
-        init[i, j, k, l] =
-            mod(i + j + k + l, 2) == 0 ? (impurity ? sinh(h * β) : cosh(h * β)) :
-            (impurity ? cosh(h * β) : sinh(h * β))
-    end
-    init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
-
-    bond_tensor = zeros(ComplexF64, 2, 2)
-    bond_tensor[1, 1] = sqrt(cosh(β))
-    bond_tensor[2, 2] = sqrt(sinh(β))
-    bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
-
-    @tensor T[-1 -2; -3 -4] :=
-        2 *
-        init[1 2; 3 4] *
-        bond_tensor[-1; 1] *
-        bond_tensor[-2; 2] *
-        bond_tensor[3; -3] *
-        bond_tensor[4; -4]
-    return T
-end
-ising_magnetisation() = ising_magnetisation(ising_βc; impurity = true)
-
-"""
-$(SIGNATURES)
-
 Constructs the partition function tensor for a symmetric 2D square lattice
 for the classical Ising model with a given inverse temperature `β`.
 
@@ -114,6 +72,41 @@ end
 classical_ising_symmetric() = classical_ising_symmetric(ising_βc)
 
 const f_onsager::BigFloat = -2.10965114460820745966777928351108478082549327543540531781696107967700291143188081390114126499095041781
+
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a 2D square lattice
+for the classical Ising model with a given inverse temperature `β` and external magnetic field `h` with a magnetisation impurity
+if `impurity = true`.
+
+### Examples
+```julia
+    ising_magnetisation() # Default inverse temperature is `ising_βc`
+    ising_magnetisation(0.5; h = 1.0) # Custom inverse temperature and magnetic field without impurity
+    ising_magnetisation(0.5; h = 1.0, impurity = true) # Custom inverse temperature and magnetic field with impurity
+```
+
+See also: [`ImpurityHOTRG`](@ref), [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
+"""
+function ising_magnetisation(β::Number; h = 0, impurity = false)
+    init = zeros(ComplexF64, 2, 2, 2, 2)
+    for (i, j, k, l) in Iterators.product([1:2 for _ in 1:4]...)
+        init[i, j, k, l] =
+            mod(i + j + k + l, 2) == 0 ? (impurity ? sinh(h * β) : cosh(h * β)) :
+            (impurity ? cosh(h * β) : sinh(h * β))
+    end
+    init = TensorMap(init, ℂ^2 ⊗ ℂ^2 ← ℂ^2 ⊗ ℂ^2)
+
+    bond_tensor = zeros(ComplexF64, 2, 2)
+    bond_tensor[1, 1] = sqrt(cosh(β))
+    bond_tensor[2, 2] = sqrt(sinh(β))
+    bond_tensor = TensorMap(bond_tensor, ℂ^2 ← ℂ^2)
+
+    @tensor T[-1 -2; -3 -4] := 2 * init[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] * bond_tensor[3; -3] * bond_tensor[4; -4]
+    return T
+end
+ising_magnetisation() = ising_magnetisation(ising_βc; impurity = true)
 
 """
 $(SIGNATURES)
