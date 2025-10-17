@@ -76,7 +76,7 @@ end
 function area_term(A, B; is_real = true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
-    x0 = rand(a_in ⊗ b_in)
+    x0 = ones(a_in ⊗ b_in)
 
     function f0(x)
         @plansor fx[-1 -2] := A[c -1; 1 m] * x[1 2] * B[m -2; 2 c]
@@ -84,8 +84,10 @@ function area_term(A, B; is_real = true)
         return ffx
     end
 
-    spec0, _, _ = eigsolve(f0, x0, 1, :LR; verbosity = 0)
-
+    spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
+    if info.converged == 0
+        @warn "The area term eigensolver did not converge."
+    end
     if is_real
         return real(spec0[1])
     else
@@ -176,15 +178,18 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
     spec_sector = Dict(
         map(sectors(fuse(xspace))) do charge
             V = (I == Trivial) ? 𝔽^1 : Vect[I](charge => 1)
-            x = rand(xspace ← V)
+            x = ones(xspace ← V)
             if dim(x) == 0
                 return charge => [0.0]
             else
-                spec, _, _ = eigsolve(
+                spec, _, info = eigsolve(
                     a -> f(TA, TB, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
                     tol = 1.0e-12,
                     verbosity = 0
                 )
+                if info.converged == 0
+                    @warn "The spectrum eigensolver in sector $charge did not converge."
+                end
                 return charge => filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
             end
         end

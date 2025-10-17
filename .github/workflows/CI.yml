@@ -19,7 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1'
+          - 'lts' # minimal supported version
+          - '1' # latest released Julia version
         os:
           - ubuntu-latest
           - macOS-latest
