@@ -84,6 +84,9 @@ for the classical Ising model with a given inverse temperature `β` and external
     classical_ising_impurity() # Default inverse temperature is `ising_βc`
     classical_ising_impurity(0.5; h = 1.0) # Custom inverse temperature and magnetic field
 ```
+!!! info
+    When calculating the free energy with `free_energy()`, set the `initial_size` keyword argument to `2.0`.
+    The initial lattice holds 2 spins.
 
 See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
 """

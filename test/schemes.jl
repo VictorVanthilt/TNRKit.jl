@@ -204,7 +204,7 @@ end
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    fs = free_energy(data, ising_βc; scalefactor = 4.0)
+    fs = free_energy([d[1] for d in data], ising_βc; initial_size = 2.0, scalefactor = 4.0)
     relerror = abs((fs - f_onsager) / f_onsager)
     @test relerror < 3.0e-6
 end
