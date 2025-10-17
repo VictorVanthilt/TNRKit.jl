@@ -122,6 +122,19 @@ end
     end
 end
 
+@testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
+    loop_criterion = maxiter(5)
+    trunc = truncdim(8)
+    truncentanglement = truncbelow(1.0e-12)
+    entanglement_criterion = maxiter(100)
+    scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
+    data = run!(
+        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        loop_criterion
+    )
+    @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
+end
+
 # SLoopTNR
 @testset "SLoopTNR - Ising Model" begin
     @info "SLoopTNR ising free energy"

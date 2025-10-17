@@ -34,6 +34,31 @@ mutable struct LoopTNR <: TNRScheme
     end
 end
 
+"""
+    LoopTNR(
+        unitcell_2x2::Matrix{T}; finalize = (finalize!),
+        loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme
+    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+
+Initialize LoopTNR using a network with 2 x 2 unit cell, 
+by first performing one round of loop optimization to reduce
+the network to a bipartite one (without normalization). 
+"""
+function LoopTNR(
+        unitcell_2x2::Matrix{T};
+        loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        finalize = (finalize!)
+    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    ψA = Ψ_A(unitcell_2x2)
+    ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
+    TA, TB = ΨB_to_TATB(ψB)
+    return LoopTNR(TA, TB; finalize)
+end
+
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(unitcell_2x2::Matrix{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
     size(unitcell_2x2) == (2, 2) || error("Input unit cell must have 2 x 2 size.")
