@@ -34,7 +34,7 @@ mutable struct HOTRG_3D <: TNRScheme
 end
 
 function _get_hotrg3d_xproj(
-        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
+        A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
         trunc::TensorKit.TruncationScheme
     ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
@@ -60,15 +60,18 @@ function _get_hotrg3d_xproj(
     return U, s, ε
 end
 
-function _step_hotrg3d(
-        A1::TensorMap{E, S, 2, 4}, A2::TensorMap{E, S, 2, 4},
+function _get_hotrg3d_yproj(
+        A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
         trunc::TensorKit.TruncationScheme
     ) where {E, S}
-    Ux, = _get_hotrg3d_xproj(A1, A2, trunc)
-    # switch x/y directions
     perm = ((1, 2), (4, 3, 6, 5))
-    Uy, = _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc)
-    # apply the truncation
+    return _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc)
+end
+
+function _step_hotrg3d(
+        A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
+        Ux::AbstractTensorMap{E, S, 2, 1}, Uy::AbstractTensorMap{E, S, 2, 1},
+    ) where {E, S}
     @tensoropt T[-1 -2; -3 -4 -5 -6] :=
         conj(Ux[x1 x2; -6]) * Ux[x1′ x2′; -4] *
         conj(Uy[y1 y2; -5]) * Uy[y1′ y2′; -3] *
@@ -76,8 +79,11 @@ function _step_hotrg3d(
     return T
 end
 
+# HOTRG step to compress along z direction
 function _step!(scheme::HOTRG_3D, trunc::TensorKit.TruncationScheme)
-    scheme.T = _step_hotrg3d(scheme.T, scheme.T, trunc)
+    Ux, = _get_hotrg3d_xproj(scheme.T, scheme.T, trunc)
+    Uy, = _get_hotrg3d_yproj(scheme.T, scheme.T, trunc)
+    scheme.T = _step_hotrg3d(scheme.T, scheme.T, Ux, Uy)
     return scheme
 end
 
