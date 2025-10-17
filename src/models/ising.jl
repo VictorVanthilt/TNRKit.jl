@@ -85,7 +85,7 @@ for the classical Ising model with a given inverse temperature `β` and external
     classical_ising_impurity(0.5; h = 1.0) # Custom inverse temperature and magnetic field
 ```
 
-See also: [`ImpurityHOTRG`](@ref), [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
+See also: [`classical_ising_symmetric`](@ref), [`classical_ising_symmetric_3D`](@ref), [`classical_ising_3D`](@ref).
 """
 function classical_ising_impurity(β::Number; h = 0)
     init = zeros(Float64, 2, 2, 2, 2)
