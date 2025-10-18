@@ -259,7 +259,7 @@ end
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncdim(24), maxiter(25))
 
     @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 1.0e-6
 end
@@ -274,7 +274,7 @@ end
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncdim(24), maxiter(25))
 
     phi_expection = data[end][2] / data[end][1]
     @test phi_expection ≈ 0.0 atol = 1.0e-9
