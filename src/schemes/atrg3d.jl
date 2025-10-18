@@ -51,10 +51,10 @@ function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     @tensor YD[-1 -2; -3 -4 -5 -6] := Y[1 -2; -3 -5] * D[-1 1; -4 -6]
 
     #The QR decompositions and construction of the four isometries
-    _, R1 = leftorth(YD, ((1, 2, 3, 4), (5, 6)))
-    R2, _ = rightorth(AX, ((5, 6), (1, 2, 3, 4)))
-    _, R3 = leftorth(YD, ((1, 2, 5, 6), (3, 4)))
-    R4, _ = rightorth(AX, ((3, 4), (1, 2, 5, 6)))
+    _, R1 = left_orth(YD, ((1, 2, 3, 4), (5, 6)))
+    R2, _ = right_orth(AX, ((5, 6), (1, 2, 3, 4)))
+    _, R3 = left_orth(YD, ((1, 2, 5, 6), (3, 4)))
+    R4, _ = right_orth(AX, ((3, 4), (1, 2, 5, 6)))
 
     @tensor temp1[-1; -2] := R1[-1; 1 2] * R2[1 2; -2]
     U1, S1, V1, _ = tsvd(temp1; trunc = trunc)

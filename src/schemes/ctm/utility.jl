@@ -6,9 +6,9 @@ end
 # QR decomposition
 function R1R2(A1, A2, p1, p2; check_space = true)
     p, q1 = ind_pair(A1, p1)
-    _, RA1 = leftorth(A1, (q1, p1))
+    _, RA1 = left_orth(A1, (q1, p1))
     p, q2 = ind_pair(A2, p2)
-    RA2, _ = rightorth(A2, (p2, q2))
+    RA2, _ = right_orth(A2, (p2, q2))
     if check_space
         if domain(RA1) != codomain(RA2)
             @error "space mismatch"
