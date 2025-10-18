@@ -73,7 +73,7 @@ end
 
 function _step_hotrg3d(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
-        Px1::AbstractTensorMap{E, S, 2, 1}, Px2::AbstractTensorMap{E, S, 1, 2}, 
+        Px1::AbstractTensorMap{E, S, 2, 1}, Px2::AbstractTensorMap{E, S, 1, 2},
         Py1::AbstractTensorMap{E, S, 2, 1}, Py2::AbstractTensorMap{E, S, 1, 2},
     ) where {E, S}
     @tensoropt T[-1 -2; -3 -4 -5 -6] :=
