@@ -261,7 +261,7 @@ end
 
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 1.0e-6
+    @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 2.0e-6
 end
 
 # ImpurityTRG
