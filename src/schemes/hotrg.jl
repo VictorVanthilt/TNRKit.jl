@@ -71,7 +71,7 @@ function _get_hotrg_xproj(
     sinv_sqrt = pseudopow(s, -0.5)
     P1 = L * Vh' * sinv_sqrt
     P2 = sinv_sqrt * U' * R
-    return P1, P2, ε
+    return P1, P2, s, ε
 end
 
 function _get_hotrg_yproj(
@@ -107,7 +107,7 @@ function _get_hotrg_yproj(
     sinv_sqrt = pseudopow(s, -0.5)
     P1 = L * Vh' * sinv_sqrt
     P2 = sinv_sqrt * U' * R
-    return P1, P2, ε
+    return P1, P2, s, ε
 end
 
 function _step_hotrg_y(

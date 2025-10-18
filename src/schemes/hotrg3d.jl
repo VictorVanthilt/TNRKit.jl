@@ -60,7 +60,7 @@ function _get_hotrg3d_xproj(
     sinv_sqrt = pseudopow(s, -0.5)
     P1 = L * Vh' * sinv_sqrt
     P2 = sinv_sqrt * U' * R
-    return P1, P2, ε
+    return P1, P2, s, ε
 end
 
 function _get_hotrg3d_yproj(
