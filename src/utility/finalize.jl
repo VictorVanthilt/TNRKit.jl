@@ -96,7 +96,7 @@ function finalize_cft!(scheme::SLoopTNR)
     Tflip = flip(scheme.T, (1, 2, 3, 4))
     @tensoropt mat[-1 -2; -3 -4] := scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] *
         Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
-    val, vec = eig(mat)
+    val, _ = eig_full(mat)
     val = sort(real(val).data; rev = true)
     data = -log.(abs.(val ./ val[1])) / 2 / π
     return data

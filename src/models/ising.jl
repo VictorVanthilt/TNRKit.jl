@@ -156,8 +156,8 @@ function classical_ising_3D(β; J = 1.0)
 
     # Boltzmann weights
     t = ComplexF64[exp(K) exp(-K); exp(-K) exp(K)]
-    r = eigen(t)
-    q = r.vectors * sqrt(LinearAlgebra.Diagonal(r.values)) * r.vectors
+    D, V = eig_full(t)
+    q = D * sqrt(V) * D
 
     # local partition function tensor
     O = zeros(2, 2, 2, 2, 2, 2)
