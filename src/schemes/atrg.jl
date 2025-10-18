@@ -43,7 +43,7 @@ function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
 end
 
 function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
-    A, S, B, _ = tsvd(scheme.T, ((1, 3), (2, 4)); trunc = trunc)
+    A, S, B = svd_trunc(scheme.T, ((1, 3), (2, 4)); trunc = trunc)
     C, D = deepcopy.([A, B])
 
     @tensor begin
@@ -53,7 +53,7 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
 
     @tensor M[-1 -2; -3 -4] := B[-3; 1 -4] * C[-1 1; -2]
 
-    X, S, Y, _ = tsvd(M, ((1, 3), (2, 4)); trunc = trunc)
+    X, S, Y = svd_trunc(M, ((1, 3), (2, 4)); trunc = trunc)
     sqrtS = sqrt(S)
 
     @tensor begin
@@ -64,7 +64,7 @@ function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     @tensor Q[-1 -2; -3 -4] := A[3 -3; 2] * D[1; -2 4] * X[4 2; -4] *
         Y[-1 1; 3]
 
-    H, S, G, _ = tsvd(Q; trunc = trunc)
+    H, S, G = svd_trunc(Q; trunc = trunc)
     sqrtS = sqrt(S)
 
     @tensor begin
