@@ -29,6 +29,7 @@ mutable struct HOTRG <: TNRScheme
 
     finalize!::Function
     function HOTRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
+        @assert [isdual(space(T, ax)) for ax in 1:4] == [0, 0, 1, 1]
         return new(T, finalize)
     end
 end
@@ -38,49 +39,6 @@ NOTE: It's difficult to transpose the PFTensors planarly
 in order to reuse the y-compression code for x-compression.
 Hence both are written explicitly.
 =#
-
-
-function _step_hotrg_x(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        U::TensorMap{E, S, 2, 1}
-    ) where {E, S}
-    #= compression along the x-direction
-                -3
-                |
-            ┌3--U--4┐
-            |       |
-        -1--A1--5---A2-- -4
-            |       |
-            └1--U†-2┘
-                |
-                -2
-    =#
-
-    @tensor T[-1 -2; -3 -4] :=
-        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
-    return T
-end
-
-function _step_hotrg_y(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        U::TensorMap{E, S, 2, 1}
-    ) where {E, S}
-    #= compression along the y-direction
-                    -3
-                    |
-            ┌---1---A2---3--┐
-            |       |       |
-        -1--U†      5       U-- -4
-            |       |       |
-            └---2---A1---4--┘
-                    |
-                    -2
-    =#
-
-    @tensor T[-1 -2; -3 -4] :=
-        conj(U[1 2; -1]) * U[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
-    return T
-end
 
 function _get_hotrg_xproj(
         A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
@@ -98,20 +56,22 @@ function _get_hotrg_xproj(
             ↓       ↑                   ↑       ↓
             └---3---┘                   └---3---┘
     =#
-    # get left unitary
     @plansor MM[-1 -2; -3 -4] :=
         A2[-1 5; 1 2] * A1[-2 3; 5 4] *
         conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
-    U, s, _, ε = tsvd!(MM; trunc)
-    # get right unitary
+    sL, L = eigh!(MM)
+    L = L * pseudopow(sL, 0.5)
     @plansor MM[-1 -2; -3 -4] :=
         conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
         A2[2 6; 1 -3] * A1[4 3; 6 -4]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
-    if ε > ε′
-        U, s, ε = adjoint(U′), s′, ε′
-    end
-    return U, s, ε
+    sR, R = eigh!(MM)
+    R = pseudopow(sR, 0.5) * R'
+    # construct projectors
+    U, s, Vh, ε = tsvd!(R * L; trunc)
+    sinv_sqrt = pseudopow(s, -0.5)
+    P1 = L * Vh' * sinv_sqrt
+    P2 = sinv_sqrt * U' * R
+    return P1, P2, ε
 end
 
 function _get_hotrg_yproj(
@@ -134,63 +94,67 @@ function _get_hotrg_yproj(
     @plansor MM[-1 -2; -3 -4] :=
         A1[1 -1; 2 5] * A2[5 -2; 4 3] *
         conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
-    U, s, _, ε = tsvd!(MM; trunc)
+    sL, L = eigh!(MM)
+    L = L * pseudopow(sL, 0.5)
     # get top unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
         A1[1 2; -3 6] * A2[6 4; -4 3]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
-    if ε > ε′
-        U, s, ε = adjoint(U′), s′, ε′
-    end
-    return U, s, ε
+    sR, R = eigh!(MM)
+    R = pseudopow(sR, 0.5) * R'
+    # construct projectors
+    U, s, Vh, ε = tsvd!(R * L; trunc)
+    sinv_sqrt = pseudopow(s, -0.5)
+    P1 = L * Vh' * sinv_sqrt
+    P2 = sinv_sqrt * U' * R
+    return P1, P2, ε
 end
 
 function _step_hotrg_y(
         A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
-        Ux::AbstractTensorMap{E, S, 2, 1}
+        P1::AbstractTensorMap{E, S, 2, 1}, P2::AbstractTensorMap{E, S, 1, 2}
     ) where {E, S}
     #= compression along the y-direction
                     -3
                     |
             ┌---1---A2---3--┐
             |       |       |
-        -1--Ux†      5      Ux-- -4
+        -1--P2      5      P1-- -4
             |       |       |
             └---2---A1---4--┘
                     |
                     -2
     =#
     @tensor T[-1 -2; -3 -4] :=
-        conj(Ux[1 2; -1]) * Ux[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
+        P2[-1; 1 2] * P1[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
     return T
 end
 
 function _step_hotrg_x(
         A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
-        Uy::AbstractTensorMap{E, S, 2, 1}
+        P1::AbstractTensorMap{E, S, 2, 1}, P2::AbstractTensorMap{E, S, 1, 2}
     ) where {E, S}
     #= compression along the x-direction
                 -3
                 |
-            ┌3--Uy-4┐
+            ┌3--P1-4┐
             |       |
         -1--A1--5---A2-- -4
             |       |
-            └1-Uy†-2┘
+            └1--P2-2┘
                 |
                 -2
     =#
     @tensor T[-1 -2; -3 -4] :=
-        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(Uy[1 2; -2]) * Uy[3 4; -3]
+        A1[-1 1; 3 5] * A2[5 2; 4 -4] * P2[-2; 1 2] * P1[3 4; -3]
     return T
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
-    Ux, = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
-    scheme.T = _step_hotrg_y(scheme.T, scheme.T, Ux)
-    Uy, = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
-    scheme.T = _step_hotrg_x(scheme.T, scheme.T, Uy)
+    P1, P2, = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
+    scheme.T = _step_hotrg_y(scheme.T, scheme.T, P1, P2)
+    P1, P2, = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
+    scheme.T = _step_hotrg_x(scheme.T, scheme.T, P1, P2)
     return scheme
 end
 

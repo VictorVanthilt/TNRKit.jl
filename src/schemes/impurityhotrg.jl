@@ -49,16 +49,16 @@ mutable struct ImpurityHOTRG <: TNRScheme
 end
 
 function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
-    Uy, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
+    P1, P2, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
 
-    T = _step_hotrg_x(scheme.T, scheme.T, Uy)
-    T_imp_order1_1 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_1, scheme.T, Uy) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_1, Uy))
-    T_imp_order1_2 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_2, scheme.T, Uy) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_2, Uy))
+    T = _step_hotrg_x(scheme.T, scheme.T, P1, P2)
+    T_imp_order1_1 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_1, scheme.T, P1, P2) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_1, P1, P2))
+    T_imp_order1_2 = 0.5 * (_step_hotrg_x(scheme.T_imp_order1_2, scheme.T, P1, P2) + _step_hotrg_x(scheme.T, scheme.T_imp_order1_2, P1, P2))
     T_imp_order2 = 0.25 * (
-        _step_hotrg_x(scheme.T_imp_order2, scheme.T, Uy) +
-            _step_hotrg_x(scheme.T, scheme.T_imp_order2, Uy) +
-            _step_hotrg_x(scheme.T_imp_order1_1, scheme.T_imp_order1_2, Uy) +
-            _step_hotrg_x(scheme.T_imp_order1_2, scheme.T_imp_order1_1, Uy)
+        _step_hotrg_x(scheme.T_imp_order2, scheme.T, P1, P2) +
+            _step_hotrg_x(scheme.T, scheme.T_imp_order2, P1, P2) +
+            _step_hotrg_x(scheme.T_imp_order1_1, scheme.T_imp_order1_2, P1, P2) +
+            _step_hotrg_x(scheme.T_imp_order1_2, scheme.T_imp_order1_1, P1, P2)
     )
 
     scheme.T = T
@@ -66,16 +66,16 @@ function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
     scheme.T_imp_order1_2 = T_imp_order1_2
     scheme.T_imp_order2 = T_imp_order2
 
-    Ux, _ = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
+    P1, P2, _ = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
 
-    T = _step_hotrg_y(scheme.T, scheme.T, Ux)
-    T_imp_order1_1 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_1, scheme.T, Ux) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_1, Ux))
-    T_imp_order1_2 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_2, scheme.T, Ux) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_2, Ux))
+    T = _step_hotrg_y(scheme.T, scheme.T, P1, P2)
+    T_imp_order1_1 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_1, scheme.T, P1, P2) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_1, P1, P2))
+    T_imp_order1_2 = 0.5 * (_step_hotrg_y(scheme.T_imp_order1_2, scheme.T, P1, P2) + _step_hotrg_y(scheme.T, scheme.T_imp_order1_2, P1, P2))
     T_imp_order2 = 0.25 * (
-        _step_hotrg_y(scheme.T_imp_order2, scheme.T, Ux) +
-            _step_hotrg_y(scheme.T, scheme.T_imp_order2, Ux) +
-            _step_hotrg_y(scheme.T_imp_order1_1, scheme.T_imp_order1_2, Ux) +
-            _step_hotrg_y(scheme.T_imp_order1_2, scheme.T_imp_order1_1, Ux)
+        _step_hotrg_y(scheme.T_imp_order2, scheme.T, P1, P2) +
+            _step_hotrg_y(scheme.T, scheme.T_imp_order2, P1, P2) +
+            _step_hotrg_y(scheme.T_imp_order1_1, scheme.T_imp_order1_2, P1, P2) +
+            _step_hotrg_y(scheme.T_imp_order1_2, scheme.T_imp_order1_1, P1, P2)
     )
 
     scheme.T = T
