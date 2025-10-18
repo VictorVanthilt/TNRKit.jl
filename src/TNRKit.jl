@@ -21,6 +21,7 @@ include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
 include("schemes/impurityhotrg.jl")
+include("schemes/impuritytrg.jl")
 # CTM methods
 include("schemes/ctm/utility.jl")
 include("schemes/ctm/c4ctm.jl")
@@ -44,6 +45,7 @@ export HOTRG_3D
 export ATRG
 export ATRG_3D
 export ImpurityHOTRG
+export ImpurityTRG
 
 export CTM
 export Sublattice_CTM
