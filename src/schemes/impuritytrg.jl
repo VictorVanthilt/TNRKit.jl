@@ -32,8 +32,11 @@ mutable struct ImpurityTRG <: TNRScheme
     T_imp4::TensorMap
 
     finalize!::Function
-    function ImpurityTRG(T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2},T_imp2::TensorMap{E, S, 2, 2}, 
-        T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
+    function ImpurityTRG(
+            T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
+            T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}; finalize = (finalize!)
+        ) where {E, S}
+
 
         @assert space(T, 1) == space(T_imp1, 1) == space(T_imp2, 1) == space(T_imp3, 1) == space(T_imp4, 1) "First space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
@@ -64,14 +67,14 @@ end
 function step!(scheme::ImpurityTRG, trunc::TensorKit.TruncationScheme)
     # Tensor1
     A1, B1 = SVD12(scheme.T_imp1, trunc)
-    
+
     # Tensor2
     tensor2p = transpose(scheme.T_imp2, ((2, 4), (1, 3)))
     C2, D2 = SVD12(tensor2p, trunc)
 
     # Tensor3
     A3, B3 = SVD12(scheme.T_imp3, trunc)
-    
+
     # Tensor4
     tensor4p = transpose(scheme.T_imp4, ((2, 4), (1, 3)))
     C4, D4 = SVD12(tensor4p, trunc)
