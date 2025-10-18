@@ -250,3 +250,32 @@ end
     m2_lowT = data[end][4] / data[end][1]
     @test m2_lowT ≈ 1 rtol = 1.0e-2
 end
+
+# ImpurityTRG
+@testset "ImpurityTRG - Ising Model" begin
+
+    T = classical_ising()
+    T_imp = classical_ising_impurity()
+
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 1.0e-6
+end
+
+# ImpurityTRG
+@testset "ImpurityTRG - Magnetisation" begin
+
+    β = 1
+
+    T = classical_ising(β)
+    T_imp = classical_ising_impurity(β)
+
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    phi_expection = data[end][2] / data[end][1]
+    @test phi_expection ≈ 0.0 atol = 1.0e-9
+end
