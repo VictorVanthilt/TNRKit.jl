@@ -155,7 +155,7 @@ function classical_ising_3D(β; J = 1.0)
     K = β * J
 
     # Boltzmann weights
-    t = ComplexF64[exp(K) exp(-K); exp(-K) exp(K)]
+    t = Float64[exp(K) exp(-K); exp(-K) exp(K)]
     D, V = eig_full(t)
     q = D * sqrt(V) * D
 
