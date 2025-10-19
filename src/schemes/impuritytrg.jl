@@ -21,6 +21,8 @@ Each step rescales the lattice by a (linear) factor of 2
 $(TYPEDFIELDS)
 
 ### References
+* [Morita et. al. 10.48550/arXiv.2411.13998 (2024)](@cite moritaMultiimpurityMethodBondweighted2024)
+* [Nakamoto et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 
 """
 
