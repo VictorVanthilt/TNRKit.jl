@@ -38,7 +38,7 @@ mutable struct ImpurityTRG <: TNRScheme
             T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}; finalize = (finalize!)
         ) where {E, S}
 
-
+        
         @assert space(T, 1) == space(T_imp1, 1) == space(T_imp2, 1) == space(T_imp3, 1) == space(T_imp4, 1) "First space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
@@ -48,23 +48,6 @@ mutable struct ImpurityTRG <: TNRScheme
     end
 end
 
-"""
-    Gives 4 impurity tensors and 1 rest of lattice tensor in. Yields the 4 new tensors of one iterationstep of TRG.
-
-    Input order tensors:
-        1------>2
-        ^       |
-        |       |
-        |       |
-        4<------3
-
-    Output order tensors:
-            1
-             
-        4       2
-             
-            3
-"""
 function step!(scheme::ImpurityTRG, trunc::TensorKit.TruncationScheme)
     # Tensor1
     A1, B1 = SVD12(scheme.T_imp1, trunc)
