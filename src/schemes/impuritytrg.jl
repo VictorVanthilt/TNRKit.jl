@@ -38,7 +38,7 @@ mutable struct ImpurityTRG <: TNRScheme
             T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}; finalize = (finalize!)
         ) where {E, S}
 
-        
+
         @assert space(T, 1) == space(T_imp1, 1) == space(T_imp2, 1) == space(T_imp3, 1) == space(T_imp4, 1) "First space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
