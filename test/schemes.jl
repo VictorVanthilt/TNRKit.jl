@@ -253,7 +253,6 @@ end
 
 # ImpurityTRG
 @testset "ImpurityTRG - Ising Model" begin
-
     T = classical_ising()
     T_imp = classical_ising_impurity()
 
@@ -266,7 +265,6 @@ end
 
 # ImpurityTRG
 @testset "ImpurityTRG - Magnetisation" begin
-
     β = 1
 
     T = classical_ising(β)
