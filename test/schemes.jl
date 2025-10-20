@@ -274,7 +274,7 @@ end
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    m_expection = data[2][end] / data[1][end]
+    m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 0.0 atol = 1.0e-6
 
     # Low T
@@ -287,6 +287,6 @@ end
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    m_expection = data[2][end] / data[1][end]
+    m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 1.0 rtol = 1.0e-6
 end
