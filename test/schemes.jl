@@ -270,7 +270,7 @@ end
     T = classical_ising(β)
     T_imp = classical_ising_impurity(β)
 
-    scheme = ImpTRG(T, T_imp, T, T, T)
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
@@ -283,7 +283,7 @@ end
     T = classical_ising(β; h = 1.0e-6)
     T_imp = classical_ising_impurity(β; h = 1.0e-6)
 
-    scheme = ImpTRG(T, T_imp, T, T, T)
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
