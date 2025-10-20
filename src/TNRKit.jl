@@ -20,8 +20,6 @@ include("schemes/hotrg.jl")
 include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
-include("schemes/impurityhotrg.jl")
-include("schemes/impuritytrg.jl")
 # CTM methods
 include("schemes/ctm/utility.jl")
 include("schemes/ctm/c4ctm.jl")
