@@ -55,6 +55,9 @@ export ctm_TRG
 export ctm_HOTRG
 export lnz
 
+export ImpurityTRG
+export ImpurityHOTRG
+
 export LoopTNR
 export SLoopTNR
 
