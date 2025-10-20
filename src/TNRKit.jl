@@ -42,8 +42,6 @@ export HOTRG
 export HOTRG_3D
 export ATRG
 export ATRG_3D
-export ImpurityHOTRG
-export ImpurityTRG
 
 export CTM
 export Sublattice_CTM
