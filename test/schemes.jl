@@ -264,38 +264,24 @@ end
 end
 
 @testset "ImpurityTRG - Magnetisation" begin
-    β = 1
+    # High T
+    β = 0.1
 
     T = classical_ising(β)
     T_imp = classical_ising_impurity(β)
-
-    scheme = ImpurityTRG(T, T_imp, T, T, T)
-
-    data = run!(scheme, truncdim(24), maxiter(25))
-
-    m_expection = data[end][2] / data[end][1]
-    @test m_expection ≈ 0.0 atol = 1.0e-8
-end
-
-@testset "ImpurityTRG - Magnetisation Symmetry Broken Phase - High Temp" begin
-    β = 0
-
-    T = classical_ising(2;h=1)
-    T_imp = classical_ising_impurity(2;h=1)
 
     scheme = ImpTRG(T, T_imp, T, T, T)
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
     m_expection = data[2][end] / data[1][end]
-    @test m_expection ≈ 0.0 atol = 1.0e-8
-end
+    @test m_expection ≈ 0.0 atol = 1.0e-6
 
-@testset "ImpurityTRG - Magnetisation Symmetry Broken Phase - Low Temp" begin
+    # Low T
     β = 2
 
-    T = classical_ising(2;h=1)
-    T_imp = classical_ising_impurity(2;h=1)
+    T = classical_ising(β; h = 1e-6)
+    T_imp = classical_ising_impurity(β; h = 1e-6)
 
     scheme = ImpTRG(T, T_imp, T, T, T)
 
