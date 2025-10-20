@@ -29,6 +29,10 @@ include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
 
+# Impurity methods
+include("schemes/impuritytrg.jl")
+include("schemes/impurityhotrg.jl")
+
 # Loop Methods
 include("schemes/looptnr.jl")
 include("schemes/symmetric_looptnr.jl")
