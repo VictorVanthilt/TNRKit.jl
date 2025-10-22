@@ -59,11 +59,13 @@ function _get_hotrg_xproj(
     @plansor MM[-1 -2; -3 -4] :=
         A2[-1 5; 1 2] * A1[-2 3; 5 4] *
         conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
+    LinearAlgebra.normalize!(MM)
     sL, L = eigh!(MM)
     L = L * pseudopow(sL, 0.5)
     @plansor MM[-1 -2; -3 -4] :=
         conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
         A2[2 6; 1 -3] * A1[4 3; 6 -4]
+    LinearAlgebra.normalize!(MM)
     sR, R = eigh!(MM)
     R = pseudopow(sR, 0.5) * R'
     # construct projectors
@@ -94,12 +96,14 @@ function _get_hotrg_yproj(
     @plansor MM[-1 -2; -3 -4] :=
         A1[1 -1; 2 5] * A2[5 -2; 4 3] *
         conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
+    LinearAlgebra.normalize!(MM)
     sL, L = eigh!(MM)
     L = L * pseudopow(sL, 0.5)
     # get top unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
         A1[1 2; -3 6] * A2[6 4; -4 3]
+    LinearAlgebra.normalize!(MM)
     sR, R = eigh!(MM)
     R = pseudopow(sR, 0.5) * R'
     # construct projectors
