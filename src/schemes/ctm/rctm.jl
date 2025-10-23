@@ -49,7 +49,7 @@ end
 
 function find_UVt(scheme, trunc)
     mat = rt_build_corner_matrix(scheme)
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & truncbelow(1.0e-20))
     return mat, U, S, Vt
 end
 

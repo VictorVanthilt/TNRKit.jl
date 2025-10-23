@@ -36,12 +36,12 @@ end
 
 function find_UVt(scheme::ctm_TRG, trunc)
     mat = corner_matrix(scheme)
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & truncbelow(1.0e-20))
     return mat, U, S, Vt
 end
 
 function Levin_decomposition(T, trunc)
-    U, S, Vt = tsvd(T, ((1, 3), (2, 4)); trunc = trunc)
+    U, S, Vt = svd_trunc(T, ((1, 3), (2, 4)); trunc = trunc)
 
     S1 = U * sqrt(S)
     S2 = sqrt(S) * Vt

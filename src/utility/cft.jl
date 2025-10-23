@@ -13,7 +13,7 @@ function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
 
@@ -49,7 +49,7 @@ function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
 
@@ -256,7 +256,7 @@ Get the central charge given the current state of a `TNRScheme` and the previous
 """
 function central_charge(scheme::TNRScheme, n::Number)
     @tensor M[-1; -2] := (scheme.T / n)[1 -1; -2 1]
-    _, S, _ = tsvd(M)
+    _, S, _ = svd_full(M)
     return log(S.data[1]) * 6 / (π)
 end
 
@@ -265,6 +265,6 @@ function central_charge(scheme::BTRG, n::Number)
         (scheme.T)[1 -1; 3 2] * scheme.S1[3; -2] *
             scheme.S2[2; 1]
     ) / n
-    _, S, _ = tsvd(M)
+    _, S, _ = svd_full(M)
     return log(S.data[1]) * 6 / (π)
 end
