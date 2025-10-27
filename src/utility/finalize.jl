@@ -1,3 +1,21 @@
+# Extra code to make output type available
+struct Finalizer{E} # E is the output type of f
+    f::Function
+end
+
+function Finalizer(f::Function, E::Type)
+    return Finalizer{E}(f)
+end
+
+function output_type(finalizer::Finalizer{E}) where {E}
+    return E
+end
+
+default_finalizer = Finalizer(finalize!, Float64)
+ImpurityTRG_finalizer = Finalizer(finalize!, Tuple{Float64, Float64})
+ImpurityHOTRG_finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Float64, Float64})
+
+# Finalization functions for the various TNR schemes
 const simple_scheme = Union{TRG, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
