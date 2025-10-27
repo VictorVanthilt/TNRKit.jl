@@ -197,7 +197,7 @@ end
 
 function run!(
         scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; finalizer = default_finalizer, finalize_beginning = true, oneloop = true,
+        criterion::TNRKit.stopcrit; finalizer = default_Finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )
     data = output_type(finalizer)[]

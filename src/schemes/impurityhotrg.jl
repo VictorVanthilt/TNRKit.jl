@@ -95,4 +95,4 @@ function Base.show(io::IO, scheme::ImpurityHOTRG)
     return nothing
 end
 
-run!(scheme::ImpurityHOTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit) = run!(scheme, trscheme, criterion; finalizer = ImpurityHOTRG_finalizer)
+run!(scheme::ImpurityHOTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit) = run!(scheme, trscheme, criterion; finalizer = ImpurityHOTRG_Finalizer)

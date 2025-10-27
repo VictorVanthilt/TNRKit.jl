@@ -5,7 +5,7 @@ function finalize! end
 
 function run!(
         scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-        finalizer = default_finalizer, finalize_beginning = true, verbosity = 1
+        finalizer = default_Finalizer, finalize_beginning = true, verbosity = 1
     )
 
     data = output_type(finalizer)[]

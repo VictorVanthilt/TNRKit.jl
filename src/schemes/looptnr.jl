@@ -388,7 +388,7 @@ function run!(
         criterion::stopcrit,
         entanglement_criterion::stopcrit,
         loop_criterion::stopcrit;
-        finalizer = default_finalizer,
+        finalizer = default_Finalizer,
         finalize_beginning = true,
         verbosity = 1
     )
@@ -421,7 +421,7 @@ end
 
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalizer = default_finalizer,
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalizer = default_Finalizer,
         finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
