@@ -5,10 +5,10 @@ function finalize! end
 
 function run!(
         scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-        finalize_beginning = true, verbosity = 1
+        finalizer = default_finalizer, finalize_beginning = true, verbosity = 1
     )
 
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"

@@ -94,3 +94,5 @@ function Base.show(io::IO, scheme::ImpurityHOTRG)
     println(io, "  * T_imp_order2: $(summary(scheme.T_imp_order2))")
     return nothing
 end
+
+run!(scheme::ImpurityHOTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit) = run!(scheme, trscheme, criterion; finalizer = ImpurityHOTRG_finalizer)

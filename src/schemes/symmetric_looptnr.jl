@@ -197,10 +197,10 @@ end
 
 function run!(
         scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; finalize_beginning = true, oneloop = true,
+        criterion::TNRKit.stopcrit; finalizer = default_finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"

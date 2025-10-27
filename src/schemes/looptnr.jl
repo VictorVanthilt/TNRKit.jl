@@ -388,10 +388,11 @@ function run!(
         criterion::stopcrit,
         entanglement_criterion::stopcrit,
         loop_criterion::stopcrit;
+        finalizer = default_finalizer,
         finalize_beginning = true,
         verbosity = 1
     )
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
@@ -420,13 +421,14 @@ end
 
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalizer = default_finalizer,
         finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
         scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion,
         loop_criterion;
+        finalizer = finalizer,
         finalize_beginning = finalize_beginning,
         verbosity = verbosity
     )
