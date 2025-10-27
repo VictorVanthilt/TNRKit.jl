@@ -20,7 +20,7 @@ jobs:
       matrix:
         version:
           - 'lts' # minimal supported version
-          - '1' # latest released Julia version
+          - '1.11' # julia v1.11
         os:
           - ubuntu-latest
           - macOS-latest
