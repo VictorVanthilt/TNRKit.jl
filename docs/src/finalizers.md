@@ -23,7 +23,6 @@ A custom instance of `Finalizer` can be created as:
 function my_finalization(scheme::TRG)
     n = finalize!(scheme) # normalizes the tensor and return said norm
     data = calculate_something(scheme)
-
     return n, data # Two Float64s
 end
 
