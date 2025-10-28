@@ -204,7 +204,7 @@ function run!(
         @infov 1 "Starting simulation\n $(scheme)\n"
 
         if finalize_beginning
-            push!(data, finalizer.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
         steps = 0
         crit = true
@@ -212,7 +212,7 @@ function run!(
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
             step!(scheme, trscheme, oneloop)
-            push!(data, finalizer.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end

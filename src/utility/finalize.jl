@@ -139,3 +139,5 @@ function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
     return central_charge(scheme, n)
 end
+
+# TODO: add Finalizers for CFT and central charge
