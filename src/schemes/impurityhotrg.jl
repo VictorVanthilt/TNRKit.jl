@@ -24,7 +24,6 @@ $(TYPEDFIELDS)
 * [Morita et al 10.1016/j.cpc.2018.10.014 (2018)](@cite moritaCalculationHigherorderMoments2019)
 
 """
-
 mutable struct ImpurityHOTRG <: TNRScheme
     T::TensorMap
     T_imp_order1_1::TensorMap
