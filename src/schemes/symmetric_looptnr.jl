@@ -4,12 +4,12 @@ $(TYPEDEF)
 c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
 
 ### Running the algorithm
     run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit[, finalize_beginning=true, oneloop=true,
+              criterion::TNRKit.stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
 `oneloop=true` will use disentangled tensors as a starting guess for the optimization.
@@ -25,13 +25,11 @@ mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
     gradalg::OptimKit.LBFGS
-    finalize!::Function
     function SLoopTNR(
             T::TensorMap;
-            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
-            finalize = (finalize!)
+            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000)
         )
-        return new(T, gradalg, finalize)
+        return new(T, gradalg)
     end
 end
 
@@ -206,7 +204,7 @@ function run!(
         @infov 1 "Starting simulation\n $(scheme)\n"
 
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.finalize!(scheme))
         end
         steps = 0
         crit = true
@@ -214,7 +212,7 @@ function run!(
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
             step!(scheme, trscheme, oneloop)
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.finalize!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end

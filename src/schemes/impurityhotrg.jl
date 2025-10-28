@@ -4,10 +4,10 @@ $(TYPEDEF)
 Single impurity method for Higher-Order Tensor Renormalization Group (for 2nd order)
 
 ### Constructors
-    $(FUNCTIONNAME)(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2 [, finalize=finalize!])
+    $(FUNCTIONNAME)(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2)
 
 ### Running the algorithm
-    run!(::ImpurityHOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::ImpurityHOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 
@@ -30,21 +30,19 @@ mutable struct ImpurityHOTRG <: TNRScheme
     T_imp_order1_1::TensorMap
     T_imp_order1_2::TensorMap
     T_imp_order2::TensorMap
-    finalize!::Function
+
     function ImpurityHOTRG(
             T::TensorMap{E, S, 2, 2},
             T_imp_order1_1::TensorMap{E, S, 2, 2},
             T_imp_order1_2::TensorMap{E, S, 2, 2},
             T_imp_order2::TensorMap{E, S, 2, 2},
-            ;
-            finalize = (finalize!),
         ) where {E, S}
 
         @assert space(T, 1) == space(T_imp_order1_1, 1) == space(T_imp_order1_2, 1) "First space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 2) == space(T_imp_order1_1, 2) == space(T_imp_order1_2, 2) "Second space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 3) == space(T_imp_order1_1, 3) == space(T_imp_order1_2, 3) "Third space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 4) == space(T_imp_order1_1, 4) == space(T_imp_order1_2, 4) "Fourth space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
-        return new(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2, finalize)
+        return new(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2)
     end
 end
 

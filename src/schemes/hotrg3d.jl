@@ -4,10 +4,10 @@ $(TYPEDEF)
 3D Higher-Order Tensor Renormalization Group
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
 
 ### Running the algorithm
-    run!(::HOTRG_3D, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::HOTRG_3D, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 
@@ -27,9 +27,8 @@ $(TYPEDFIELDS)
 mutable struct HOTRG_3D <: TNRScheme
     T::TensorMap
 
-    finalize!::Function
-    function HOTRG_3D(T::TensorMap{E, S, 2, 4}; finalize = (finalize!)) where {E, S}
-        return new(T, finalize)
+    function HOTRG_3D(T::TensorMap{E, S, 2, 4}) where {E, S}
+        return new(T)
     end
 end
 

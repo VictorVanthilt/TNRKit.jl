@@ -1,15 +1,13 @@
 # Extra code to make output type available
 struct Finalizer{E} # E is the output type of f
-    f::Function
+    f!::Function
 end
 
 function Finalizer(f::Function, E::Type)
     return Finalizer{E}(f)
 end
 
-function output_type(finalizer::Finalizer{E}) where {E}
-    return E
-end
+output_type(finalizer::Finalizer{E}) where {E} = E
 
 default_Finalizer = Finalizer(finalize!, Float64)
 ImpurityTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64})

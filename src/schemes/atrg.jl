@@ -4,10 +4,10 @@ $(TYPEDEF)
 Anisotropic Tensor Renormalization Group
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
 
 ### Running the algorithm
-    run!(::ATRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::ATRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 
@@ -26,9 +26,8 @@ $(TYPEDFIELDS)
 mutable struct ATRG <: TNRScheme
     T::TensorMap
 
-    finalize!::Function
-    function ATRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
-        return new(T, finalize)
+    function ATRG(T::TensorMap{E, S, 2, 2}) where {E, S}
+        return new(T)
     end
 end
 

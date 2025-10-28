@@ -4,10 +4,10 @@ $(TYPEDEF)
 Impurity method for Tensor Renormalization Group
 
 ### Constructors
-    $(FUNCTIONNAME)(T, T_imp1, T_imp2, T_imp3, T_imp4 [, finalize=finalize!])
+    $(FUNCTIONNAME)(T, T_imp1, T_imp2, T_imp3, T_imp4)
 
 ### Running the algorithm
-    run!(::ImpurityTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::ImpurityTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 
@@ -31,10 +31,9 @@ mutable struct ImpurityTRG <: TNRScheme
     T_imp3::TensorMap
     T_imp4::TensorMap
 
-    finalize!::Function
     function ImpurityTRG(
             T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
-            T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}; finalize = (finalize!)
+            T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}
         ) where {E, S}
 
 
@@ -43,7 +42,7 @@ mutable struct ImpurityTRG <: TNRScheme
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
 
-        return new(T, T_imp1, T_imp2, T_imp3, T_imp4, finalize)
+        return new(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
 

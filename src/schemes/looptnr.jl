@@ -4,14 +4,15 @@ $(TYPEDEF)
 Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
+    $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
     run!(::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
 
-    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 ### Fields
 
@@ -25,18 +26,17 @@ mutable struct LoopTNR <: TNRScheme
     TA::TensorMap
     TB::TensorMap
 
-    finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize = (finalize!))
-        return new(TA, TB, finalize)
+    function LoopTNR(TA::TensorMap, TB::TensorMap)
+        return new(TA, TB)
     end
-    function LoopTNR(T::TensorMap; finalize = (finalize!))
-        return new(T, copy(T), finalize)
+    function LoopTNR(T::TensorMap)
+        return new(T, copy(T))
     end
 end
 
 """
     LoopTNR(
-        unitcell_2x2::Matrix{T}; finalize = (finalize!),
+        unitcell_2x2::Matrix{T},
         loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
@@ -51,12 +51,11 @@ function LoopTNR(
         loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme,
-        finalize = (finalize!)
     ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
     ψA = Ψ_A(unitcell_2x2)
     ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
     TA, TB = ΨB_to_TATB(ψB)
-    return LoopTNR(TA, TB; finalize)
+    return LoopTNR(TA, TB)
 end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
@@ -397,7 +396,7 @@ function run!(
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
 
         steps = 0
@@ -409,7 +408,7 @@ function run!(
                 scheme, trscheme, truncentanglement, entanglement_criterion,
                 loop_criterion, verbosity
             )
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end
