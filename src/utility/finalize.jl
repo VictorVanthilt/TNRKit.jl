@@ -1,4 +1,15 @@
 # Extra code to make output type available
+"""
+$(TYPEDEF)
+
+Finalizer for TNR schemes
+
+### Constructors
+    Finalizer(f!::Function, E::Type)
+
+A Finalizer holds a function `f!` that is to be applied to a TNR scheme after each step of the algorithm (and at the beginning if specified by `run!(;finalize_beginning=true)`, which is the default behavior).
+The type parameter `E` indicates the output type of `f!`, which is used to create an array of the correct type to hold the outputs.
+"""
 struct Finalizer{E} # E is the output type of f
     f!::Function
 end
@@ -141,3 +152,4 @@ function finalize_central_charge!(scheme::TNRScheme)
 end
 
 # TODO: add Finalizers for CFT and central charge
+two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)

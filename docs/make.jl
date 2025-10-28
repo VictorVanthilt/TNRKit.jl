@@ -10,6 +10,7 @@ makedocs(;
     pages = [
         "Home" => "index.md"
         "Library" => "lib/lib.md"
+        "Finalizers" => "finalizers.md"
         "References" => "references.md"
     ],
     plugins = [bib]
