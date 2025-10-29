@@ -103,22 +103,10 @@ function run!(
 end
 
 function lnz(scheme::rCTM)
-    Z, env = tensor2env(scheme.T, scheme.C2, scheme.E1, scheme.E2)
-    return real(log(network_value(Z, env)))
-end
+    corners = [adjoint(scheme.C2), scheme.C2, adjoint(scheme.C2), scheme.C2]
+    edges = [scheme.E1 scheme.E2 flip(scheme.E1, 2) flip(scheme.E2, 2)]
 
-function tensor2env(T, C2, E1, E2)
-    Z = InfinitePartitionFunction(T)
-    env = CTMRGEnv(Z, space(C2)[1])
-    for i in 1:2
-        env.corners[2 * i] = C2
-        env.edges[2 * i] = E2
-        env.corners[2 * i - 1] = adjoint(C2)
-        env.edges[2 * i - 1] = E1
-    end
-    env.edges[3] = flip(env.edges[3], 2)
-    env.edges[4] = flip(env.edges[4], 2)
-    return Z, env
+    return real(log(network_value(scheme.T, corners, edges)))
 end
 
 function Base.show(io::IO, scheme::rCTM)
