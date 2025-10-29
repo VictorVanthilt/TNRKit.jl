@@ -22,7 +22,7 @@ $(TYPEDFIELDS)
 
 ### References
 * [Morita et. al. Phys. Rev. B 111 (2025)](@cite moritaMultiimpurityMethodBondweighted2025)
-* [Nakamoto et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
+* [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 """
 mutable struct ImpurityTRG <: TNRScheme
     T::TensorMap
