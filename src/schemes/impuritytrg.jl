@@ -20,16 +20,27 @@ Each step rescales the lattice by a (linear) factor of √2
 
 $(TYPEDFIELDS)
 
+Illustration (with p the pure tensor, and the p fills in the rest of the lattice):
+```
+    p   p
+    |   |  
+p---1---2---p
+    |   |
+p---4---3---p
+    |   |
+    p   p
+```
+
 ### References
 * [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 * [Morita et. al. Phys. Rev. B 111 (2025)](@cite moritaMultiimpurityMethodBondweighted2025)
 """
 mutable struct ImpurityTRG <: TNRScheme
-    T::TensorMap
-    T_imp1::TensorMap
-    T_imp2::TensorMap
-    T_imp3::TensorMap
-    T_imp4::TensorMap
+    T::TensorMap            # Pure tensor that stretches over the whole lattice
+    T_imp1::TensorMap       # Impurity tensor on lattice site 1
+    T_imp2::TensorMap       # Impurity tensor on lattice site 2
+    T_imp3::TensorMap       # Impurity tensor on lattice site 3
+    T_imp4::TensorMap       # Impurity tensor on lattice site 4
 
     function ImpurityTRG(
             T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
