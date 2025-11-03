@@ -36,11 +36,20 @@ p---4---3---p
 * [Morita et. al. Phys. Rev. B 111 (2025)](@cite moritaMultiimpurityMethodBondweighted2025)
 """
 mutable struct ImpurityTRG <: TNRScheme
-    T::TensorMap            # Pure tensor that stretches over the whole lattice
-    T_imp1::TensorMap       # Impurity tensor on lattice site 1
-    T_imp2::TensorMap       # Impurity tensor on lattice site 2
-    T_imp3::TensorMap       # Impurity tensor on lattice site 3
-    T_imp4::TensorMap       # Impurity tensor on lattice site 4
+    "Pure tensor"
+    T::TensorMap
+
+    "Impurity tensor on lattice site 1"
+    T_imp1::TensorMap
+
+    "Impurity tensor on lattice site 2"
+    T_imp2::TensorMap
+
+    "Impurity tensor on lattice site 3"
+    T_imp3::TensorMap
+
+    "Impurity tensor on lattice site 4"
+    T_imp4::TensorMap
 
     function ImpurityTRG(
             T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
