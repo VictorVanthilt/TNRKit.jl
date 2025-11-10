@@ -1,4 +1,4 @@
-const ising_βc_triangular = 0.2745744096650192
+const ising_βc_triangular = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(1.0) / BigFloat(3.0))))) / BigFloat(2.0))
 
 function classical_ising_triangular_symmetric(β)
     x = cosh(β)
