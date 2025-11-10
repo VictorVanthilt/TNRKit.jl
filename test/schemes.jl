@@ -91,9 +91,8 @@ end
     @info "LoopTNR ising free energy"
     scheme = LoopTNR(T)
 
-    entanglement_function(steps, data) = abs(data[end])
-    entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
-    loop_criterion = maxiter(5) & convcrit(1.0e-10, entanglement_function)
+    entanglement_criterion = maxiter(100)
+    loop_criterion = maxiter(5)
 
     data = run!(
         scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
@@ -104,23 +103,36 @@ end
 
     @info "LoopTNR ising CFT data"
     scheme = LoopTNR(T)
-    run!(scheme, truncdim(8), maxiter(10))
+    run!(scheme, truncdim(12), maxiter(10))
 
     for shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]]
         cft = cft_data!(scheme, shape)
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
         @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-4
-        @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-2
+        @test d2 ≈ ising_cft_exact[2] rtol = 5.0e-4
     end
 
     for shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]]
-        cft = cft_data!(scheme, shape, truncdim(8), truncbelow(1.0e-10))
+        cft = cft_data!(scheme, shape, truncdim(12), truncbelow(1.0e-10))
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
-        @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-2
-        @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-2
+        @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
+        @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-3
     end
+end
+
+@testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
+    loop_criterion = maxiter(5)
+    trunc = truncdim(8)
+    truncentanglement = truncbelow(1.0e-12)
+    entanglement_criterion = maxiter(100)
+    scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
+    data = run!(
+        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        loop_criterion
+    )
+    @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
 end
 
 # SLoopTNR
@@ -154,10 +166,10 @@ end
     @test fs ≈ f_onsager rtol = 2.0e-5
 end
 
-# c4CTM
-@testset "c4CTM - Ising Model" begin
-    @info "c4CTM ising free energy"
-    scheme = c4CTM(T)
+# c4vCTM
+@testset "c4vCTM - Ising Model" begin
+    @info "c4vCTM ising free energy"
+    scheme = c4vCTM(T)
     lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
@@ -194,4 +206,87 @@ end
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
+end
+
+# ImpurityHOTRG
+@testset "ImpurityHOTRG - Ising Model" begin
+
+    T = classical_ising()
+    T_imp1 = classical_ising_impurity()
+
+    scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
+end
+
+@testset "Impurity HOTRG - Magnetisation" begin
+    # High temperature limit (<m^2> -> 0)
+    β = 0.2
+
+    T = classical_ising(β)
+    T_imp_order1_1 = classical_ising_impurity(β)
+    T_imp_order2 = classical_ising(β)
+
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+
+    data = run!(scheme, truncdim(8), maxiter(25))
+
+    m2_highT = data[end][4] / data[end][1]
+    @test m2_highT ≈ 0.0 atol = 1.0e-14
+
+    # Low temperature limit (<m^2> -> 1)
+    β = 1.0
+
+    T = classical_ising(β)
+    T_imp_order1_1 = classical_ising_impurity(β)
+    T_imp_order2 = classical_ising(β)
+
+    scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
+
+    data = run!(scheme, truncdim(8), maxiter(25))
+
+    m2_lowT = data[end][4] / data[end][1]
+    @test m2_lowT ≈ 1 rtol = 1.0e-2
+end
+
+# ImpurityTRG
+@testset "ImpurityTRG - Ising Model" begin
+    T = classical_ising()
+    T_imp = classical_ising_impurity()
+
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
+
+    data = run!(scheme, truncdim(24), maxiter(25))
+
+    @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 2.0e-6
+end
+
+@testset "ImpurityTRG - Magnetisation" begin
+    # High T
+    β = 0.1
+
+    T = classical_ising(β)
+    T_imp = classical_ising_impurity(β)
+
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    m_expection = data[end][2] / data[end][1]
+    @test m_expection ≈ 0.0 atol = 1.0e-4
+
+    # Low T
+    β = 2
+
+    T = classical_ising(β; h = 1.0e-6)
+    T_imp = classical_ising_impurity(β; h = 1.0e-6)
+
+    scheme = ImpurityTRG(T, T_imp, T, T, T)
+
+    data = run!(scheme, truncdim(16), maxiter(25))
+
+    m_expection = data[end][2] / data[end][1]
+    @test m_expection ≈ 1.0 rtol = 1.0e-4
 end

@@ -1,3 +1,30 @@
+# Extra code to make output type available
+"""
+$(TYPEDEF)
+
+Finalizer for TNR schemes
+
+### Constructors
+    Finalizer(f!::Function, E::Type)
+
+A Finalizer holds a function `f!` that is to be applied to a TNR scheme after each step of the algorithm (and at the beginning if specified by `run!(;finalize_beginning=true)`, which is the default behavior).
+The type parameter `E` indicates the output type of `f!`, which is used to create an array of the correct type to hold the outputs.
+"""
+struct Finalizer{E} # E is the output type of f
+    f!::Function
+end
+
+function Finalizer(f::Function, E::Type)
+    return Finalizer{E}(f)
+end
+
+output_type(finalizer::Finalizer{E}) where {E} = E
+
+default_Finalizer = Finalizer(finalize!, Float64)
+ImpurityTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64})
+ImpurityHOTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Float64, Float64})
+
+# Finalization functions for the various TNR schemes
 const simple_scheme = Union{TRG, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
@@ -71,6 +98,35 @@ function finalize!(scheme::SLoopTNR)
     return tr_norm^0.25
 end
 
+# finalize! for ImpurityTRG
+function finalize!(scheme::ImpurityTRG)
+    # First normalize everything by the pure tensor
+    npure = norm(@tensor scheme.T[1 2; 2 1])
+    scheme.T_imp1 /= npure
+    scheme.T_imp2 /= npure
+    scheme.T_imp3 /= npure
+    scheme.T_imp4 /= npure
+    scheme.T /= npure
+
+    # Then calculate the contracted/traced 4 impurity tensors
+    nimp = norm(@tensoropt scheme.T_imp1[5 4;6 1] * scheme.T_imp2[1 2;7 5] * scheme.T_imp3[3 7;2 8] * scheme.T_imp4[8 6;4 3])
+
+    return npure, nimp
+end
+
+# finalize! for ImpurityHOTRG
+function finalize!(scheme::ImpurityHOTRG)
+    n = norm(@tensor scheme.T[1 2; 2 1])
+    n_11 = norm(@tensor scheme.T_imp_order1_1[1 2; 2 1])
+    n_12 = norm(@tensor scheme.T_imp_order1_2[1 2; 2 1])
+    n_2 = norm(@tensor scheme.T_imp_order2[1 2; 2 1])
+    scheme.T /= n
+    scheme.T_imp_order1_1 /= n
+    scheme.T_imp_order1_2 /= n
+    scheme.T_imp_order2 /= n
+    return n, n_11, n_12, n_2
+end
+
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
@@ -94,3 +150,6 @@ function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
     return central_charge(scheme, n)
 end
+
+# TODO: add Finalizers for CFT and central charge
+two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)

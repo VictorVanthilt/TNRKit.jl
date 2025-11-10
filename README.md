@@ -33,7 +33,7 @@ The following schemes are currently implemented:
 - SLoopTNR (C4 & inversion symmetric LoopTNR)
 - ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
 - ctm_TRG (Corner Transfer Matrix environment + TRG)
-- c4CTM (c4 symmetric CTM)
+- c4vCTM (c4v symmetric CTM)
 - rCTM (reflection symmetric CTM)
 
 This project is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated. The github discussions page is a great place to talk!

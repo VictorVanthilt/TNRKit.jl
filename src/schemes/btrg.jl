@@ -4,10 +4,10 @@ $(TYPEDEF)
 Bond-weighted Tensor Renormalization Group
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, k=-1/2, finalize=finalize!])
+    $(FUNCTIONNAME)(T [, k=-1/2])
 
 ### Running the algorithm
-    run!(::BTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::BTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 
@@ -29,15 +29,14 @@ mutable struct BTRG <: TNRScheme
     S2::TensorMap
     k::Float64
 
-    finalize!::Function
-    function BTRG(T::TensorMap{E, S, 2, 2}, k::Number; finalize = (finalize!)) where {E, S}
+    function BTRG(T::TensorMap{E, S, 2, 2}, k::Number) where {E, S}
         # Construct S1 and S2 as identity matrices.
-        return new(T, id(space(T, 2)), id(space(T, 1)), k, finalize)
+        return new(T, id(space(T, 2)), id(space(T, 1)), k)
     end
 end
 
 # Default implementation using the optimal value for k
-BTRG(T::TensorMap; kwargs...) = BTRG(T, -0.5; kwargs...)
+BTRG(T::TensorMap) = BTRG(T, -0.5)
 
 function pseudopow(t::DiagonalTensorMap, a::Real; tol = eps(scalartype(t))^(3 / 4))
     t′ = copy(t)

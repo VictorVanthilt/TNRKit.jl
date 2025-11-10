@@ -4,12 +4,12 @@ $(TYPEDEF)
 c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
 
 ### Running the algorithm
     run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit[, finalize_beginning=true, oneloop=true,
+              criterion::TNRKit.stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
 `oneloop=true` will use disentangled tensors as a starting guess for the optimization.
@@ -25,13 +25,11 @@ mutable struct SLoopTNR <: TNRScheme
     T::TensorMap
 
     gradalg::OptimKit.LBFGS
-    finalize!::Function
     function SLoopTNR(
             T::TensorMap;
-            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
-            finalize = (finalize!)
+            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000)
         )
-        return new(T, gradalg, finalize)
+        return new(T, gradalg)
     end
 end
 
@@ -107,7 +105,7 @@ end
 ########## Entanglement filtering ##########
 function Ψ_center(T)
     Tflip = flip(T, (1, 2, 3, 4))
-    psi = AbstractTensorMap[
+    psi = [
         permute(T, ((2,), (1, 3, 4))),
         permute(Tflip, ((4,), (3, 1, 2))),
         permute(T, ((2,), (1, 3, 4))),
@@ -118,7 +116,7 @@ end
 
 function Ψ_corner(T)
     Tflip = flip(T, (1, 2, 3, 4))
-    psi = AbstractTensorMap[
+    psi = [
         permute(T, ((3,), (4, 2, 1))),
         permute(Tflip, ((1,), (2, 4, 3))),
         permute(T, ((3,), (4, 2, 1))),
@@ -162,28 +160,16 @@ end
 
 function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
-    ΨB = []
-
-    for i in 1:4
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        push!(ΨB, s1)
-        push!(ΨB, s2)
-    end
+    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)
-    PR_list, _ = find_projectors(
+    PRs, _ = find_projectors(
         ΨB, [1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2, 2],
         criterion, trunc
     )
-
-    ΨB_disentangled = []
-    for i in 1:1
-        @tensor B1[-2 -1; -3] := ΨB[i][-1; -2 2] *
-            PR_list[mod(i, 8) + 1][2; -3]
-        push!(ΨB_disentangled, B1)
-    end
-    S = ΨB_disentangled[1]
+    i = 1
+    @tensor S[-2 -1; -3] := ΨB[i][-1; -2 2] * PRs[mod(i, 8) + 1][2; -3]
     return S
 end
 
@@ -209,16 +195,16 @@ end
 
 function run!(
         scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; finalize_beginning = true, oneloop = true,
+        criterion::TNRKit.stopcrit; finalizer = default_Finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
 
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
         steps = 0
         crit = true
@@ -226,7 +212,7 @@ function run!(
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
             step!(scheme, trscheme, oneloop)
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end

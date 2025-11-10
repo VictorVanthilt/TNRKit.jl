@@ -4,14 +4,15 @@ $(TYPEDEF)
 Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
+    $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
     run!(::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
 
-    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 ### Fields
 
@@ -25,38 +26,69 @@ mutable struct LoopTNR <: TNRScheme
     TA::TensorMap
     TB::TensorMap
 
-    finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize = (finalize!))
-        return new(TA, TB, finalize)
+    function LoopTNR(TA::TensorMap, TB::TensorMap)
+        return new(TA, TB)
     end
-    function LoopTNR(T::TensorMap; finalize = (finalize!))
-        return new(T, copy(T), finalize)
+    function LoopTNR(T::TensorMap)
+        return new(T, copy(T))
     end
 end
 
+"""
+    LoopTNR(
+        unitcell_2x2::Matrix{T},
+        loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme
+    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+
+Initialize LoopTNR using a network with 2 x 2 unit cell, 
+by first performing one round of loop optimization to reduce
+the network to a bipartite one (without normalization). 
+"""
+function LoopTNR(
+        unitcell_2x2::Matrix{T};
+        loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    ψA = Ψ_A(unitcell_2x2)
+    ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
+    TA, TB = ΨB_to_TATB(ψB)
+    return LoopTNR(TA, TB)
+end
+
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
-function Ψ_A(scheme::LoopTNR)
-    psi = AbstractTensorMap[
-        transpose(scheme.TA, ((2,), (1, 3, 4)); copy = true),
-        transpose(scheme.TB, ((1,), (3, 4, 2)); copy = true),
-        transpose(scheme.TA, ((3,), (4, 2, 1)); copy = true),
-        transpose(scheme.TB, ((4,), (2, 1, 3)); copy = true),
+function Ψ_A(unitcell_2x2::Matrix{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    size(unitcell_2x2) == (2, 2) || error("Input unit cell must have 2 x 2 size.")
+    ΨA = [
+        transpose(unitcell_2x2[1, 1], ((2,), (1, 3, 4)); copy = true),
+        transpose(unitcell_2x2[1, 2], ((1,), (3, 4, 2)); copy = true),
+        transpose(unitcell_2x2[2, 2], ((3,), (4, 2, 1)); copy = true),
+        transpose(unitcell_2x2[2, 1], ((4,), (2, 1, 3)); copy = true),
     ]
-    return psi
+    return ΨA
+end
+function Ψ_A(TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}) where {E, S}
+    ΨA = [
+        transpose(TA, ((2,), (1, 3, 4)); copy = true),
+        transpose(TB, ((1,), (3, 4, 2)); copy = true),
+        transpose(TA, ((3,), (4, 2, 1)); copy = true),
+        transpose(TB, ((4,), (2, 1, 3)); copy = true),
+    ]
+    return ΨA
+end
+function Ψ_A(scheme::LoopTNR)
+    return Ψ_A(scheme.TA, scheme.TB)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(
-        ΨA, trunc::TensorKit.TruncationScheme,
+        ΨA::Vector{T}, trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
-    )
+    ) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
     NA = length(ΨA)
-    ΨB = []
-    for i in 1:NA
-        s1, s2 = SVD12(ΨA[i], truncdim(trunc.dim * 2))
-        push!(ΨB, s1)
-        push!(ΨB, s2)
-    end
+    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
@@ -76,14 +108,10 @@ end
 #       1 2
 #       | |
 # ---2'--A--4'---
-function ΨAΨA(psiA)
-    NA = length(psiA)
-    ΨAΨA_list = []
-    for i in 1:NA
-        @plansor tmp[-1 -2; -3 -4] := psiA[i][-2; 1 2 -4] * psiA[i]'[1 2 -3; -1]
-        push!(ΨAΨA_list, tmp)
+function ΨAΨA(ΨA::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+    return map(ΨA) do A
+        return @plansor AA[-1 -2; -3 -4] := A[-2; 1 2 -4] * conj(A[-1; 1 2 -3])
     end
-    return ΨAΨA_list
 end
 
 # Construct the list of transfer matrices for ΨBΨB
@@ -92,15 +120,10 @@ end
 #        1
 #        |
 # ---2'--B--4'---
-
-function ΨBΨB(psiB)
-    NB = length(psiB)
-    ΨBΨB_list = []
-    for i in 1:NB
-        @plansor tmp[-1 -2; -3 -4] := psiB[i][-2; 1 -4] * psiB[i]'[1 -3; -1]
-        push!(ΨBΨB_list, tmp)
+function ΨBΨB(ΨB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
+    return map(ΨB) do B
+        return @plansor BB[-1 -2; -3 -4] := B[-2; 1 -4] * conj(B[-1; 1 -3])
     end
-    return ΨBΨB_list
 end
 
 # Construct the list of transfer matrices for ΨBΨA
@@ -109,65 +132,72 @@ end
 #        1   2
 #         | |
 # ---2'----A----4'---
-
-function ΨBΨA(psiB, psiA)
-    NA = length(psiA)
-    ΨBΨA_list = []
-    for i in 1:NA
-        @plansor temp[-1 -2; -3 -4] := psiB[2 * i - 1]'[1 3; -1] * psiA[i][-2; 1 2 -4] *
-            psiB[2 * i]'[2 -3; 3]
-        push!(ΨBΨA_list, temp)
+function ΨBΨA(
+        ΨB::Vector{TB}, ΨA::Vector{TA}
+    ) where {
+        TB <: AbstractTensorMap{<:Any, <:Any, 1, 2},
+        TA <: AbstractTensorMap{<:Any, <:Any, 1, 3},
+    }
+    NA = length(ΨA)
+    @assert length(ΨB) == 2 * NA
+    return map(1:NA) do i
+        return @plansor temp[-1 -2; -3 -4] := conj(ΨB[2 * i - 1][-1; 1 3]) *
+            ΨA[i][-2; 1 2 -4] * conj(ΨB[2 * i][3; 2 -3])
     end
-    return ΨBΨA_list
 end
 
 # Function to compute the trace of a list of transfer matrices
-function to_number(tensor_list)
-    cont = tensor_list[1]
-    for tensor in tensor_list[2:end]
-        cont = cont * tensor
-    end
-    return tr(cont)
+function to_number(tensors::Vector{T}) where {T <: AbstractTensorMap}
+    return tr(reduce(*, tensors))
 end
 
 #Entanglement Filtering
 entanglement_function(steps, data) = abs(data[end])
-entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
+default_entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
 
-loop_criterion = maxiter(50) & convcrit(1.0e-8, entanglement_function)
-
-# Entanglement filtering function
-function entanglement_filtering!(scheme::LoopTNR, entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme)
-    ΨA = Ψ_A(scheme)
-    PR_list, PL_list = find_projectors(
+function _entanglement_filtering(
+        TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2},
+        entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
+    ) where {E, S}
+    ΨA = Ψ_A(TA, TB)
+    PRs, PLs = find_projectors(
         ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
         entanglement_criterion, trunc
     )
-
-    TA = copy(scheme.TA)
-    TB = copy(scheme.TB)
-
-    @plansor scheme.TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PR_list[4][1; -1] *
-        PL_list[1][-2; 2] * PR_list[2][4; -4] *
-        PL_list[3][-3; 3]
-    @plansor scheme.TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PL_list[2][-1; 1] *
-        PR_list[3][2; -2] * PL_list[4][-4; 4] *
-        PR_list[1][3; -3]
-
-    return scheme
+    @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] *
+        PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
+    @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] *
+        PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
+    return TA, TB
 end
 
-function entanglement_filtering!(scheme::LoopTNR, trunc::TensorKit.TruncationScheme)
-    return entanglement_filtering!(scheme, entanglement_criterion, trunc)
+# Entanglement filtering function
+function entanglement_filtering!(
+        scheme::LoopTNR,
+        trunc::TensorKit.TruncationScheme,
+        entanglement_criterion::stopcrit = default_entanglement_criterion
+    )
+    scheme.TA, scheme.TB = _entanglement_filtering(
+        scheme.TA, scheme.TB, entanglement_criterion, trunc
+    )
+    return scheme
 end
 
 # Optimisation functions
 
 # Function to compute the half of the matrix N by inputting the left and right SS transfer matrices
-tN(SS_left, SS_right) = SS_right * SS_left
+function tN(SS_left::AbstractTensorMap{E, S, 2, 2}, SS_right::AbstractTensorMap{E, S, 2, 2}) where {E, S}
+    return SS_right * SS_left
+end
 
 # Function to compute the vector W for a given position in the loop
-function tW(pos, psiA, psiB, TSS_left, TSS_right)
+function tW(
+        pos::Int, psiA::Vector{TA}, psiB::Vector{TB},
+        TSS_left::AbstractTensorMap{E, S, 2, 2}, TSS_right::AbstractTensorMap{E, S, 2, 2}
+    ) where {
+        TA <: AbstractTensorMap{<:Any, <:Any, 1, 3},
+        TB <: AbstractTensorMap{<:Any, <:Any, 1, 2}, E, S,
+    }
     ΨA = psiA[(pos - 1) ÷ 2 + 1]
 
     tmp = TSS_right * TSS_left
@@ -181,7 +211,7 @@ function tW(pos, psiA, psiB, TSS_left, TSS_right)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @plansor W[-1; -3 -2] := ΨB'[4 -1; 2] * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
+        @plansor W[-1; -3 -2] := conj(ΨB[2; 4 -1]) * ΨA[3; 4 -3 1] * tmp[-2 1; 2 3]
     else
         ΨB = psiB[pos + 1]
         #-1'--   --2'--ΨB--2----------1'-
@@ -191,14 +221,17 @@ function tW(pos, psiA, psiB, TSS_left, TSS_right)
         #        |   |           p
         #         | |            |
         #---3------ΨA------1----------3--
-        @plansor W[-1; -3 -2] := ΨB'[4 2; -2] * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
+        @plansor W[-1; -3 -2] := conj(ΨB[-2; 4 2]) * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
     return W
 end
 
 # Function to optimize the tensor T for a given position in the loop by the Krylov method
-function opt_T(N, W, psi)
+function opt_T(
+        N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 1, 2},
+        psi::AbstractTensorMap{E, S, 1, 2}
+    ) where {E, S}
     function apply_f(x::TensorMap)
         #-----1'--   --2'------------1'--
         #          |            |
@@ -224,13 +257,13 @@ end
 # ...
 # cache[7] = T8
 # cache[8] = I
-function right_cache(tensor_list)
-    n = length(tensor_list)
-    cache = similar(tensor_list)
-    cache[end] = id(domain(tensor_list[end]))
+function right_cache(transfer_mats::Vector{T}) where {T <: AbstractTensorMap{E, S, 2, 2}} where {E, S}
+    n = length(transfer_mats)
+    cache = similar(transfer_mats)
+    cache[end] = id(E, domain(transfer_mats[end]))
 
     for i in (n - 1):-1:1
-        cache[i] = tensor_list[i + 1] * cache[i + 1]
+        cache[i] = transfer_mats[i + 1] * cache[i + 1]
     end
 
     return cache
@@ -242,10 +275,10 @@ end
 # The transfer matrix on the left is updated after each optimization step.
 # The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
 function loop_opt(
-        psiA::Array, loop_criterion::stopcrit,
+        psiA::Vector{T}, loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme, verbosity::Int
-    )
+    ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
     psiB = Ψ_B(psiA, trunc, truncentanglement)
     NB = length(psiB) # Number of tensors in the MPS Ψ_B
     psiBpsiB = ΨBΨB(psiB)
@@ -258,8 +291,8 @@ function loop_opt(
     while crit
         right_cache_BB = right_cache(psiBpsiB)
         right_cache_BA = right_cache(psiBpsiA)
-        left_BB = id(codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
-        left_BA = id(codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
+        left_BB = id(E, codomain(psiBpsiB[1])) # Initialize the left transfer matrix for ΨBΨB
+        left_BA = id(E, codomain(psiBpsiA[1])) # Initialize the left transfer matrix for ΨBΨA
 
         t_start = time()
 
@@ -284,14 +317,15 @@ function loop_opt(
 
             psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B
 
-            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * new_psiB'[1 -3; -1]
+            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * conj(new_psiB[-1; 1 -3])
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
             if iseven(pos_psiB) # If the position is even, we also update the transfer matrix for ΨBΨA
-                @plansor BA_temp[-1 -2; -3 -4] := psiB[2 * pos_psiA - 1]'[1 3; -1] *
+                @plansor BA_temp[-1 -2; -3 -4] :=
+                    conj(psiB[2 * pos_psiA - 1][-1; 1 3]) *
                     psiA[pos_psiA][-2; 1 2 -4] *
-                    psiB[2 * pos_psiA]'[2 -3; 3]
+                    conj(psiB[2 * pos_psiA][3; 2 -3])
                 psiBpsiA[pos_psiA] = BA_temp # Update the transfer matrix for ΨBΨA
                 left_BA = left_BA * BA_temp # Update the left transfer matrix for ΨBΨA
             end
@@ -312,6 +346,14 @@ function loop_opt(
     return psiB
 end
 
+function ΨB_to_TATB(psiB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
+    @plansor TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
+        psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
+    @plansor TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
+        psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
+    return TA, TB
+end
+
 function loop_opt!(
         scheme::LoopTNR,
         loop_criterion::stopcrit,
@@ -321,10 +363,7 @@ function loop_opt!(
     )
     psiA = Ψ_A(scheme)
     psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
-    @plansor scheme.TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
-        psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
-    @plansor scheme.TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
-        psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
+    scheme.TA, scheme.TB = ΨB_to_TATB(psiB)
     return scheme
 end
 
@@ -336,7 +375,7 @@ function step!(
         loop_criterion::stopcrit,
         verbosity::Int
     )
-    entanglement_filtering!(scheme, entanglement_criterion, truncentanglement)
+    entanglement_filtering!(scheme, truncentanglement, entanglement_criterion)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
     return scheme
 end
@@ -348,15 +387,16 @@ function run!(
         criterion::stopcrit,
         entanglement_criterion::stopcrit,
         loop_criterion::stopcrit;
+        finalizer = default_Finalizer,
         finalize_beginning = true,
         verbosity = 1
     )
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
 
         steps = 0
@@ -368,7 +408,7 @@ function run!(
                 scheme, trscheme, truncentanglement, entanglement_criterion,
                 loop_criterion, verbosity
             )
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end
@@ -380,13 +420,14 @@ end
 
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalizer = default_Finalizer,
         finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
-        scheme, trscheme, truncbelow(1.0e-15), criterion, entanglement_criterion,
+        scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion,
         loop_criterion;
+        finalizer = finalizer,
         finalize_beginning = finalize_beginning,
         verbosity = verbosity
     )
