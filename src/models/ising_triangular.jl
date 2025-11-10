@@ -32,4 +32,4 @@ function classical_ising_triangular(β)
 end
 classical_ising_triangular() = classical_ising_triangular(ising_βc_triangular)
 
-const f_onsager_triangular = -0.8796 / ising_βc_triangular
+const f_onsager_triangular::BigFloat = -3.20253248660790791834355252025862951439
