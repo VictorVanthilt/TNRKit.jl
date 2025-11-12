@@ -123,7 +123,7 @@ function step!(scheme::c6vCTM_triangular, trunc)
     @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
     ρρ /= norm(ρρ)
 
-    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16))
+    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16), alg = TensorKit.SVD())
 
     Pb = ρ * V' * inv(sqrt(S))
     Pa = inv(sqrt(S)) * U' * ρ
