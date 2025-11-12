@@ -120,11 +120,10 @@ end
 
 function step!(scheme::c6vCTM_triangular, trunc)
     ρ = build_double_corner_matrix_triangular(scheme)
-    # avoid symmetry breaking due to numerical accuracy
-    # mat = 0.5 * (mat + adjoint(mat))
     @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
+    ρρ /= norm(ρρ)
 
-    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-20))
+    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16))
 
     Pb = ρ * V' * inv(sqrt(S))
     Pa = inv(sqrt(S)) * U' * ρ
