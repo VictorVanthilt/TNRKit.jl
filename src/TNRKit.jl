@@ -3,8 +3,6 @@ using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
-using PEPSKit: InfinitePartitionFunction, CTMRGEnv
-using PEPSKit: network_value, twistdual, twistdual!
 using DocStringExtensions
 
 # stop criteria
@@ -97,4 +95,6 @@ include("utility/projectors.jl")
 
 include("utility/blocking.jl")
 export block_tensors
+
+include("utility/network_value.jl")
 end

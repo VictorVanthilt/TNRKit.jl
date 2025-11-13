@@ -113,7 +113,7 @@ function step!(scheme::c4vCTM, trunc)
     mat, U, S = find_U_sym(scheme, trunc)
 
     @tensor scheme.C[-1; -2] := mat[1 2; 3 4] * U[3 4; -2] * conj(U[1 2; -1])
-    @tensor scheme.E[-1 -2; -3] := scheme.E[1 5; 3] * flip(scheme.T, (3, 4); inv = true)[5 4 -2 2] *
+    @tensor scheme.E[-1 -2; -3] := scheme.E[1 5; 3] * flip(scheme.T, (3, 4); inv = false)[5 4 -2 2] *
         U[3 4; -3] *
         conj(U[1 2; -1])
 
@@ -123,15 +123,21 @@ function step!(scheme::c4vCTM, trunc)
 end
 
 function lnz(scheme::c4vCTM)
-    Z, env = tensor2env(permute(flip(scheme.T, (3, 4); inv = true), ((4, 3), (1, 2))), scheme.C, scheme.E)
-    # should be inv = false ??
-    return real(log(network_value(Z, env)))
+    T_unflipped = permute(flip(scheme.T, (3, 4); inv = false), ((4, 3), (1, 2)))
+
+    corners = fill(scheme.C, 4)
+    edges = fill(scheme.E, 4)
+
+    edges[3] = flip(scheme.E, 2; inv = true)
+    edges[4] = flip(scheme.E, 2; inv = true)
+
+    return real(log(network_value(T_unflipped, corners, edges)))
 end
 
 function build_corner_matrix(scheme)
     @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[1; 2] * scheme.E[-1 3; 1] *
         scheme.E[2 4; -3] *
-        flip(scheme.T, 3; inv = true)[4 -4 -2 3]
+        flip(scheme.T, 3; inv = false)[4 -4 -2 3]
     return mat
 end
 
@@ -150,20 +156,6 @@ function c4vCTM_init(T::TensorMap{A, S, 0, 4}) where {A, S}
     C = TensorMap(ones, S_type, oneunit(Vp) ← oneunit(Vp))
     E = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
     return C, E
-end
-
-function tensor2env(O, C, T)
-    Z = InfinitePartitionFunction(O)
-    env = CTMRGEnv(Z, space(C)[1])
-
-    for i in 1:4
-        env.corners[i] = C
-        env.edges[i] = T
-    end
-
-    env.edges[3] = flip(T, 2)
-    env.edges[4] = flip(T, 2)
-    return Z, env
 end
 
 function Base.show(io::IO, scheme::c4vCTM)

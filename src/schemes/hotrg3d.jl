@@ -32,6 +32,17 @@ mutable struct HOTRG_3D{E, S} <: TNRScheme{E, S}
     end
 end
 
+# Twist the i-th leg of a tensor `t` if it represents a dual space.
+function twistdual!(t::AbstractTensorMap, i::Int)
+    isdual(space(t, i)) || return t
+    return twist!(t, i)
+end
+function twistdual!(t::AbstractTensorMap, is)
+    is′ = filter(i -> isdual(space(t, i)), is)
+    return twist!(t, is′)
+end
+twistdual(t::AbstractTensorMap, is) = twistdual!(copy(t), is)
+
 function _get_hotrg3d_xproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
         trunc::TensorKit.TruncationScheme
