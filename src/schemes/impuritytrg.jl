@@ -24,12 +24,12 @@ $(TYPEDFIELDS)
 * [Morita et. al. 10.48550/arXiv.2411.13998 (2024)](@cite moritaMultiimpurityMethodBondweighted2024)
 * [Nakamoto et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 """
-mutable struct ImpurityTRG <: TNRScheme
-    T::TensorMap
-    T_imp1::TensorMap
-    T_imp2::TensorMap
-    T_imp3::TensorMap
-    T_imp4::TensorMap
+mutable struct ImpurityTRG{E, S} <: TNRScheme{E, S}
+    T::TensorMap{E, S, 2, 2}
+    T_imp1::TensorMap{E, S, 2, 2}
+    T_imp2::TensorMap{E, S, 2, 2}
+    T_imp3::TensorMap{E, S, 2, 2}
+    T_imp4::TensorMap{E, S, 2, 2}
 
     function ImpurityTRG(
             T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
@@ -42,7 +42,7 @@ mutable struct ImpurityTRG <: TNRScheme
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
 
-        return new(T, T_imp1, T_imp2, T_imp3, T_imp4)
+        return new{E, S}(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
 

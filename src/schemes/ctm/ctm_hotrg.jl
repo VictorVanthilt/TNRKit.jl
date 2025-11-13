@@ -1,17 +1,17 @@
-mutable struct ctm_HOTRG{A, S} <: TNRScheme
-    T::TensorMap{A, S, 2, 2}
-    C2::TensorMap{A, S, 1, 1}
-    E1::TensorMap{A, S, 2, 1}
-    E2::TensorMap{A, S, 2, 1}
+mutable struct ctm_HOTRG{E, S} <: TNRScheme{E, S}
+    T::TensorMap{E, S, 2, 2}
+    C2::TensorMap{E, S, 1, 1}
+    E1::TensorMap{E, S, 2, 1}
+    E2::TensorMap{E, S, 2, 1}
     χenv::Int64
     function ctm_HOTRG(
-            T::TensorMap{A, S, 2, 2},
+            T::TensorMap{E, S, 2, 2},
             χenv::Int64;
             ctm_iter = maxiter(2.0e4),
             ctm_tol = trivial_convcrit(1.0e-9),
             ctm_obc = false,
             χenv_ini = 2,
-        ) where {A, S}
+        ) where {E, S}
         if eltype(T) != Float64
             @error "This scheme only supports tensors with real numbers"
         end
@@ -27,7 +27,7 @@ mutable struct ctm_HOTRG{A, S} <: TNRScheme
         @info "rCTM finished"
         C2, E1, E2 = scheme_init.C2, scheme_init.E1, scheme_init.E2
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A, S}(T, C2, E1, E2, χenv)
+        return new{E, S}(T, C2, E1, E2, χenv)
     end
 end
 

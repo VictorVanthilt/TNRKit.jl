@@ -22,15 +22,15 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017)
 
 """
-mutable struct LoopTNR <: TNRScheme
-    TA::TensorMap
-    TB::TensorMap
+mutable struct LoopTNR{E, S} <: TNRScheme{E, S}
+    TA::TensorMap{E, S, 2, 2}
+    TB::TensorMap{E, S, 2, 2}
 
-    function LoopTNR(TA::TensorMap, TB::TensorMap)
-        return new(TA, TB)
+    function LoopTNR(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}) where {E, S}
+        return new{E, S}(TA, TB)
     end
-    function LoopTNR(T::TensorMap)
-        return new(T, copy(T))
+    function LoopTNR(T::TensorMap{E, S, 2, 2}) where {E, S}
+        return new{E, S}(T, copy(T))
     end
 end
 
@@ -51,7 +51,7 @@ function LoopTNR(
         loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme,
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    ) where {T <: AbstractTensorMap{<:Number, <:VectorSpace, 2, 2}}
     ψA = Ψ_A(unitcell_2x2)
     ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
     TA, TB = ΨB_to_TATB(ψB)
@@ -381,17 +381,13 @@ function step!(
 end
 
 function run!(
-        scheme::LoopTNR,
-        trscheme::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme,
-        criterion::stopcrit,
-        entanglement_criterion::stopcrit,
-        loop_criterion::stopcrit;
-        finalizer = default_Finalizer,
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
+        criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
+        finalizer::Finalizer{E};
         finalize_beginning = true,
         verbosity = 1
-    )
-    data = output_type(finalizer)[]
+    ) where {E}
+    data = Vector{E}()
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
@@ -404,10 +400,7 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(
-                scheme, trscheme, truncentanglement, entanglement_criterion,
-                loop_criterion, verbosity
-            )
+            step!(scheme, trscheme, truncentanglement, entanglement_criterion, loop_criterion, verbosity)
             push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
@@ -418,16 +411,17 @@ function run!(
     return data
 end
 
+function run!(scheme, trscheme, truncentanglement, criterion, entanglement_criterion, loop_criterion; kwargs...)
+    return run!(scheme, trscheme, truncentanglement, criterion, entanglement_criterion, loop_criterion, default_Finalizer; kwargs...)
+end
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; finalizer = default_Finalizer,
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
         finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
-        scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion,
-        loop_criterion;
-        finalizer = finalizer,
+        scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion, loop_criterion;
         finalize_beginning = finalize_beginning,
         verbosity = verbosity
     )

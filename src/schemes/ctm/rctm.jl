@@ -15,19 +15,19 @@ The corner tensors are related by its mirror images.
                │  
                ▼  
 =#
-mutable struct rCTM{A, S}
-    T::TensorMap{A, S, 2, 2}
-    C2::TensorMap{A, S, 1, 1}
-    E1::TensorMap{A, S, 2, 1}
-    E2::TensorMap{A, S, 2, 1}
+mutable struct rCTM{E, S} <: TNRScheme{E, S}
+    T::TensorMap{E, S, 2, 2}
+    C2::TensorMap{E, S, 1, 1}
+    E1::TensorMap{E, S, 2, 1}
+    E2::TensorMap{E, S, 2, 1}
 
-    function rCTM(T::TensorMap{A, S, 2, 2}) where {A, S}
+    function rCTM(T::TensorMap{E, S, 2, 2}) where {E, S}
         if typeof(T.data[1]) != Float64
             @error "This scheme only support tensors with real numbers"
         end
         C, E1, E2 = rCTM_init(T)
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A, S}(T, C, E1, E2)
+        return new{E, S}(T, C, E1, E2)
     end
 end
 

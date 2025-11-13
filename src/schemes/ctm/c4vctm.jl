@@ -23,7 +23,7 @@ The keyword argument symmetrize makes the tensor C4v symmetric when set to true.
 
 $(TYPEDFIELDS)
 """
-mutable struct c4vCTM{A, S}
+mutable struct c4vCTM{A, S} <: TNRScheme{A, S}
     T::TensorMap{A, S, 0, 4}
     C::TensorMap{A, S, 1, 1}
     E::TensorMap{A, S, 2, 1}

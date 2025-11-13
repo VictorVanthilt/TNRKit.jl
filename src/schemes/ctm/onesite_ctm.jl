@@ -21,6 +21,8 @@ mutable struct CTM
     Er::AbstractTensorMap
 end
 
+#TODO: type everything
+
 CTM(T; bc = ones, bc_free = false) = CTM(T, CTM_init(T; bc, bc_free)...)
 
 function lnz(ctm::CTM)
