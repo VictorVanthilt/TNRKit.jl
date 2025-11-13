@@ -59,7 +59,7 @@ function LoopTNR(
 end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
-function Ψ_A(unitcell_2x2::Matrix{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+function Ψ_A(unitcell_2x2::Matrix{<:AbstractTensorMap{E, S, 2, 2}}) where {E, S}
     size(unitcell_2x2) == (2, 2) || error("Input unit cell must have 2 x 2 size.")
     ΨA = [
         transpose(unitcell_2x2[1, 1], ((2,), (1, 3, 4)); copy = true),
@@ -83,21 +83,17 @@ function Ψ_A(scheme::LoopTNR)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(
-        ΨA::Vector{T}, trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
     NA = length(ΨA)
     ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
+
     in_inds = ones(Int, 2 * NA)
     out_inds = 2 * ones(Int, 2 * NA)
-    PR_list, PL_list = find_projectors(
-        ΨB, in_inds, out_inds, criterion,
-        trunc & truncentanglement
-    )
+
+    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & truncentanglement)
     MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
     return ΨB
 end
@@ -108,7 +104,7 @@ end
 #       1 2
 #       | |
 # ---2'--A--4'---
-function ΨAΨA(ΨA::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+function ΨAΨA(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}) where {E, S}
     return map(ΨA) do A
         return @plansor AA[-1 -2; -3 -4] := A[-2; 1 2 -4] * conj(A[-1; 1 2 -3])
     end
@@ -120,7 +116,7 @@ end
 #        1
 #        |
 # ---2'--B--4'---
-function ΨBΨB(ΨB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
+function ΨBΨB(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}) where {E, S}
     return map(ΨB) do B
         return @plansor BB[-1 -2; -3 -4] := B[-2; 1 -4] * conj(B[-1; 1 -3])
     end
@@ -132,22 +128,16 @@ end
 #        1   2
 #         | |
 # ---2'----A----4'---
-function ΨBΨA(
-        ΨB::Vector{TB}, ΨA::Vector{TA}
-    ) where {
-        TB <: AbstractTensorMap{<:Any, <:Any, 1, 2},
-        TA <: AbstractTensorMap{<:Any, <:Any, 1, 3},
-    }
-    NA = length(ΨA)
-    @assert length(ΨB) == 2 * NA
-    return map(1:NA) do i
+function ΨBΨA(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}, ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}) where {E, S}
+    @assert length(ΨB) == 2 * length(ΨA)
+    return map(eachindex(ΨA)) do i
         return @plansor temp[-1 -2; -3 -4] := conj(ΨB[2 * i - 1][-1; 1 3]) *
             ΨA[i][-2; 1 2 -4] * conj(ΨB[2 * i][3; 2 -3])
     end
 end
 
 # Function to compute the trace of a list of transfer matrices
-function to_number(tensors::Vector{T}) where {T <: AbstractTensorMap}
+function to_number(tensors::Vector{<:AbstractTensorMap})
     return tr(reduce(*, tensors))
 end
 
@@ -164,10 +154,8 @@ function _entanglement_filtering(
         ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
         entanglement_criterion, trunc
     )
-    @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] *
-        PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
-    @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] *
-        PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
+    @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
+    @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
     return TA, TB
 end
 

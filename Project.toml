@@ -15,12 +15,11 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 DocStringExtensions = "0.9.4"
-KrylovKit = "0.9.5"
 LoggingExtras = "~1.0"
 OptimKit = "0.4.0"
-TensorKit = "0.14"
 Zygote = "0.7.7"
 julia = "1.11"
+TensorKit = "0.14"
 
 [extras]
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
