@@ -23,12 +23,12 @@ $(TYPEDFIELDS)
 ### References
 * [Levin & Nave Phys. Rev. Letters 99(12) (2007)](@cite levinTensorRenormalizationGroup2007)
 """
-mutable struct TRG{E, S} <: TNRScheme{E, S}
+mutable struct TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
     "central tensor"
-    T::TensorMap{E, S, 2, 2}
+    T::TT
 
-    function TRG(T::TensorMap{E, S, 2, 2}) where {E, S}
-        return new{E, S}(T)
+    function TRG(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(T)
     end
 end
 

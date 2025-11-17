@@ -24,24 +24,25 @@ $(TYPEDFIELDS)
 * [Morita et al 10.1016/j.cpc.2018.10.014 (2018)](@cite moritaCalculationHigherorderMoments2019)
 
 """
-mutable struct ImpurityHOTRG{E, S} <: TNRScheme{E, S}
-    T::TensorMap{E, S, 2, 2}
-    T_imp_order1_1::TensorMap{E, S, 2, 2}
-    T_imp_order1_2::TensorMap{E, S, 2, 2}
-    T_imp_order2::TensorMap{E, S, 2, 2}
+mutable struct ImpurityHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Cental Tensor"
+    T::TT
 
-    function ImpurityHOTRG(
-            T::TensorMap{E, S, 2, 2},
-            T_imp_order1_1::TensorMap{E, S, 2, 2},
-            T_imp_order1_2::TensorMap{E, S, 2, 2},
-            T_imp_order2::TensorMap{E, S, 2, 2},
-        ) where {E, S}
+    "+1 Type first order impurity tensor"
+    T_imp_order1_1::TT
 
+    "-1 Type first order impurity tensor"
+    T_imp_order1_2::TT
+
+    "Second order impurity tensor"
+    T_imp_order2::TT
+
+    function ImpurityHOTRG(T::TT, T_imp_order1_1::TT, T_imp_order1_2::TT, T_imp_order2::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         @assert space(T, 1) == space(T_imp_order1_1, 1) == space(T_imp_order1_2, 1) "First space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 2) == space(T_imp_order1_1, 2) == space(T_imp_order1_2, 2) "Second space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 3) == space(T_imp_order1_1, 3) == space(T_imp_order1_2, 3) "Third space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
         @assert space(T, 4) == space(T_imp_order1_1, 4) == space(T_imp_order1_2, 4) "Fourth space of T, T_imp_order1_1 and T_imp_order1_2 must be the same"
-        return new{E, S}(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2)
+        return new{E, S, TT}(T, T_imp_order1_1, T_imp_order1_2, T_imp_order2)
     end
 end
 

@@ -22,15 +22,18 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017)
 
 """
-mutable struct LoopTNR{E, S} <: TNRScheme{E, S}
-    TA::TensorMap{E, S, 2, 2}
-    TB::TensorMap{E, S, 2, 2}
+mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Central tensor on sublattice A"
+    TA::TT
 
-    function LoopTNR(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}) where {E, S}
-        return new{E, S}(TA, TB)
+    "Central tensor on sublattice B"
+    TB::TT
+
+    function LoopTNR(TA::TT, TB::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(TA, TB)
     end
-    function LoopTNR(T::TensorMap{E, S, 2, 2}) where {E, S}
-        return new{E, S}(T, copy(T))
+    function LoopTNR(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(T, copy(T))
     end
 end
 

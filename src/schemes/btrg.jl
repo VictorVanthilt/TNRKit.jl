@@ -23,15 +23,24 @@ $(TYPEDFIELDS)
 ### References
 * [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachiBondweightedTensorRenormalization2022)
 """
-mutable struct BTRG{E, S} <: TNRScheme{E, S}
-    T::TensorMap{E, S, 2, 2}
-    S1::TensorMap{E, S, 1, 1}
-    S2::TensorMap{E, S, 1, 1}
+mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTensorMap{E, S, 1, 1}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
+
+    "Bond tensor on vertical bonds"
+    S1::BT
+
+    "Bond tensor on horizontal bonds"
+    S2::BT
+
+    "Bond weight exponent"
     k::E
 
-    function BTRG(T::TensorMap{E, S, 2, 2}, k::Number) where {E, S}
+    function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
         # Construct S1 and S2 as identity matrices.
-        return new{E, S}(T, id(space(T, 2)), id(space(T, 1)), k)
+        S1 = id(space(T, 2))
+        S2 = id(space(T, 1))
+        return new{E, S, TT, typeof(S1)}(T, S1, S2, k)
     end
 end
 

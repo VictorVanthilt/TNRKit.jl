@@ -24,11 +24,12 @@ $(TYPEDFIELDS)
 * [Xie et. al. Phys. Rev. B 86 (2012)](@cite xieCoarsegrainingRenormalizationHigherorder2012)
 
 """
-mutable struct HOTRG_3D{E, S} <: TNRScheme{E, S}
-    T::TensorMap{E, S, 2, 4}
+mutable struct HOTRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
-    function HOTRG_3D(T::TensorMap{E, S, 2, 4}) where {E, S}
-        return new{E, S}(T)
+    function HOTRG_3D(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
+        return new{E, S, TT}(T)
     end
 end
 

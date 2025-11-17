@@ -21,15 +21,14 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017) (Fig. S6)
 
 """
-mutable struct SLoopTNR{E, S} <: TNRScheme{E, S}
-    T::TensorMap{E, S, 2, 2}
+mutable struct SLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
+    "Gradient optimization algorithm"
     gradalg::OptimKit.LBFGS
-    function SLoopTNR(
-            T::TensorMap{E, S, 2, 2};
-            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000)
-        ) where {E, S}
-        return new{E, S}(T, gradalg)
+    function SLoopTNR(T::TT; gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000)) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(T, gradalg)
     end
 end
 

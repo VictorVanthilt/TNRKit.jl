@@ -23,11 +23,12 @@ $(TYPEDFIELDS)
 ### References
 * [Adachi et. al. Phys. Rev. B 102 (2020)](@cite adachiAnisotropicTensorRenormalization2020)
 """
-mutable struct ATRG_3D{E, S} <: TNRScheme{E, S}
-    T::TensorMap{E, S, 2, 4}
+mutable struct ATRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
-    function ATRG_3D(T::TensorMap{E, S, 2, 4}) where {E, S}
-        return new{E, S}(T)
+    function ATRG_3D(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
+        return new{E, S, TT}(T)
     end
 end
 

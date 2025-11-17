@@ -30,7 +30,7 @@ ImpurityHOTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Float64, 
 # Finalization functions for the various TNR schemes
 abstract type TNRScheme{E, S} end
 
-function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit, finalizer::Finalizer{E}, finalize_beginning = true, verbosity = 1) where {E}
+function run!(scheme::TNRScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
     data = Vector{E}()
 
     LoggingExtras.withlevel(; verbosity) do
