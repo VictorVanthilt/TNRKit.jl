@@ -9,16 +9,16 @@
             │Cbl├─┤Eb├─┤Cbr│
             └───┘ └──┘ └───┘
 """
-mutable struct CTM
-    T::AbstractTensorMap
-    Ctl::AbstractTensorMap
-    Ctr::AbstractTensorMap
-    Cbr::AbstractTensorMap
-    Cbl::AbstractTensorMap
-    El::AbstractTensorMap
-    Eb::AbstractTensorMap
-    Et::AbstractTensorMap
-    Er::AbstractTensorMap
+mutable struct CTM{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTensorMap{E, S, 1, 1}, TE <: AbstractTensorMap{E, S, 2, 1}} <: TNRScheme{E, S}
+    T::TT
+    Ctl::TC
+    Ctr::TC
+    Cbr::TC
+    Cbl::TC
+    El::TE
+    Eb::TE
+    Et::TE
+    Er::TE
 end
 
 #TODO: type everything
@@ -36,7 +36,9 @@ function lnz(ctm::CTM)
         ctm.Eb[6 10; 7] *
         ctm.Cbl[7; 8] *
         ctm.El[8 9; 1]
+
     B = tr(ρA(ctm))
+
     @tensor opt = true C =
         ctm.Ctl[1; 2] *
         ctm.Et[2 7; 3] *
@@ -44,6 +46,7 @@ function lnz(ctm::CTM)
         ctm.Cbr[4; 5] *
         ctm.Eb[5 7; 6] *
         ctm.Cbl[6; 1]
+
     @tensor opt = true D =
         ctm.Ctl[1; 2] *
         ctm.Ctr[2; 3] *

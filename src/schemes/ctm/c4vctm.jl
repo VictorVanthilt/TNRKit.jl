@@ -23,15 +23,20 @@ The keyword argument symmetrize makes the tensor C4v symmetric when set to true.
 
 $(TYPEDFIELDS)
 """
-mutable struct c4vCTM{A, S} <: TNRScheme{A, S}
-    T::TensorMap{A, S, 0, 4}
-    C::TensorMap{A, S, 1, 1}
-    E::TensorMap{A, S, 2, 1}
+mutable struct c4vCTM{A, S, TT <: AbstractTensorMap{A, S, 0, 4}, TC <: AbstractTensorMap{A, S, 1, 1}, TE <: AbstractTensorMap{A, S, 2, 1}} <: TNRScheme{A, S}
+    "Central tensor"
+    T::TT
 
-    function c4vCTM(T::TensorMap{A, S, 0, 4}) where {A, S}
+    "Corner tensor"
+    C::TC
+
+    "Edge tensor"
+    E::TE
+
+    function c4vCTM(T::TT) where {A, S, TT <: AbstractTensorMap{A, S, 0, 4}}
         C, E = c4vCTM_init(T)
 
-        return new{A, S}(T, C, E)
+        return new{A, S, TT, typeof(C), typeof(E)}(T, C, E)
     end
 end
 
