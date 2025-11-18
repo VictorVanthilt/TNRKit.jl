@@ -36,7 +36,7 @@ mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTen
     "Bond weight exponent"
     k::E
 
-    function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
+    function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         # Construct S1 and S2 as identity matrices.
         S1 = id(space(T, 2))
         S2 = id(space(T, 1))
@@ -45,7 +45,7 @@ mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTen
 end
 
 # Default implementation using the optimal value for k
-BTRG(T::TensorMap) = BTRG(T, -0.5)
+BTRG(T) = BTRG(T, -0.5)
 
 function pseudopow(t::DiagonalTensorMap, a::Real; tol = eps(scalartype(t))^(3 / 4))
     t′ = copy(t)
