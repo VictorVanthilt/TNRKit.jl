@@ -38,8 +38,8 @@ mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTen
 
     function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         # Construct S1 and S2 as identity matrices.
-        S1 = id(space(T, 2))
-        S2 = id(space(T, 1))
+        S1 = id(E, space(T, 2))
+        S2 = id(E, space(T, 1))
         return new{E, S, TT, typeof(S1)}(T, S1, S2, k)
     end
 end
