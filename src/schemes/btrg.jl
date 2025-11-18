@@ -34,7 +34,7 @@ mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTen
     S2::BT
 
     "Bond weight exponent"
-    k::E
+    k::Float64
 
     function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         # Construct S1 and S2 as identity matrices.
