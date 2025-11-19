@@ -71,6 +71,22 @@ function finalize!(scheme::SLoopTNR)
     return tr_norm^0.25
 end
 
+# finalize! for ImpurityTRG
+function finalize!(scheme::ImpurityTRG)
+    # First normalize everything by the pure tensor
+    npure = norm(@tensor scheme.T[1 2; 2 1])
+    scheme.T_imp1 /= npure
+    scheme.T_imp2 /= npure
+    scheme.T_imp3 /= npure
+    scheme.T_imp4 /= npure
+    scheme.T /= npure
+
+    # Then calculate the contracted/traced 4 impurity tensors
+    nimp = norm(@tensoropt scheme.T_imp1[5 4;6 1] * scheme.T_imp2[1 2;7 5] * scheme.T_imp3[3 7;2 8] * scheme.T_imp4[8 6;4 3])
+
+    return npure, nimp
+end
+
 # finalize! for ImpurityHOTRG
 function finalize!(scheme::ImpurityHOTRG)
     n = norm(@tensor scheme.T[1 2; 2 1])
@@ -107,3 +123,6 @@ function finalize_central_charge!(scheme::TNRScheme)
     n = finalize!(scheme)
     return central_charge(scheme, n)
 end
+
+# TODO: add Finalizers for CFT and central charge
+two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)

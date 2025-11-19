@@ -4,14 +4,15 @@ $(TYPEDEF)
 Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
+    $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
     run!(::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
               entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
 
-    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 ### Fields
 
@@ -21,22 +22,24 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017)
 
 """
-mutable struct LoopTNR <: TNRScheme
-    TA::TensorMap
-    TB::TensorMap
+mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Central tensor on sublattice A"
+    TA::TT
 
-    finalize!::Function
-    function LoopTNR(TA::TensorMap, TB::TensorMap; finalize = (finalize!))
-        return new(TA, TB, finalize)
+    "Central tensor on sublattice B"
+    TB::TT
+
+    function LoopTNR(TA::TT, TB::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(TA, TB)
     end
-    function LoopTNR(T::TensorMap; finalize = (finalize!))
-        return new(T, copy(T), finalize)
+    function LoopTNR(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(T, copy(T))
     end
 end
 
 """
     LoopTNR(
-        unitcell_2x2::Matrix{T}; finalize = (finalize!),
+        unitcell_2x2::Matrix{T},
         loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
@@ -51,16 +54,15 @@ function LoopTNR(
         loop_criterion::stopcrit,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme,
-        finalize = (finalize!)
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    ) where {T <: AbstractTensorMap{<:Number, <:VectorSpace, 2, 2}}
     ψA = Ψ_A(unitcell_2x2)
     ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
     TA, TB = ΨB_to_TATB(ψB)
-    return LoopTNR(TA, TB; finalize)
+    return LoopTNR(TA, TB)
 end
 
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
-function Ψ_A(unitcell_2x2::Matrix{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+function Ψ_A(unitcell_2x2::Matrix{<:AbstractTensorMap{E, S, 2, 2}}) where {E, S}
     size(unitcell_2x2) == (2, 2) || error("Input unit cell must have 2 x 2 size.")
     ΨA = [
         transpose(unitcell_2x2[1, 1], ((2,), (1, 3, 4)); copy = true),
@@ -84,21 +86,17 @@ function Ψ_A(scheme::LoopTNR)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(
-        ΨA::Vector{T}, trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
     NA = length(ΨA)
     ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
+
     in_inds = ones(Int, 2 * NA)
     out_inds = 2 * ones(Int, 2 * NA)
-    PR_list, PL_list = find_projectors(
-        ΨB, in_inds, out_inds, criterion,
-        trunc & truncentanglement
-    )
+
+    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & truncentanglement)
     MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
     return ΨB
 end
@@ -109,7 +107,7 @@ end
 #       1 2
 #       | |
 # ---2'--A--4'---
-function ΨAΨA(ΨA::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 3}}
+function ΨAΨA(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}) where {E, S}
     return map(ΨA) do A
         return @plansor AA[-1 -2; -3 -4] := A[-2; 1 2 -4] * conj(A[-1; 1 2 -3])
     end
@@ -121,7 +119,7 @@ end
 #        1
 #        |
 # ---2'--B--4'---
-function ΨBΨB(ΨB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
+function ΨBΨB(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}) where {E, S}
     return map(ΨB) do B
         return @plansor BB[-1 -2; -3 -4] := B[-2; 1 -4] * conj(B[-1; 1 -3])
     end
@@ -133,22 +131,16 @@ end
 #        1   2
 #         | |
 # ---2'----A----4'---
-function ΨBΨA(
-        ΨB::Vector{TB}, ΨA::Vector{TA}
-    ) where {
-        TB <: AbstractTensorMap{<:Any, <:Any, 1, 2},
-        TA <: AbstractTensorMap{<:Any, <:Any, 1, 3},
-    }
-    NA = length(ΨA)
-    @assert length(ΨB) == 2 * NA
-    return map(1:NA) do i
+function ΨBΨA(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}, ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}) where {E, S}
+    @assert length(ΨB) == 2 * length(ΨA)
+    return map(eachindex(ΨA)) do i
         return @plansor temp[-1 -2; -3 -4] := conj(ΨB[2 * i - 1][-1; 1 3]) *
             ΨA[i][-2; 1 2 -4] * conj(ΨB[2 * i][3; 2 -3])
     end
 end
 
 # Function to compute the trace of a list of transfer matrices
-function to_number(tensors::Vector{T}) where {T <: AbstractTensorMap}
+function to_number(tensors::Vector{<:AbstractTensorMap})
     return tr(reduce(*, tensors))
 end
 
@@ -165,10 +157,8 @@ function _entanglement_filtering(
         ΨA, [1, 1, 1, 1], [3, 3, 3, 3],
         entanglement_criterion, trunc
     )
-    @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] *
-        PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
-    @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] *
-        PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
+    @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
+    @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
     return TA, TB
 end
 
@@ -382,21 +372,18 @@ function step!(
 end
 
 function run!(
-        scheme::LoopTNR,
-        trscheme::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme,
-        criterion::stopcrit,
-        entanglement_criterion::stopcrit,
-        loop_criterion::stopcrit;
+        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
+        criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
+        finalizer::Finalizer{E};
         finalize_beginning = true,
         verbosity = 1
-    )
-    data = []
+    ) where {E}
+    data = Vector{E}()
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
 
         steps = 0
@@ -404,11 +391,8 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(
-                scheme, trscheme, truncentanglement, entanglement_criterion,
-                loop_criterion, verbosity
-            )
-            push!(data, scheme.finalize!(scheme))
+            step!(scheme, trscheme, truncentanglement, entanglement_criterion, loop_criterion, verbosity)
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end
@@ -418,6 +402,9 @@ function run!(
     return data
 end
 
+function run!(scheme, trscheme, truncentanglement, criterion, entanglement_criterion, loop_criterion; kwargs...)
+    return run!(scheme, trscheme, truncentanglement, criterion, entanglement_criterion, loop_criterion, default_Finalizer; kwargs...)
+end
 
 function run!(
         scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
@@ -425,8 +412,7 @@ function run!(
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
-        scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion,
-        loop_criterion;
+        scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion, loop_criterion;
         finalize_beginning = finalize_beginning,
         verbosity = verbosity
     )

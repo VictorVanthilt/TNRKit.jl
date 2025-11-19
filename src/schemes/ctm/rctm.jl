@@ -15,19 +15,19 @@ The corner tensors are related by its mirror images.
                │  
                ▼  
 =#
-mutable struct rCTM{A, S}
-    T::TensorMap{A, S, 2, 2}
-    C2::TensorMap{A, S, 1, 1}
-    E1::TensorMap{A, S, 2, 1}
-    E2::TensorMap{A, S, 2, 1}
+mutable struct rCTM{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTensorMap{E, S, 1, 1}, TE <: AbstractTensorMap{E, S, 2, 1}} <: TNRScheme{E, S}
+    T::TT
+    C2::TC
+    E1::TE
+    E2::TE
 
-    function rCTM(T::TensorMap{A, S, 2, 2}) where {A, S}
-        if typeof(T.data[1]) != Float64
+    function rCTM(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        if !(E <: Real)
             @error "This scheme only support tensors with real numbers"
         end
         C, E1, E2 = rCTM_init(T)
         @assert BraidingStyle(sectortype(T)) == Bosonic() "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for rCTM"
-        return new{A, S}(T, C, E1, E2)
+        return new{E, S, TT, typeof(C), typeof(E1)}(T, C, E1, E2)
     end
 end
 
@@ -103,22 +103,10 @@ function run!(
 end
 
 function lnz(scheme::rCTM)
-    Z, env = tensor2env(scheme.T, scheme.C2, scheme.E1, scheme.E2)
-    return real(log(network_value(Z, env)))
-end
+    corners = [adjoint(scheme.C2), scheme.C2, adjoint(scheme.C2), scheme.C2]
+    edges = [scheme.E1 scheme.E2 flip(scheme.E1, 2) flip(scheme.E2, 2)]
 
-function tensor2env(T, C2, E1, E2)
-    Z = InfinitePartitionFunction(T)
-    env = CTMRGEnv(Z, space(C2)[1])
-    for i in 1:2
-        env.corners[2 * i] = C2
-        env.edges[2 * i] = E2
-        env.corners[2 * i - 1] = adjoint(C2)
-        env.edges[2 * i - 1] = E1
-    end
-    env.edges[3] = flip(env.edges[3], 2)
-    env.edges[4] = flip(env.edges[4], 2)
-    return Z, env
+    return real(log(network_value(scheme.T, corners, edges)))
 end
 
 function Base.show(io::IO, scheme::rCTM)
