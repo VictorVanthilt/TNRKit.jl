@@ -1,9 +1,8 @@
 #Utility functions for QR decomp
-
 function QR_L(
-        L::AbstractTensorMap{E, S, 1, 1}, T::AbstractTensorMap{E, S, M, N},
+        L::TT, T::AbstractTensorMap{E, S, M, N},
         in_ind::Int, out_ind::Int
-    ) where {E, S, M, N}
+    )::TT where {E, S, TT <: AbstractTensorMap{E, S, 1, 1}, M, N}
     permT = (
         (in_ind,),
         (
@@ -23,9 +22,9 @@ function QR_L(
 end
 
 function QR_R(
-        R::AbstractTensorMap{E, S, 1, 1}, T::AbstractTensorMap{E, S, M, N},
+        R::TT, T::AbstractTensorMap{E, S, M, N},
         in_ind::Int, out_ind::Int
-    ) where {E, S, M, N}
+    )::TT where {E, S, TT <: AbstractTensorMap{E, S, 1, 1}, M, N}
     permT = (
         (
             reverse(collect((M + 1):(M + in_ind - 1)))..., collect(1:M)...,
@@ -81,20 +80,18 @@ end
 
 # Function to find the list of left projectors L_list
 function find_R(
-        psi::Vector{T}, in_inds::Vector{Int}, out_inds::Vector{Int},
+        psi::Vector{<:AbstractTensorMap{E, S}}, in_inds::Vector{Int}, out_inds::Vector{Int},
         entanglement_criterion::stopcrit
-    ) where {T <: AbstractTensorMap}
-    type = eltype(psi[1])
-    n = length(psi)
-    R_list = map(1:n) do i
-        R = id(type, domain(psi[i])[in_inds[i]])
-        error = [Inf]
+    ) where {E, S}
+    R_list = map(eachindex(psi)) do i
+        R = id(E, domain(psi[i])[in_inds[i]])
+        error = Float64[Inf]
         crit = true
         steps = 1
         while crit
             R_last_time = R
-            for j in 0:(n - 1)
-                running_pos = mod(i - j - 1, n) + 1
+            for j in 0:(length(psi) - 1)
+                running_pos = mod(i - j - 1, length(psi)) + 1
                 R = QR_R(R, psi[running_pos], in_inds[running_pos], out_inds[running_pos])
             end
             if space(R) == space(R_last_time)

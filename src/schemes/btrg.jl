@@ -23,20 +23,29 @@ $(TYPEDFIELDS)
 ### References
 * [Adachi et. al. Phys. Rev. B 105 (2022)](@cite adachiBondweightedTensorRenormalization2022)
 """
-mutable struct BTRG <: TNRScheme
-    T::TensorMap
-    S1::TensorMap
-    S2::TensorMap
+mutable struct BTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, BT <: AbstractTensorMap{E, S, 1, 1}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
+
+    "Bond tensor on vertical bonds"
+    S1::BT
+
+    "Bond tensor on horizontal bonds"
+    S2::BT
+
+    "Bond weight exponent"
     k::Float64
 
-    function BTRG(T::TensorMap{E, S, 2, 2}, k::Number) where {E, S}
+    function BTRG(T::TT, k::Number) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         # Construct S1 and S2 as identity matrices.
-        return new(T, id(space(T, 2)), id(space(T, 1)), k)
+        S1 = id(E, space(T, 2))
+        S2 = id(E, space(T, 1))
+        return new{E, S, TT, typeof(S1)}(T, S1, S2, k)
     end
 end
 
 # Default implementation using the optimal value for k
-BTRG(T::TensorMap) = BTRG(T, -0.5)
+BTRG(T) = BTRG(T, -0.5)
 
 function pseudopow(t::DiagonalTensorMap, a::Real; tol = eps(scalartype(t))^(3 / 4))
     t′ = copy(t)

@@ -24,25 +24,20 @@ $(TYPEDFIELDS)
 * [Morita et. al. 10.48550/arXiv.2411.13998 (2024)](@cite moritaMultiimpurityMethodBondweighted2024)
 * [Nakamoto et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 """
-mutable struct ImpurityTRG <: TNRScheme
-    T::TensorMap
-    T_imp1::TensorMap
-    T_imp2::TensorMap
-    T_imp3::TensorMap
-    T_imp4::TensorMap
+mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    T::TT
+    T_imp1::TT
+    T_imp2::TT
+    T_imp3::TT
+    T_imp4::TT
 
-    function ImpurityTRG(
-            T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
-            T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}
-        ) where {E, S}
-
-
+    function ImpurityTRG(T::TT, T_imp1::TT, T_imp2::TT, T_imp3::TT, T_imp4::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         @assert space(T, 1) == space(T_imp1, 1) == space(T_imp2, 1) == space(T_imp3, 1) == space(T_imp4, 1) "First space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
 
-        return new(T, T_imp1, T_imp2, T_imp3, T_imp4)
+        return new{E, S, TT}(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
 
@@ -86,4 +81,4 @@ function Base.show(io::IO, scheme::ImpurityTRG)
     return nothing
 end
 
-run!(scheme::ImpurityTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit) = run!(scheme, trscheme, criterion; finalizer = ImpurityTRG_Finalizer)
+run!(scheme::ImpurityTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityTRG_Finalizer; kwargs...)
