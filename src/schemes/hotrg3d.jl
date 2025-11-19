@@ -24,13 +24,25 @@ $(TYPEDFIELDS)
 * [Xie et. al. Phys. Rev. B 86 (2012)](@cite xieCoarsegrainingRenormalizationHigherorder2012)
 
 """
-mutable struct HOTRG_3D <: TNRScheme
-    T::TensorMap
+mutable struct HOTRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
-    function HOTRG_3D(T::TensorMap{E, S, 2, 4}) where {E, S}
-        return new(T)
+    function HOTRG_3D(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
+        return new{E, S, TT}(T)
     end
 end
+
+# Twist the i-th leg of a tensor `t` if it represents a dual space.
+function twistdual!(t::AbstractTensorMap, i::Int)
+    isdual(space(t, i)) || return t
+    return twist!(t, i)
+end
+function twistdual!(t::AbstractTensorMap, is)
+    is′ = filter(i -> isdual(space(t, i)), is)
+    return twist!(t, is′)
+end
+twistdual(t::AbstractTensorMap, is) = twistdual!(copy(t), is)
 
 function _get_hotrg3d_xproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},

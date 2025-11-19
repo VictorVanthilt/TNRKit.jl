@@ -62,7 +62,7 @@ mutable struct ImpurityTRG <: TNRScheme
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
 
-        return new(T, T_imp1, T_imp2, T_imp3, T_imp4)
+        return new{E, S, TT}(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
 
@@ -106,4 +106,4 @@ function Base.show(io::IO, scheme::ImpurityTRG)
     return nothing
 end
 
-run!(scheme::ImpurityTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit) = run!(scheme, trscheme, criterion; finalizer = ImpurityTRG_Finalizer)
+run!(scheme::ImpurityTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityTRG_Finalizer; kwargs...)

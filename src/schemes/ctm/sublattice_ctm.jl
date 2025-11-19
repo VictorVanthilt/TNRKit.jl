@@ -49,6 +49,8 @@ mutable struct Sublattice_CTM
     EtB::AbstractTensorMap
 end
 
+#TODO: type everything
+
 Sublattice_CTM(TA, TB; bc = ones, bc_free = false) =
     Sublattice_CTM(TA, TB, CTM_init(TA, TB; bc, bc_free)...)
 

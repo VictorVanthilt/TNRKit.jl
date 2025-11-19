@@ -1,30 +1,3 @@
-# Extra code to make output type available
-"""
-$(TYPEDEF)
-
-Finalizer for TNR schemes
-
-### Constructors
-    Finalizer(f!::Function, E::Type)
-
-A Finalizer holds a function `f!` that is to be applied to a TNR scheme after each step of the algorithm (and at the beginning if specified by `run!(;finalize_beginning=true)`, which is the default behavior).
-The type parameter `E` indicates the output type of `f!`, which is used to create an array of the correct type to hold the outputs.
-"""
-struct Finalizer{E} # E is the output type of f
-    f!::Function
-end
-
-function Finalizer(f::Function, E::Type)
-    return Finalizer{E}(f)
-end
-
-output_type(finalizer::Finalizer{E}) where {E} = E
-
-default_Finalizer = Finalizer(finalize!, Float64)
-ImpurityTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64})
-ImpurityHOTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Float64, Float64})
-
-# Finalization functions for the various TNR schemes
 const simple_scheme = Union{TRG, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
