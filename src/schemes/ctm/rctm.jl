@@ -22,7 +22,7 @@ mutable struct rCTM{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTen
     E2::TE
 
     function rCTM(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
-        if !E <: Real
+        if !(E <: Real)
             @error "This scheme only support tensors with real numbers"
         end
         C, E1, E2 = rCTM_init(T)
