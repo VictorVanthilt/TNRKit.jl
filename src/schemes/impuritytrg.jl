@@ -35,33 +35,27 @@ p---4---3---p
 * [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
 * [Morita et. al. Phys. Rev. B 111 (2025)](@cite moritaMultiimpurityMethodBondweighted2025)
 """
-mutable struct ImpurityTRG <: TNRScheme
+mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
     "Pure tensor"
-    T::TensorMap
+    T::TT
 
     "Impurity tensor on lattice site 1"
-    T_imp1::TensorMap
+    T_imp1::TT
 
     "Impurity tensor on lattice site 2"
-    T_imp2::TensorMap
+    T_imp2::TT
 
     "Impurity tensor on lattice site 3"
-    T_imp3::TensorMap
+    T_imp3::TT
 
     "Impurity tensor on lattice site 4"
-    T_imp4::TensorMap
+    T_imp4::TT
 
-    function ImpurityTRG(
-            T::TensorMap{E, S, 2, 2}, T_imp1::TensorMap{E, S, 2, 2}, T_imp2::TensorMap{E, S, 2, 2},
-            T_imp3::TensorMap{E, S, 2, 2}, T_imp4::TensorMap{E, S, 2, 2}
-        ) where {E, S}
-
-
+    function ImpurityTRG(T::TT, T_imp1::TT, T_imp2::TT, T_imp3::TT, T_imp4::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         @assert space(T, 1) == space(T_imp1, 1) == space(T_imp2, 1) == space(T_imp3, 1) == space(T_imp4, 1) "First space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
-
         return new{E, S, TT}(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
