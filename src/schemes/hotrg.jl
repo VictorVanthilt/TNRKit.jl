@@ -28,7 +28,7 @@ mutable struct HOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, 
     "Central tensor"
     T::TT
 
-    function HOTRG(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 4}}
+    function HOTRG(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         return new{E, S, TT}(T)
     end
 end
