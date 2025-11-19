@@ -7,7 +7,7 @@ Impurity method for Tensor Renormalization Group
     $(FUNCTIONNAME)(T, T_imp1, T_imp2, T_imp3, T_imp4)
 
 ### Running the algorithm
-    run!(::ImpurityTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
+    run!(::ImpurityTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=ImpurityTRG_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 
@@ -20,15 +20,35 @@ Each step rescales the lattice by a (linear) factor of √2
 
 $(TYPEDFIELDS)
 
+Illustration (with p the pure tensor, and the p fills in the rest of the lattice):
+```
+    p   p
+    |   |  
+p---1---2---p
+    |   |
+p---4---3---p
+    |   |
+    p   p
+```
+
 ### References
-* [Morita et. al. 10.48550/arXiv.2411.13998 (2024)](@cite moritaMultiimpurityMethodBondweighted2024)
-* [Nakamoto et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
+* [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadohTensorNetworkAnalysis2019)
+* [Morita et. al. Phys. Rev. B 111 (2025)](@cite moritaMultiimpurityMethodBondweighted2025)
 """
 mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Pure tensor"
     T::TT
+
+    "Impurity tensor on lattice site 1"
     T_imp1::TT
+
+    "Impurity tensor on lattice site 2"
     T_imp2::TT
+
+    "Impurity tensor on lattice site 3"
     T_imp3::TT
+
+    "Impurity tensor on lattice site 4"
     T_imp4::TT
 
     function ImpurityTRG(T::TT, T_imp1::TT, T_imp2::TT, T_imp3::TT, T_imp4::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
@@ -36,7 +56,6 @@ mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRSche
         @assert space(T, 2) == space(T_imp1, 2) == space(T_imp2, 2) == space(T_imp3, 2) == space(T_imp4, 2) "Second space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 3) == space(T_imp1, 3) == space(T_imp2, 3) == space(T_imp3, 3) == space(T_imp4, 3) "Third space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
         @assert space(T, 4) == space(T_imp1, 4) == space(T_imp2, 4) == space(T_imp3, 4) == space(T_imp4, 4) "Fourth space of T, T_imp1, T_imp2, T_imp3 and T_imp4 must be the same"
-
         return new{E, S, TT}(T, T_imp1, T_imp2, T_imp3, T_imp4)
     end
 end
