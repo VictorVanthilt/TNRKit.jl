@@ -88,7 +88,7 @@ end
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
     NA = length(ΨA)
-    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
+    ΨB = [s for A in ΨA for s in SVD12(A, truncrank(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)

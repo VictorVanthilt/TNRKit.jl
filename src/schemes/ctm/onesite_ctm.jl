@@ -117,7 +117,7 @@ end
 function corner_spectrum(ctm::CTM)
     rho = ρA(ctm)
     rho /= abs(tr(rho))
-    _, S, _ = tsvd(rho)
+    _, S, _ = svd_full(rho)
     return S.data
 end
 

@@ -18,7 +18,7 @@ for S in schemes
         for T in models
             @eval begin
                 println("--- $($(T[1])) ---")
-                @test isa(run!($S($(T[2])), truncdim(7), maxiter(25)), Any)
+                @test isa(run!($S($(T[2])), truncrank(7), maxiter(25)), Any)
             end
         end
     end

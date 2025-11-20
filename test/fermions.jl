@@ -4,35 +4,35 @@ T = gross_neveu_start(0, 0, 0)
 # === TRG ===
 @testset "TRG - Gross-Neveu Model" begin
     scheme = TRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
     @test free_energy(data, 1.0) ≈ f_bench rtol = 1.0e-3
 end
 
 # === BTRG ===
 @testset "BTRG - Gross-Neveu Model" begin
     scheme = BTRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
     @test free_energy(data, 1.0) ≈ f_bench rtol = 1.0e-4
 end
 
 # === HOTRG ===
 @testset "HOTRG - Gross-Neveu Model" begin
     scheme = HOTRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
     @test free_energy(data, 1.0; scalefactor = 4.0) ≈ f_bench rtol = 1.0e-3
 end
 
 # === ATRG ===
 @testset "ATRG - Gross-Neveu Model" begin
     scheme = ATRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
     @test free_energy(data, 1.0; scalefactor = 4.0) ≈ f_bench rtol = 1.0e-2
 end
 
 # === LoopTNR ===
 @testset "LoopTNR - Gross-Neveu Model" begin
     scheme = LoopTNR(T)
-    data = run!(scheme, truncdim(8), maxiter(10))
+    data = run!(scheme, truncrank(8), maxiter(10))
     @test free_energy(data, 1.0) ≈ f_bench rtol = 1.0e-3
 end
 
@@ -49,12 +49,12 @@ end
     β = 1.0
 
     # Calculate the free energy using c4vCTM
-    data_c4vCTM = run!(c4vCTM(T_flipped_C4v), truncdim(8), maxiter(10))
+    data_c4vCTM = run!(c4vCTM(T_flipped_C4v), truncrank(8), maxiter(10))
     free_energy_c4vCTM = -data_c4vCTM / β
 
     schemes = [TRG, BTRG, HOTRG, ATRG, LoopTNR]
     for scheme in schemes
-        data = run!(scheme(T_flipped_C4v), truncdim(8), maxiter(10))
+        data = run!(scheme(T_flipped_C4v), truncrank(8), maxiter(10))
         scalefactor = scheme ∈ [HOTRG, ATRG] ? 4.0 : 2.0
         @test free_energy_c4vCTM ≈ free_energy(data, β; scalefactor) rtol = 1.0e-10
     end

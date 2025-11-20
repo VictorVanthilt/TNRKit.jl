@@ -153,13 +153,13 @@ end
 
 ########## Initialization of loop optimizations ##########
 function decompose_T(T, trunc)
-    u, s, _ = tsvd(T, (1, 2), (3, 4); trunc)
+    u, s, _ = svd_trunc(permute(T, ((1, 2), (3, 4))); trunc = trunc)
     return u * sqrt(s)
 end
 
 function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
-    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
+    ΨB = [s for A in ΨA for s in SVD12(A, truncrank(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)

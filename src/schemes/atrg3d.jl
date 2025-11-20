@@ -33,7 +33,7 @@ mutable struct ATRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E
 end
 
 function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
-    U, S, V, _ = tsvd(scheme.T, ((2, 5, 6), (3, 4, 1)); trunc = trunc)
+    U, S, V = svd_trunc(permute(scheme.T, ((2, 5, 6), (3, 4, 1))); trunc)
     A = permute(U, ((4, 1), (2, 3)))
     D = permute(V, ((4, 1), (2, 3)))
     C = permute(U * S, ((4, 1), (2, 3)))
@@ -41,7 +41,7 @@ function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
 
     @tensor M[-1 -2; -3 -4 -5 -6] := B[1 -2; -3 -4] * C[-1 1; -5 -6]
 
-    U, S, V, _ = tsvd(M, ((2, 5, 6), (3, 4, 1)); trunc = trunc)
+    U, S, V = svd_trunc(permute(M, ((2, 5, 6), (3, 4, 1))); trunc)
     sqrtS = sqrt(S)
 
     X = permute(U * sqrtS, ((4, 1), (2, 3)))
@@ -51,19 +51,19 @@ function _step!(scheme::ATRG_3D, trunc::TensorKit.TruncationScheme)
     @tensor YD[-1 -2; -3 -4 -5 -6] := Y[1 -2; -3 -5] * D[-1 1; -4 -6]
 
     #The QR decompositions and construction of the four isometries
-    _, R1 = leftorth(YD, ((1, 2, 3, 4), (5, 6)))
-    R2, _ = rightorth(AX, ((5, 6), (1, 2, 3, 4)))
-    _, R3 = leftorth(YD, ((1, 2, 5, 6), (3, 4)))
-    R4, _ = rightorth(AX, ((3, 4), (1, 2, 5, 6)))
+    _, R1 = left_orth(permute(YD, ((1, 2, 3, 4), (5, 6))))
+    R2, _ = right_orth(permute(AX, ((5, 6), (1, 2, 3, 4))))
+    _, R3 = left_orth(permute(YD, ((1, 2, 5, 6), (3, 4))))
+    R4, _ = right_orth(permute(AX, ((3, 4), (1, 2, 5, 6))))
 
     @tensor temp1[-1; -2] := R1[-1; 1 2] * R2[1 2; -2]
-    U1, S1, V1, _ = tsvd(temp1; trunc = trunc)
+    U1, S1, V1 = svd_trunc(temp1; trunc = trunc)
     inv_s1 = pseudopow(S1, -0.5)
     @tensor Proj_1[-1 -2; -3] := R2[-1 -2; 1] * adjoint(V1)[1; 2] * inv_s1[2; -3]
     @tensor Proj_2[-1; -2 -3] := inv_s1[-1; 1] * adjoint(U1)[1; 2] * R1[2; -2 -3]
 
     @tensor temp2[-1; -2] := R3[-1; 1 2] * R4[1 2; -2]
-    U2, S2, V2, _ = tsvd(temp2; trunc = trunc)
+    U2, S2, V2 = svd_trunc(temp2; trunc = trunc)
     inv_s2 = pseudopow(S2, -0.5)
     @tensor Proj_3[-1 -2; -3] := R4[-1 -2; 1] * adjoint(V2)[1; 2] * inv_s2[2; -3]
     @tensor Proj_4[-1; -2 -3] := inv_s2[-1; 1] * adjoint(U2)[1; 2] * R3[2; -2 -3]
