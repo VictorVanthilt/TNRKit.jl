@@ -24,7 +24,7 @@ $(TYPEDFIELDS)
 * [Morita et al 10.1016/j.cpc.2018.10.014 (2018)](@cite moritaCalculationHigherorderMoments2019)
 """
 mutable struct ImpurityHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
-    "Cental Tensor"
+    "Central Tensor"
     T::TT
 
     "+1 Type first order impurity tensor"
