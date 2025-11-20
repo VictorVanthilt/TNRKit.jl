@@ -17,7 +17,7 @@ mutable struct ctm_TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: Abstract
         @info "Finding the environment using rCTM..."
         TNRKit.run!(
             scheme_init,
-            truncdim(χenv),
+            truncrank(χenv),
             trivial_convcrit(ctm_tol) & maxiter(ctm_iter);
             verbosity = 0,
         )
@@ -64,7 +64,7 @@ function insert_PtoS(scheme, trunc; enlarge = true)
     if enlarge
         P1, P2 = find_P1P2(
             env_left_top, env_right_bottom, (3,), (1,),
-            truncdim(trunc.dim * 2)
+            truncrank(trunc.dim * 2)
         )
     else
         P1, P2 = find_P1P2(env_left_top, env_right_bottom, (3,), (1,), trunc)

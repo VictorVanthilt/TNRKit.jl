@@ -159,7 +159,7 @@ end
 
 function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
     ΨA = Ψ_center(T)
-    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
+    ΨB = [s for A in ΨA for s in SVD12(A, truncrank(trunc.dim * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)

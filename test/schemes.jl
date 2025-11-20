@@ -18,13 +18,13 @@ end
 @testset "TRG - Ising Model" begin
     @info "TRG ising free energy"
     scheme = TRG(T)
-    data = run!(scheme, truncdim(24), maxiter(25))
+    data = run!(scheme, truncrank(24), maxiter(25))
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 2.0e-6
 
     @info "TRG ising CFT data"
     scheme = TRG(T)
-    run!(scheme, truncdim(24), maxiter(10))
+    run!(scheme, truncrank(24), maxiter(10))
 
     cft = cft_data(scheme)[2:end]
 
@@ -36,13 +36,13 @@ end
 @testset "BTRG - Ising Model" begin
     @info "BTRG ising free energy"
     scheme = BTRG(T)
-    data = run!(scheme, truncdim(24), maxiter(25))
+    data = run!(scheme, truncrank(24), maxiter(25))
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 6.0e-8
 
     @info "BTRG ising CFT data"
     scheme = BTRG(T)
-    run!(scheme, truncdim(24), maxiter(10))
+    run!(scheme, truncrank(24), maxiter(10))
 
     cft = cft_data(scheme)[2:end]
 
@@ -54,13 +54,13 @@ end
 @testset "HOTRG - Ising Model" begin
     @info "HOTRG ising free energy"
     scheme = HOTRG(T)
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
 
     @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
 
     @info "HOTRG ising CFT data"
     scheme = HOTRG(T)
-    run!(scheme, truncdim(16), maxiter(4))
+    run!(scheme, truncrank(16), maxiter(4))
 
     cft = cft_data(scheme)[2:end]
 
@@ -72,13 +72,13 @@ end
 @testset "ATRG - Ising Model" begin
     @info "ATRG ising free energy"
     scheme = ATRG(T)
-    data = run!(scheme, truncdim(24), maxiter(25))
+    data = run!(scheme, truncrank(24), maxiter(25))
 
     @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 3.0e-6
 
     @info "ATRG ising CFT data"
     scheme = ATRG(T)
-    run!(scheme, truncdim(24), maxiter(3))
+    run!(scheme, truncrank(24), maxiter(3))
 
     cft = cft_data(scheme)[2:end]
 
@@ -95,7 +95,7 @@ end
     loop_criterion = maxiter(5)
 
     data = run!(
-        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        scheme, truncrank(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
 
@@ -103,7 +103,7 @@ end
 
     @info "LoopTNR ising CFT data"
     scheme = LoopTNR(T)
-    run!(scheme, truncdim(12), maxiter(10))
+    run!(scheme, truncrank(12), maxiter(10))
 
     for shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]]
         cft = cft_data!(scheme, shape)
@@ -114,7 +114,7 @@ end
     end
 
     for shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]]
-        cft = cft_data!(scheme, shape, truncdim(12), truncbelow(1.0e-10))
+        cft = cft_data!(scheme, shape, truncrank(12), truncbelow(1.0e-10))
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
         @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
@@ -124,12 +124,12 @@ end
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
     loop_criterion = maxiter(5)
-    trunc = truncdim(8)
+    trunc = truncrank(8)
     truncentanglement = truncbelow(1.0e-12)
     entanglement_criterion = maxiter(100)
     scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
     data = run!(
-        scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        scheme, truncrank(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
     @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
@@ -141,7 +141,7 @@ end
     T_inv = classical_ising_inv()
     scheme = SLoopTNR(T_inv)
 
-    data = run!(scheme, truncdim(4), maxiter(25))
+    data = run!(scheme, truncrank(4), maxiter(25))
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-5
 end
@@ -150,7 +150,7 @@ end
 @testset "ctm_TRG - Ising Model" begin
     @info "ctm_TRG ising free energy"
     scheme = ctm_TRG(T, 8)
-    lz = run!(scheme, truncdim(8), maxiter(25))
+    lz = run!(scheme, truncrank(8), maxiter(25))
     fs = lz * -1 / ising_βc
 
     @test fs ≈ f_onsager rtol = 7.0e-6
@@ -160,7 +160,7 @@ end
 @testset "ctm_HOTRG - Ising Model" begin
     @info "ctm_HOTRG ising free energy"
     scheme = ctm_HOTRG(T, 8)
-    lz = run!(scheme, truncdim(8), maxiter(25))
+    lz = run!(scheme, truncrank(8), maxiter(25))
     fs = lz * -1 / ising_βc
 
     @test fs ≈ f_onsager rtol = 2.0e-5
@@ -170,7 +170,7 @@ end
 @testset "c4vCTM - Ising Model" begin
     @info "c4vCTM ising free energy"
     scheme = c4vCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
+    lz = run!(scheme, truncrank(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
@@ -181,7 +181,7 @@ end
 @testset "rCTM - Ising Model" begin
     @info "rCTM ising free energy"
     scheme = rCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
+    lz = run!(scheme, truncrank(24), trivial_convcrit(1.0e-9); verbosity = 1)
 
     fs = lz * -1 / ising_βc
 
@@ -192,7 +192,7 @@ end
 @testset "ATRG_3D - Ising Model" begin
     @info "ATRG_3D ising free energy"
     scheme = ATRG_3D(T_3D)
-    data = run!(scheme, truncdim(12), maxiter(25))
+    data = run!(scheme, truncrank(12), maxiter(25))
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 5.0e-3
@@ -202,7 +202,7 @@ end
 @testset "HOTRG_3D - Ising Model" begin
     @info "HOTRG_3D ising free energy"
     scheme = HOTRG_3D(T_3D)
-    data = run!(scheme, truncdim(8), maxiter(25))
+    data = run!(scheme, truncrank(8), maxiter(25))
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
@@ -216,7 +216,7 @@ end
 
     scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
 
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
 
     @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
 end
@@ -231,7 +231,7 @@ end
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
-    data = run!(scheme, truncdim(8), maxiter(25))
+    data = run!(scheme, truncrank(8), maxiter(25))
 
     m2_highT = data[end][4] / data[end][1]
     @test m2_highT ≈ 0.0 atol = 1.0e-14
@@ -245,7 +245,7 @@ end
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
-    data = run!(scheme, truncdim(8), maxiter(25))
+    data = run!(scheme, truncrank(8), maxiter(25))
 
     m2_lowT = data[end][4] / data[end][1]
     @test m2_lowT ≈ 1 rtol = 1.0e-2
@@ -258,7 +258,7 @@ end
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 
-    data = run!(scheme, truncdim(24), maxiter(25))
+    data = run!(scheme, truncrank(24), maxiter(25))
 
     @test free_energy(getindex.(data, 1), ising_βc) ≈ f_onsager rtol = 2.0e-6
 end
@@ -272,7 +272,7 @@ end
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
 
     m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 0.0 atol = 1.0e-4
@@ -285,7 +285,7 @@ end
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 
-    data = run!(scheme, truncdim(16), maxiter(25))
+    data = run!(scheme, truncrank(16), maxiter(25))
 
     m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 1.0 rtol = 1.0e-4
