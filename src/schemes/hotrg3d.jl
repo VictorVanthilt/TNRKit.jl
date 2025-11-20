@@ -56,7 +56,7 @@ function _get_hotrg3d_xproj(
         A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
-    U, s, _, ε = tsvd!(MM; trunc)
+    U, s, _, ε = eigh_trunc(MM; trunc = trunc)
     # right unitary
     A2′ = twistdual(A2, [2, 3, 5, 6])
     A1′ = twistdual(A1, [1, 3, 5, 6])
@@ -64,7 +64,7 @@ function _get_hotrg3d_xproj(
         conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
+    _, s′, U′, ε′ = eigh_trunc(MM; trunc = trunc)
     if ε > ε′
         U, s, ε = adjoint(U′), s′, ε′
     end
