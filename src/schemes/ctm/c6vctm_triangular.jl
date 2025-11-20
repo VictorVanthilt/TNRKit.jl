@@ -122,7 +122,8 @@ function step!(scheme::c6vCTM_triangular, trunc)
     ρ = build_double_corner_matrix_triangular(scheme)
     @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
     ρρ /= norm(ρρ)
-
+@show cond(ρρ)
+@show norm(ρρ, Inf)
     U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16), alg = TensorKit.SVD())
 
     Pb = ρ * V' * inv(sqrt(S))
