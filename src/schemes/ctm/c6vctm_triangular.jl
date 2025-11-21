@@ -238,7 +238,7 @@ function _contract_edges_120(scheme::c6vCTM_triangular)
         scheme.Eb[χSWa DBR180; χSWC] * scheme.Ea[χSWC DTL240; χSWb]
 end
 
-function _contract_site_large(scheme)
+function _contract_site_large(scheme::c6vCTM_triangular)
     return @tensor opt = true flip(scheme.T, 5; inv = false)[DNW120 DNW60 DNW0 DNW300 DW60 DNW180] * flip(scheme.T, 6; inv = false)[DNE120 DNE60 DNE0 DNE300 DNE240 DNW0] *
         flip(scheme.T, 1; inv = false)[DNE300 DE60 DE0 DE300 DE240 DE180] * flip(scheme.T, 2; inv = false)[DSE120 DE240 DSE0 DSE300 DSE240 DSE180] * flip(scheme.T, 3; inv = false)[DSW120 DSW60 DSE180 DSW300 DSW240 DSW180] *
         flip(scheme.T, 4; inv = false)[DW120 DW60 DW0 DSW120 DW240 DW180] * flip(scheme.T, (1, 2, 3, 4, 5, 6); inv = false)[DNW300 DNE240 DE180 DSE120 DSW60 DW0] *
