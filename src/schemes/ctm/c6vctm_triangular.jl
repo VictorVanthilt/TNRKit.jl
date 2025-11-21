@@ -214,7 +214,7 @@ end
 
 # Expectation_values
 
-function _contract_edges_0(scheme)
+function _contract_edges_0(scheme::c6vCTM_triangular)
     return @tensor opt = true flip(scheme.T, 3; inv = false)[DL120 DL60 DL0 DL300 DL240 DL180] * scheme.T[DR120 DR60 DR0 DR300 DR240 DL0] *
         scheme.C[χNW DL120; χNa] * scheme.C[χNb DR60; χNE] * scheme.C[χNE DR0; χSE] *
         scheme.C[χSE DR300; χSa] * scheme.C[χSb DL240; χSW] * scheme.C[χSW DL180; χNW] *
