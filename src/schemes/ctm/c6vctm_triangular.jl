@@ -230,7 +230,7 @@ function _contract_edges_60(scheme::c6vCTM_triangular)
         scheme.Eb[χNWa DBL120; χNWC] * scheme.Ea[χNWC DTR180; χNWb]
 end
 
-function _contract_edges_120(scheme)
+function _contract_edges_120(scheme::c6vCTM_triangular)
     return @tensor opt = true flip(scheme.T, 4; inv = false)[DTL120 DTL60 DTL0 DTL300 DTL240 DTL180] * scheme.T[DTL300 DBR60 DBR0 DBR300 DBR240 DBR180] *
         scheme.C[χNW DTL120; χN] * scheme.C[χN DTL60; χNEa] * scheme.C[χNEb DBR0; χSE] *
         scheme.C[χSE DBR300; χS] * scheme.C[χS DBR240; χSWa] * scheme.C[χSWb DTL180; χNW] *
