@@ -250,7 +250,7 @@ function _contract_site_large(scheme::c6vCTM_triangular)
         scheme.C[χSWa DW180; χNWb] * scheme.Eb[χNWb DW120; χNWC] * scheme.Ea[χNWC DNW180; χNWa]
 end
 
-function _contract_corners(scheme)
+function _contract_corners(scheme::c6vCTM_triangular)
     return @tensor opt = true scheme.C[χNW D120; χN] * scheme.C[χN D60; χNE] * scheme.C[χNE D0; χSE] *
         scheme.C[χSE D300; χS] * scheme.C[χS D240; χSW] * scheme.C[χSW D180; χNW] *
         scheme.T[D120 D60 D0; D300 D240 D180]
