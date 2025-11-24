@@ -23,7 +23,10 @@ or with a (0,6) tensor (120°, 60°, 0°, 300°, 240°, 180°) where all arrows 
 The keyword argument symmetrize makes the tensor C6v symmetric when set to true. If symmetrize = false, it checks the symmetry explicitly.
 
 ### Running the algorithm
-    run!(::c6vCTM, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::c6vCTM, trunc::TensorKit.TruncationScheme, stop::Stopcrit[, finalize_beginning=true, projectors=:twothirds, conditioning=true, verbosity=1])
+
+`projectors` can either be :twothirds or :full, determining the type of projectors used in the renormalization step. This is based on https://arxiv.org/abs/2510.04907v1.
+`conditioning` determines whether to condition the second projector construction. This is based on https://doi.org/10.1103/PhysRevB.98.235148.
 
 !!! info "verbosity levels"
     - 0: No output
@@ -90,6 +93,8 @@ end
 
 function run!(
         scheme::c6vCTM_triangular, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+        projectors = :twothirds,
+        conditioning = true,
         verbosity = 1
     )
     LoggingExtras.withlevel(; verbosity) do
@@ -102,7 +107,7 @@ function run!(
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), ε = $(ε)"
 
-            S = step!(scheme, trunc)
+            S = step!(scheme, trunc; projectors, conditioning)
 
             if space(S) == space(S_prev)
                 ε = norm(S^4 - S_prev^4)
@@ -118,17 +123,29 @@ function run!(
     return lnz(scheme)
 end
 
-function step!(scheme::c6vCTM_triangular, trunc)
-    Pa, Pb, S = calculate_twothirds_projectors(scheme, trunc)
-    renormalize_corners!(scheme, Pa, Pb)
-    Ẽa, Ẽb, Ẽatr, Ẽbtr = semi_renormalize(scheme, Pa, Pb, trunc)
-    Qa, Qb = build_matrix_second_projector(scheme, Ẽa, Ẽb, Ẽatr, Ẽbtr)
-    renormalize_edges!(scheme, Ẽa, Ẽb, Qa, Qb)
+function step!(scheme::c6vCTM_triangular, trunc; projectors = :twothirds, conditioning = true)
+    Pa, Pb, S = calculate_projectors(scheme, trunc, projectors)
 
+    renormalize_corners!(scheme, Pa, Pb)
     scheme.C /= norm(scheme.C)
+
+    Ẽa, Ẽb, Ẽatr, Ẽbtr = semi_renormalize(scheme, Pa, Pb, trunc)
+    Qa, Qb = build_matrix_second_projector(scheme, Ẽa, Ẽb, Ẽatr, Ẽbtr; conditioning)
+
+    renormalize_edges!(scheme, Ẽa, Ẽb, Qa, Qb)
     scheme.Ea /= norm(scheme.Ea)
     scheme.Eb /= norm(scheme.Eb)
     return S
+end
+
+function calculate_projectors(scheme::c6vCTM_triangular, trunc, projectors)
+    if projectors == :full
+        return calculate_full_projectors(scheme, trunc)
+    elseif projectors == :twothirds
+        return calculate_twothirds_projectors(scheme, trunc)
+    else
+        @error "projectors = $projectors not defined"
+    end
 end
 
 function calculate_twothirds_projectors(scheme::c6vCTM_triangular, trunc)
@@ -136,10 +153,26 @@ function calculate_twothirds_projectors(scheme::c6vCTM_triangular, trunc)
     @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
     ρρ /= norm(ρρ)
 
-    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16), alg = TensorKit.SVD())
+    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-20), alg = TensorKit.SVD())
 
     Pb = ρ * V' * pseudopow(S, -1 / 2)
     Pa = pseudopow(S, -1 / 2) * U' * ρ
+    return Pa, Pb, S
+end
+
+function calculate_full_projectors(scheme::c6vCTM_triangular, trunc)
+    ρ = build_double_corner_matrix_triangular(scheme)
+    ρ /= norm(ρ)
+    Ū, S̄, V̄ᴴ = tsvd(ρ; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
+    ρ̄ᴿ = Ū * sqrt(S̄)
+    ρ̄ᴸ = sqrt(S̄) * V̄ᴴ
+    @tensor ρρ[-1; -2] := ρ̄ᴸ[-1; 1 2] * flip(ρ, 2; inv = false)[1 2; 3 4] * flip(ρ, 2; inv = false)[3 4; 5 6] * flip(ρ̄ᴿ, 2; inv = false)[5 6; -2]
+    ρρ /= norm(ρρ)
+
+    U, S, Vᴴ = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-20), alg = TensorKit.SVD())
+
+    @tensor Pb[-1 -2; -3] := ρ[-1 -2; 1 2] * flip(ρ̄ᴿ, 2)[1 2; 3] * Vᴴ'[3; 4] * pseudopow(S, -1 / 2)[4; -3]
+    @tensor Pa[-1; -2 -3] := pseudopow(S, -1 / 2)[-1; 1] * U'[1; 2] * ρ̄ᴸ[2; 3 4] * flip(ρ, 2)[3 4; -2 -3]
     return Pa, Pb, S
 end
 
@@ -176,27 +209,45 @@ end
 function semi_renormalize(scheme::c6vCTM_triangular, Pa, Pb, trunc)
     @tensor opt = true mat[-1 -2; -3 -4] := Pa[-1; 1 2] * Pb[6 7; -3] *
         scheme.Ea[1 3; 4] * scheme.Eb[4 5; 6] * flip(scheme.T, (3, 4, 5, 6); inv = false)[3 5 7 -4 -2 2]
-    U, S, V = tsvd(mat; alg = TensorKit.SVD())
+    U, S, V = tsvd(mat; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
     Ẽb = U * sqrt(S)
     Ẽa = permute(sqrt(S) * V, ((1, 3), (2,)))
 
-    Utr, Str, Vtr = tsvd(mat; trunc, alg = TensorKit.SVD())
+    Utr, Str, Vtr = tsvd(mat; trunc = trunc & truncbelow(1.0e-20), alg = TensorKit.SVD())
     Ẽbtr = Utr * sqrt(Str)
     Ẽatr = permute(sqrt(Str) * Vtr, ((1, 3), (2,)))
 
     return Ẽa, Ẽb, Ẽatr, Ẽbtr
 end
 
-function build_matrix_second_projector(scheme::c6vCTM_triangular, Ẽa, Ẽb, Ẽatr, Ẽbtr)
+function build_matrix_second_projector(scheme::c6vCTM_triangular, Ẽa, Ẽb, Ẽatr, Ẽbtr; conditioning = true)
     @tensor opt = true σL[-1 -2; -3] := scheme.C[1 2; 8] * scheme.C[4 3; 1] * scheme.C[6 5; 4] *
         scheme.T[2 9 -2 7 5 3] * Ẽb[8 9; -3] * Ẽatr[-1 7; 6]
     @tensor opt = true σR[-1; -2 -3] := scheme.C[8 2; 1] * scheme.C[1 3; 4] * scheme.C[4 5; 6] *
         scheme.T[9 2 3 5 7 -3] * Ẽbtr[6 7; -2] * Ẽa[-1 9; 8]
-    U, S, V = tsvd(σL * σR; alg = TensorKit.SVD())
 
-    Qa = pseudopow(S, -1 / 2) * U' * σL
-    Qb = σR * V' * pseudopow(S, -1 / 2)
+    if conditioning
+        σL /= norm(σL)
+        σR /= norm(σR)
+        UL, SL, VLᴴ = tsvd(σL; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
+        UR, SR, VRᴴ = tsvd(σR; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
 
+        FLU = sqrt(SL) * VLᴴ
+        FRU = UR * sqrt(SR)
+
+        mat = FLU * FRU
+        mat /= norm(mat)
+        WU, SU, QUᴴ = tsvd(mat; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
+
+        Qa = pseudopow(SU, -1 / 2) * WU' * FLU
+        Qb = FRU * QUᴴ' * pseudopow(SU, -1 / 2)
+    else
+        mat = σL * σR
+        mat /= norm(mat)
+        U, S, V = tsvd(mat; trunc = truncbelow(1.0e-20), alg = TensorKit.SVD())
+        Qa = pseudopow(S, -1 / 2) * U' * σL
+        Qb = σR * V' * pseudopow(S, -1 / 2)
+    end
     return Qa, Qb
 end
 
