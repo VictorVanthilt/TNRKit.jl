@@ -119,29 +119,33 @@ function run!(
 end
 
 function step!(scheme::c6vCTM_triangular, trunc)
-    ρ = build_double_corner_matrix_triangular(scheme)
-    @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
-    ρρ /= norm(ρρ)
-    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16), alg = TensorKit.SVD())
-
-    Pb = ρ * V' * inv(sqrt(S))
-    Pa = inv(sqrt(S)) * U' * ρ
-
+    Pa, Pb, S = calculate_twothirds_projectors(scheme, trunc)
+    renormalize_corners!(scheme, Pa, Pb)
     Ẽa, Ẽb, Ẽatr, Ẽbtr = semi_renormalize(scheme, Pa, Pb, trunc)
-
-    @tensor opt = true scheme.C[-1 -2; -3] := scheme.C[1 3; 6] * scheme.Ea[4 2; 1] * scheme.Eb[6 7; 8] *
-        flip(scheme.T, (3, 4, 5); inv = false)[3 7 9 -2 5 2] * Pa[-1; 4 5] * Pb[8 9; -3]
-
-
     Qa, Qb = build_matrix_second_projector(scheme, Ẽa, Ẽb, Ẽatr, Ẽbtr)
-
-    @tensor scheme.Eb[-1 -2; -3] := Ẽb[-1 -2; 1] * Qb[1; -3]
-    @tensor scheme.Ea[-1 -2; -3] := Qa[-1; 1] * Ẽa[1 -2; -3]
+    renormalize_edges!(scheme, Ẽa, Ẽb, Qa, Qb)
 
     scheme.C /= norm(scheme.C)
     scheme.Ea /= norm(scheme.Ea)
     scheme.Eb /= norm(scheme.Eb)
     return S
+end
+
+function calculate_twothirds_projectors(scheme::c6vCTM_triangular, trunc)
+    ρ = build_double_corner_matrix_triangular(scheme)
+    @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
+    ρρ /= norm(ρρ)
+
+    U, S, V = tsvd(ρρ; trunc = trunc & truncbelow(1.0e-16), alg = TensorKit.SVD())
+
+    Pb = ρ * V' * pseudopow(S, -1/2)
+    Pa = pseudopow(S, -1/2) * U' * ρ
+    return Pa, Pb, S
+end
+
+function renormalize_corners!(scheme::c6vCTM_triangular, Pa, Pb)
+    @tensor opt = true scheme.C[-1 -2; -3] := scheme.C[1 3; 6] * scheme.Ea[4 2; 1] * scheme.Eb[6 7; 8] *
+    flip(scheme.T, (3, 4, 5); inv = false)[3 7 9 -2 5 2] * Pa[-1; 4 5] * Pb[8 9; -3]
 end
 
 function network_value_triangular(scheme::c6vCTM_triangular)
@@ -171,11 +175,11 @@ end
 function semi_renormalize(scheme::c6vCTM_triangular, Pa, Pb, trunc)
     @tensor opt = true mat[-1 -2; -3 -4] := Pa[-1; 1 2] * Pb[6 7; -3] *
         scheme.Ea[1 3; 4] * scheme.Eb[4 5; 6] * flip(scheme.T, (3, 4, 5, 6); inv = false)[3 5 7 -4 -2 2]
-    U, S, V = tsvd(mat)
+    U, S, V = tsvd(mat; alg = TensorKit.SVD())
     Ẽb = U * sqrt(S)
     Ẽa = permute(sqrt(S) * V, ((1, 3), (2,)))
 
-    Utr, Str, Vtr = tsvd(mat; trunc)
+    Utr, Str, Vtr = tsvd(mat; trunc, alg = TensorKit.SVD())
     Ẽbtr = Utr * sqrt(Str)
     Ẽatr = permute(sqrt(Str) * Vtr, ((1, 3), (2,)))
 
@@ -187,11 +191,17 @@ function build_matrix_second_projector(scheme::c6vCTM_triangular, Ẽa, Ẽb, E�
         scheme.T[2 9 -2 7 5 3] * Ẽb[8 9; -3] * Ẽatr[-1 7; 6]
     @tensor opt = true σR[-1; -2 -3] := scheme.C[8 2; 1] * scheme.C[1 3; 4] * scheme.C[4 5; 6] *
         scheme.T[9 2 3 5 7 -3] * Ẽbtr[6 7; -2] * Ẽa[-1 9; 8]
-    U, S, V = tsvd(σL * σR)
-    Qa = inv(sqrt(S)) * U' * σL
-    Qb = σR * V' * inv(sqrt(S))
+    U, S, V = tsvd(σL * σR; alg = TensorKit.SVD())
+
+    Qa = pseudopow(S, -1/2) * U' * σL
+    Qb = σR * V' * pseudopow(S, -1/2)
 
     return Qa, Qb
+end
+
+function renormalize_edges!(scheme::c6vCTM_triangular, Ẽa, Ẽb, Qa, Qb)
+    @tensor scheme.Eb[-1 -2; -3] := Ẽb[-1 -2; 1] * Qb[1; -3]
+    @tensor scheme.Ea[-1 -2; -3] := Qa[-1; 1] * Ẽa[1 -2; -3]
 end
 
 function c6vCTM_triangular_init(T::TensorMap{A, S, 0, 6}) where {A, S}
