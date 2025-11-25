@@ -72,7 +72,10 @@ function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
 end
 
-# Function to obtain the "canonical" normalization constant
+"""
+The "canonical" normalization constant for loop-TNR tensors,
+which is the eigenvalue with largest norm of the 2 x 2 transfer matrix.
+"""
 function area_term(A, B; is_real = true)
     a_in = domain(A)[1]
     b_in = domain(B)[1]
@@ -155,7 +158,7 @@ end
 
 function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
     area = shape[1] * shape[2]
-    Reτ = shape[1] / shape[2]
+    Imτ = shape[1] / shape[2]
     relative_shift = shape[3] / shape[1]
 
     I = sectortype(TA)
@@ -198,11 +201,10 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
     conformal_data = Dict()
 
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = 6 / pi / (Reτ - area / 4) * log(norm_const_0)
+    conformal_data["c"] = 6 / pi / (Imτ - area / 4) * log(norm_const_0)
 
     for charge in sectors(fuse(xspace))
-        DeltaS = -1 / (2 * pi * shape[1] / shape[2]) *
-            log.(spec_sector[charge] / norm_const_0)
+        DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
         if !(relative_shift ≈ 0)
             conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
         else
