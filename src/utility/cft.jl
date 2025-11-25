@@ -204,8 +204,7 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
     conformal_data["c"] = 6 / pi / (Imτ - area / 4) * log(norm_const_0)
 
     for charge in sectors(fuse(xspace))
-        DeltaS = -1 / (2 * pi * shape[1] / shape[2]) *
-            log.(spec_sector[charge] / norm_const_0)
+        DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
         if !(relative_shift ≈ 0)
             conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
         else
