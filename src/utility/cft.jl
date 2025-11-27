@@ -216,7 +216,7 @@ end
 
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
-function cft_data!(
+function cft_data(
         scheme::LoopTNR, shape::Array,
         trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
@@ -225,12 +225,11 @@ function cft_data!(
         throw(ArgumentError("The shape $shape is not correct."))
     end
 
-    norm_const = area_term(scheme.TA, scheme.TB)
-    scheme.TA = scheme.TA / norm_const^(1 / 4)
-    scheme.TB = scheme.TB / norm_const^(1 / 4)
     @infov 2 "CFT data calculating"
-
-    dl, ur, ul, dr = MPO_opt(scheme.TA, scheme.TB, trunc, truncentanglement)
+    norm_const = area_term(scheme.TA, scheme.TB)^(1 / 4)
+    dl, ur, ul, dr = MPO_opt(
+        scheme.TA / norm_const, scheme.TB / norm_const, trunc, truncentanglement
+    )
     T = reduced_MPO(dl, ur, ul, dr, trunc)
 
     # Calculate conformal data with spin from -4 to 4. Most error is introduced in the second step of the SVD.
@@ -238,16 +237,14 @@ function cft_data!(
     return conformal_data
 end
 
-function cft_data!(scheme::LoopTNR, shape::Array)
+function cft_data(scheme::LoopTNR, shape::Array)
     if !(shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
 
-    norm_const = area_term(scheme.TA, scheme.TB)
-    scheme.TA = scheme.TA / norm_const^(1 / 4)
-    scheme.TB = scheme.TB / norm_const^(1 / 4)
     @infov 2 "CFT data calculating"
-    conformal_data = spec(scheme.TA, scheme.TB, shape)
+    norm_const = area_term(scheme.TA, scheme.TB)^(1 / 4)
+    conformal_data = spec(scheme.TA / norm_const, scheme.TB / norm_const, shape)
     return conformal_data
 end
 
