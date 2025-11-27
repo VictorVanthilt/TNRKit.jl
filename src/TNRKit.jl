@@ -83,7 +83,7 @@ include("utility/free_energy.jl")
 export free_energy
 
 include("utility/cft.jl")
-export cft_data, central_charge, cft_data!
+export cft_data, central_charge
 
 include("utility/finalize.jl")
 export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
