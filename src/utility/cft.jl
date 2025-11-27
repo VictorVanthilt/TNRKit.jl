@@ -74,7 +74,7 @@ end
 
 """
 The "canonical" normalization constant for loop-TNR tensors,
-which is the eigenvalue with largest norm of the 2 x 2 transfer matrix.
+which is the eigenvalue with largest real part of the 2 x 2 transfer matrix.
 """
 function area_term(A, B; is_real = true)
     a_in = domain(A)[1]
