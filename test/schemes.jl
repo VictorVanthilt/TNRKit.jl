@@ -178,13 +178,13 @@ end
     @info "LoopTNR ising ground state degeneracy"
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = LoopTNR(T1)
-    run!(scheme, truncdim(8), truncbelow(1.0e-12), maxiter(20), entanglement_criterion, loop_criterion)
+    run!(scheme, truncdim(12), maxiter(10))
     gsd = ground_state_degeneracy(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = LoopTNR(T2)
-    run!(scheme, truncdim(8), truncbelow(1.0e-12), maxiter(20), entanglement_criterion, loop_criterion)
+    run!(scheme, truncdim(12), maxiter(10))
     gsd = ground_state_degeneracy(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
 end
