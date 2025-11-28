@@ -1,4 +1,4 @@
-const simple_scheme = Union{TRG, ATRG, HOTRG}
+const simple_scheme = Union{TRG,ATRG,HOTRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)
@@ -17,7 +17,7 @@ end
 function finalize_two_by_two!(scheme::simple_scheme)
     n = norm(
         @tensor scheme.T[7 1; 5 4] * scheme.T[4 2; 6 7] * scheme.T[3 6; 2 8] *
-            scheme.T[8 5; 1 3]
+                scheme.T[8 5; 1 3]
     )
 
     scheme.T /= (n^(1 / 4))
@@ -27,13 +27,13 @@ end
 function finalize_two_by_two!(scheme::BTRG)
     n′ = @tensor begin
         scheme.T[11 1; 9 8] *
-            scheme.S2[8; 2] *
-            scheme.T[2 6; 10 11] *
-            scheme.S1[3; 6] *
-            scheme.T[7 10; 3 12] *
-            scheme.S2[4; 7] *
-            scheme.T[12 9; 5 4] *
-            scheme.S1[5; 1]
+        scheme.S2[8; 2] *
+        scheme.T[2 6; 10 11] *
+        scheme.S1[3; 6] *
+        scheme.T[7 10; 3 12] *
+        scheme.S2[4; 7] *
+        scheme.T[12 9; 5 4] *
+        scheme.S1[5; 1]
     end
     n = norm(n′)
     scheme.T /= (n^(1 / 4))
@@ -45,7 +45,7 @@ function finalize!(scheme::LoopTNR)
     T2 = permute(scheme.TB, ((1, 2), (4, 3)))
     n = norm(
         @tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
-            T2[7 4; 8 2] * T1[8 6; 7 5]
+                           T2[7 4; 8 2] * T1[8 6; 7 5]
     )
 
     scheme.TA /= n^(1 / 4)
@@ -82,7 +82,7 @@ function finalize!(scheme::ImpurityTRG)
     scheme.T /= npure
 
     # Then calculate the contracted/traced 4 impurity tensors
-    nimp = norm(@tensoropt scheme.T_imp1[5 4;6 1] * scheme.T_imp2[1 2;7 5] * scheme.T_imp3[3 7;2 8] * scheme.T_imp4[8 6;4 3])
+    nimp = norm(@tensoropt scheme.T_imp1[5 4; 6 1] * scheme.T_imp2[1 2; 7 5] * scheme.T_imp3[3 7; 2 8] * scheme.T_imp4[8 6; 4 3])
 
     return npure, nimp
 end
@@ -103,7 +103,7 @@ end
 # cft data finalize
 function finalize_cftdata!(scheme::LoopTNR)
     finalize!(scheme)
-    return cft_data(scheme; is_real = true)
+    return cft_data(scheme; is_real=true)
 end
 
 function finalize_cft!(scheme::SLoopTNR)
@@ -111,9 +111,9 @@ function finalize_cft!(scheme::SLoopTNR)
     scheme.T /= tr_norm^0.25
     Tflip = flip(scheme.T, (1, 2, 3, 4))
     @tensoropt mat[-1 -2; -3 -4] := scheme.T[1 3; -1 2] * Tflip[1 4; -2 2] *
-        Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
+                                    Tflip[5 3; -3 6] * scheme.T[5 4; -4 6]
     val, vec = eig(mat)
-    val = sort(real(val).data; rev = true)
+    val = sort(real(val).data; rev=true)
     data = -log.(abs.(val ./ val[1])) / 2 / π
     return data
 end
@@ -126,3 +126,13 @@ end
 
 # TODO: add Finalizers for CFT and central charge
 two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)
+
+
+# Finalizer for ground state degeneracy
+function finalize_groundstatedegeneracy!(scheme::TNRScheme)
+    n = finalize!(scheme)
+    return ground_state_degeneracy(scheme; v=1, unitcell=1)
+end
+
+GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
+
