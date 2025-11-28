@@ -30,6 +30,21 @@ end
 
     @test cft[1] ≈ ising_cft_exact[1] rtol = 2.0e-4
     @test cft[2] ≈ ising_cft_exact[2] rtol = 1.0e-2
+
+    @info "TRG ising ground state degeneracy"
+
+    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    scheme = TRG(T1)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+
+    @test gsd ≈ 2 rtol = 1.0e-3
+
+    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    scheme = TRG(T2)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 1 rtol = 1.0e-3
 end
 
 # BTRG
@@ -48,6 +63,19 @@ end
 
     @test cft[1] ≈ ising_cft_exact[1] rtol = 3.0e-4
     @test cft[2] ≈ ising_cft_exact[2] rtol = 2.0e-2
+
+    @info "BTRG ising ground state degeneracy"
+    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    scheme = BTRG(T1)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 2 rtol = 1.0e-3
+
+    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    scheme = BTRG(T2)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 1 rtol = 1.0e-3
 end
 
 # HOTRG
@@ -56,7 +84,7 @@ end
     scheme = HOTRG(T)
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
+    @test free_energy(data, ising_βc; scalefactor=4.0) ≈ f_onsager rtol = 6.0e-7
 
     @info "HOTRG ising CFT data"
     scheme = HOTRG(T)
@@ -66,6 +94,19 @@ end
 
     @test cft[1] ≈ ising_cft_exact[1] rtol = 6.0e-4
     @test cft[2] ≈ ising_cft_exact[2] rtol = 1.0e-2
+
+    @info "HOTRG ising ground state degeneracy"
+    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    scheme = HOTRG(T1)
+    run!(scheme, truncdim(12), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 2 rtol = 1.0e-3
+
+    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    scheme = HOTRG(T2)
+    run!(scheme, truncdim(12), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 1 rtol = 1.0e-3
 end
 
 # ATRG
@@ -74,7 +115,7 @@ end
     scheme = ATRG(T)
     data = run!(scheme, truncdim(24), maxiter(25))
 
-    @test free_energy(data, ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 3.0e-6
+    @test free_energy(data, ising_βc; scalefactor=4.0) ≈ f_onsager rtol = 3.0e-6
 
     @info "ATRG ising CFT data"
     scheme = ATRG(T)
@@ -84,6 +125,19 @@ end
 
     @test cft[1] ≈ ising_cft_exact[1] rtol = 1.0e-2
     @test cft[2] ≈ ising_cft_exact[2] rtol = 1.0e-2
+
+    @info "ATRG ising ground state degeneracy"
+    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    scheme = ATRG(T1)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 2 rtol = 1.0e-3
+
+    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    scheme = ATRG(T2)
+    run!(scheme, truncdim(16), maxiter(20))
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 1 rtol = 1.0e-3
 end
 
 # LoopTNR
@@ -120,6 +174,19 @@ end
         @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
         @test d2 ≈ ising_cft_exact[2] rtol = 1.0e-3
     end
+
+    @info "LoopTNR ising ground state degeneracy"
+    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    scheme = LoopTNR(T1)
+    run!(scheme, truncdim(8), truncbelow(1.0e-12), maxiter(20), entanglement_criterion, loop_criterion)
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 2 rtol = 1.0e-3
+
+    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    scheme = LoopTNR(T2)
+    run!(scheme, truncdim(8), truncbelow(1.0e-12), maxiter(20), entanglement_criterion, loop_criterion)
+    gsd = ground_state_degeneracy(scheme)
+    @test gsd ≈ 1 rtol = 1.0e-3
 end
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
@@ -132,7 +199,7 @@ end
         scheme, truncdim(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
-    @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
+    @test free_energy(data, ising_βc; initial_size=2) ≈ f_onsager rtol = 1.0e-6
 end
 
 # SLoopTNR
@@ -170,7 +237,7 @@ end
 @testset "c4vCTM - Ising Model" begin
     @info "c4vCTM ising free energy"
     scheme = c4vCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity=1)
 
     fs = lz * -1 / ising_βc
 
@@ -181,7 +248,7 @@ end
 @testset "rCTM - Ising Model" begin
     @info "rCTM ising free energy"
     scheme = rCTM(T)
-    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity = 1)
+    lz = run!(scheme, truncdim(24), trivial_convcrit(1.0e-9); verbosity=1)
 
     fs = lz * -1 / ising_βc
 
@@ -193,7 +260,7 @@ end
     @info "ATRG_3D ising free energy"
     scheme = ATRG_3D(T_3D)
     data = run!(scheme, truncdim(12), maxiter(25))
-    fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
+    fs = free_energy(data, ising_βc_3D; scalefactor=8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 5.0e-3
 end
@@ -203,7 +270,7 @@ end
     @info "HOTRG_3D ising free energy"
     scheme = HOTRG_3D(T_3D)
     data = run!(scheme, truncdim(8), maxiter(25))
-    fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
+    fs = free_energy(data, ising_βc_3D; scalefactor=8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
 end
@@ -218,7 +285,7 @@ end
 
     data = run!(scheme, truncdim(16), maxiter(25))
 
-    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor=4.0) ≈ f_onsager rtol = 6.0e-7
 end
 
 @testset "Impurity HOTRG - Magnetisation" begin
@@ -280,8 +347,8 @@ end
     # Low T
     β = 2
 
-    T = classical_ising(β; h = 1.0e-6)
-    T_imp = classical_ising_impurity(β; h = 1.0e-6)
+    T = classical_ising(β; h=1.0e-6)
+    T_imp = classical_ising_impurity(β; h=1.0e-6)
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
 

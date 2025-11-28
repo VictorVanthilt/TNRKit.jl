@@ -86,7 +86,8 @@ include("utility/cft.jl")
 export cft_data, central_charge, cft_data!, ground_state_degeneracy
 
 include("utility/finalize.jl")
-export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
+export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!,
+    finalize_groundstatedegeneracy!, GSDegeneracy_Finalizer
 
 include("utility/cdl.jl")
 export cdl_tensor
