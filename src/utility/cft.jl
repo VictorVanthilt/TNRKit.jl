@@ -292,6 +292,27 @@ function ground_state_degeneracy(scheme::TNRScheme; v=1, unitcell=1)
     return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
 end
 
+function ground_state_degeneracy(scheme::BTRG; v=1, unitcell=1)
+    # make the indices
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+
+    @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
+                                    scheme.S2[-1; 1]
+    T = ncon(fill(T_unit, unitcell), indices)
+
+    outinds = Tuple(collect(1:unitcell))
+    ininds = Tuple(collect((unitcell+1):(2unitcell)))
+
+    T = permute(T, (outinds, ininds))
+    D, _ = eig(T)
+
+    D = D / tr(D)
+
+    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+end
+
+
 function ground_state_degeneracy(scheme::LoopTNR)
 
     norm_const = area_term(scheme.TA, scheme.TB)
