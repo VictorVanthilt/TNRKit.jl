@@ -82,7 +82,7 @@ function finalize!(scheme::ImpurityTRG)
     scheme.T /= npure
 
     # Then calculate the contracted/traced 4 impurity tensors
-    nimp = norm(@tensoropt scheme.T_imp1[5 4;6 1] * scheme.T_imp2[1 2;7 5] * scheme.T_imp3[3 7;2 8] * scheme.T_imp4[8 6;4 3])
+    nimp = norm(@tensoropt scheme.T_imp1[5 4; 6 1] * scheme.T_imp2[1 2; 7 5] * scheme.T_imp3[3 7; 2 8] * scheme.T_imp4[8 6; 4 3])
 
     return npure, nimp
 end
@@ -126,3 +126,12 @@ end
 
 # TODO: add Finalizers for CFT and central charge
 two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)
+
+
+# Finalizer for ground state degeneracy
+function finalize_groundstatedegeneracy!(scheme::TNRScheme)
+    n = finalize!(scheme)
+    return ground_state_degeneracy(scheme; v = 1, unitcell = 1)
+end
+
+GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)

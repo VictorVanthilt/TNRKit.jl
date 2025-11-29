@@ -270,3 +270,59 @@ function central_charge(scheme::BTRG, n::Number)
     _, S, _ = tsvd(M)
     return log(S.data[1]) * 6 / (π)
 end
+
+
+""" Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. """
+
+function ground_state_degeneracy(scheme::TNRScheme; v = 1, unitcell = 1)
+    # make the indices
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+
+    T = ncon(fill(scheme.T, unitcell), indices)
+
+    outinds = Tuple(collect(1:unitcell))
+    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
+
+    T = permute(T, (outinds, ininds))
+    D, _ = eig(T)
+
+    D = D / tr(D)
+
+    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+end
+
+function ground_state_degeneracy(scheme::BTRG; v = 1, unitcell = 1)
+    # make the indices
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+
+    @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
+        scheme.S2[-1; 1]
+    T = ncon(fill(T_unit, unitcell), indices)
+
+    outinds = Tuple(collect(1:unitcell))
+    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
+
+    T = permute(T, (outinds, ininds))
+    D, _ = eig(T)
+
+    D = D / tr(D)
+
+    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+end
+
+
+function ground_state_degeneracy(scheme::LoopTNR)
+
+    norm_const = area_term(scheme.TA, scheme.TB)
+    scheme.TA = scheme.TA / norm_const^(1 / 4)
+    scheme.TB = scheme.TB / norm_const^(1 / 4)
+
+    @tensor T_unit[-1 -2; -3 -4] := scheme.TA[-1 1; 3 2] * scheme.TB[2 6; 4 -3] *
+        scheme.TB[-2 3; 1 5] * scheme.TA[5 4; 6 -4]
+
+    D, _ = eig(T_unit)
+    D = D / tr(D)
+    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+end
