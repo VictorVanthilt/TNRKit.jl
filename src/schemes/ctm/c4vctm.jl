@@ -122,8 +122,8 @@ function step!(scheme::c4vCTM, trunc)
         U[3 4; -3] *
         conj(U[1 2; -1])
 
-    scheme.C /= norm(scheme.C)
-    scheme.E /= norm(scheme.E)
+    normalize!(scheme.C)
+    normalize!(scheme.E)
     return S
 end
 
