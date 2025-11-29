@@ -61,6 +61,10 @@ function LoopTNR(
     return LoopTNR(TA, TB)
 end
 
+function _check_dual(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
+    return [isdual(space(T, ax)) for ax in 1:4] == [0, 0, 1, 1]
+end
+
 # Function to initialize the list of tensors Ψ_A, making it an MPS on a ring
 function Ψ_A(unitcell_2x2::Matrix{<:AbstractTensorMap{E, S, 2, 2}}) where {E, S}
     size(unitcell_2x2) == (2, 2) || error("Input unit cell must have 2 x 2 size.")
@@ -88,7 +92,24 @@ end
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
     NA = length(ΨA)
-    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
+    _trunc = truncdim(trunc.dim * 2)
+    #= 
+            |     |
+            2 --- 3
+          ↗         ↘
+    --- 1             4 ---
+        |             |
+    --- 8             5 ---
+          ↘         ↗
+            7 --- 6
+            |     |
+    =#
+    ΨB = [
+        collect(SVD12(ΨA[1], _trunc; reversed = true));
+        collect(SVD12(ΨA[2], _trunc; reversed = true));
+        collect(SVD12(ΨA[3], _trunc));
+        collect(SVD12(ΨA[4], _trunc));
+    ]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
@@ -159,6 +180,7 @@ function _entanglement_filtering(
     )
     @plansor TA[-1 -2; -3 -4] := TA[1 2; 3 4] * PRs[4][1; -1] * PLs[1][-2; 2] * PRs[2][4; -4] * PLs[3][-3; 3]
     @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
+    @assert _check_dual(TA) && _check_dual(TB)
     return TA, TB
 end
 
@@ -337,11 +359,24 @@ function loop_opt(
     return psiB
 end
 
+"""
+Coarse-grain `ΨB` to renormalized `TA`, `TB` tensors
+"""
 function ΨB_to_TATB(psiB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
+    #= 
+    (4)         (2)     (4)         (2)
+      ↘        ↗          ↘        ↗
+        7 --- 6             4 --- 1
+        |  A  |             |  B  |
+        2 --- 3             5 --- 8
+      ↗        ↘          ↗        ↘
+    (3)         (1)     (3)         (1)
+    =#
     @plansor TA[-1 -2; -3 -4] := psiB[6][-2; 1 2] * psiB[7][2; 3 -4] *
         psiB[2][-3; 3 4] * psiB[3][4; 1 -1]
     @plansor TB[-1 -2; -3 -4] := psiB[1][1; 2 -2] * psiB[4][-4; 2 3] *
         psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
+    @assert _check_dual(TA) && _check_dual(TB)
     return TA, TB
 end
 
