@@ -94,26 +94,26 @@ function CTM_init(TA, TB; bc = ones, bc_free = false)
     return C, C, C, C, C, C, C, C, ElA, ElB, EbA, EbB, ErA, ErB, EtA, EtB
 end
 
-function normalize!(ctm::Sublattice_CTM)
-    ctm.Ctl1 /= norm(ctm.Ctl1)
-    ctm.Ctr1 /= norm(ctm.Ctr1)
-    ctm.Cbr1 /= norm(ctm.Cbr1)
-    ctm.Cbl1 /= norm(ctm.Cbl1)
+function LinearAlgebra.normalize!(ctm::Sublattice_CTM)
+    normalize!(ctm.Ctl1)
+    normalize!(ctm.Ctr1)
+    normalize!(ctm.Cbr1)
+    normalize!(ctm.Cbl1)
 
-    ctm.Ctl2 /= norm(ctm.Ctl2)
-    ctm.Ctr2 /= norm(ctm.Ctr2)
-    ctm.Cbr2 /= norm(ctm.Cbr2)
-    ctm.Cbl2 /= norm(ctm.Cbl2)
+    normalize!(ctm.Ctl2)
+    normalize!(ctm.Ctr2)
+    normalize!(ctm.Cbr2)
+    normalize!(ctm.Cbl2)
 
-    ctm.EtA /= norm(ctm.EtA)
-    ctm.ErA /= norm(ctm.ErA)
-    ctm.EbA /= norm(ctm.EbA)
-    ctm.ElA /= norm(ctm.ElA)
-    ctm.EtB /= norm(ctm.EtB)
-    ctm.ErB /= norm(ctm.ErB)
-    ctm.EbB /= norm(ctm.EbB)
-    ctm.ElB /= norm(ctm.ElB)
-    return nothing
+    normalize!(ctm.EtA)
+    normalize!(ctm.ErA)
+    normalize!(ctm.EbA)
+    normalize!(ctm.ElA)
+    normalize!(ctm.EtB)
+    normalize!(ctm.ErB)
+    normalize!(ctm.EbB)
+    normalize!(ctm.ElB)
+    return ctm
 end
 
 function corner_spectrum(ctm::Sublattice_CTM)

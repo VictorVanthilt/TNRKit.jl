@@ -102,8 +102,8 @@ function step!(
 
     tr_norm = tr_tensor(scheme.T; inv = inv)
     scheme.T /= tr_norm
-    scheme.E1 /= norm(scheme.E1)
-    scheme.E2 /= norm(scheme.E2)
+    normalize!(scheme.E1)
+    normalize!(scheme.E2)
     for _ in 0:sweep
         rctm_step!(scheme)
     end

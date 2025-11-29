@@ -62,9 +62,9 @@ function step!(scheme::rCTM, trunc)
     @tensor opt = true scheme.E2[-1 -2; -3] := scheme.E2[1 5; 3] * scheme.T[-2 4; 2 5] *
         conj(Vt[-3; 3 4]) * Vt[-1; 1 2]
 
-    scheme.C2 /= norm(scheme.C2)
-    scheme.E1 /= norm(scheme.E1)
-    scheme.E2 /= norm(scheme.E2)
+    normalize!(scheme.C2)
+    normalize!(scheme.E1)
+    normalize!(scheme.E2)
     # symmetrization of the edges to avoid the breaking of reflection due to the numerical error
     scheme.E1 = (scheme.E1 + flip(permute(scheme.E1, ((3, 2), (1,))), (1, 3)) / 2)
     scheme.E2 = (scheme.E2 + flip(permute(scheme.E1, ((3, 2), (1,))), (1, 3)) / 2)
