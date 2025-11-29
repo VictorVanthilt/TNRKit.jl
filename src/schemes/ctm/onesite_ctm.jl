@@ -116,9 +116,8 @@ end
 
 function corner_spectrum(ctm::CTM)
     rho = ρA(ctm)
-    rho /= abs(tr(rho))
-    _, S, _ = tsvd(rho)
-    return S.data
+    S = LinearAlgebra.svdvals!(rho)
+    return normalize!(S, 1)
 end
 
 function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
@@ -161,11 +160,11 @@ function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; c
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if size(ES) == size(ES_new)
+            if space(ES) == space(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
-                if norm(ES - ES_new) < conv_criterion
+                if normdiff < conv_criterion
                     @infov 1 "CTM converged after $(steps + 1) iterations"
                     break
                 end
