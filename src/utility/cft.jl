@@ -277,42 +277,69 @@ end
     
 Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. 
 """
-function ground_state_degeneracy(scheme::TNRScheme; unitcell = 1)
-    # make the indices
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
+function ground_state_degeneracy(scheme::TNRScheme, unitcell::Int = 1)
+    # Construct contraction indices
+    indices = Vector{NTuple{4, Int}}(undef, unitcell)
+    @inbounds for i in 1:unitcell
+        indices[i] = (i, -i, -(i + unitcell), i + 1)
+    end
+    indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
 
-    T = ncon(fill(scheme.T, unitcell), indices)
+    # Contract tensors
+    Ts = fill(scheme.T, unitcell)
+    T = ncon(Ts, indices)
 
-    outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
+    # Construct static tuple indices
+    outinds = ntuple(i -> i, unitcell)
+    ininds = ntuple(i -> unitcell + i, unitcell)
 
     T = permute(T, (outinds, ininds))
+
+    # Compute normalized eigenvalues
     D, _ = eig(T)
+    D ./= tr(D)
+    vals = filter(!iszero, abs.(D.data))
+    # Shannon entropy (stable + efficient)
+    S = 0.0
+    @inbounds @fastmath for v in vals
+        ev = abs(v)
+        if ev > 0
+            S -= ev * log(ev)
+        end
+    end
 
-    D = D / tr(D)
-
-    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+    return exp(S)
 end
 
-function ground_state_degeneracy(scheme::BTRG; unitcell = 1)
-    # make the indices
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
+function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
+    indices = Vector{NTuple{4, Int}}(undef, unitcell)
+    @inbounds for i in 1:unitcell
+        indices[i] = (i, -i, -(i + unitcell), i + 1)
+    end
+    indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
 
     @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
         scheme.S2[-1; 1]
     T = ncon(fill(T_unit, unitcell), indices)
 
-    outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
+    # Construct static tuple indices
+    outinds = ntuple(i -> i, unitcell)
+    ininds = ntuple(i -> unitcell + i, unitcell)
 
     T = permute(T, (outinds, ininds))
     D, _ = eig(T)
+    D ./= tr(D)
+    vals = filter(!iszero, abs.(D.data))
+    # Shannon entropy (stable + efficient)
+    S = 0.0
+    @inbounds @fastmath for v in vals
+        ev = abs(v)
+        if ev > 0
+            S -= ev * log(ev)
+        end
+    end
 
-    D = D / tr(D)
-
-    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+    return exp(S)
 end
 
 
@@ -326,6 +353,16 @@ function ground_state_degeneracy(scheme::LoopTNR)
         scheme.TB[-2 3; 1 5] * scheme.TA[5 4; 6 -4]
 
     D, _ = eig(T_unit)
-    D = D / tr(D)
-    return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
+    D ./= tr(D)
+    vals = filter(!iszero, abs.(D.data))
+    # Shannon entropy (stable + efficient)
+    S = 0.0
+    @inbounds @fastmath for v in vals
+        ev = abs(v)
+        if ev > 0
+            S -= ev * log(ev)
+        end
+    end
+
+    return exp(S)
 end
