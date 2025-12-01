@@ -272,9 +272,12 @@ function central_charge(scheme::BTRG, n::Number)
 end
 
 
-""" Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. """
-
-function ground_state_degeneracy(scheme::TNRScheme; v = 1, unitcell = 1)
+"""
+    ground_state_degeneracy(scheme::TNRScheme; unitcell = 1)
+    
+Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. 
+"""
+function ground_state_degeneracy(scheme::TNRScheme; unitcell = 1)
     # make the indices
     indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
     indices[end][4] = 1
@@ -292,7 +295,7 @@ function ground_state_degeneracy(scheme::TNRScheme; v = 1, unitcell = 1)
     return exp(sum([-s * log(s) for s in filter(!iszero, abs.(D.data))]))
 end
 
-function ground_state_degeneracy(scheme::BTRG; v = 1, unitcell = 1)
+function ground_state_degeneracy(scheme::BTRG; unitcell = 1)
     # make the indices
     indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
     indices[end][4] = 1
