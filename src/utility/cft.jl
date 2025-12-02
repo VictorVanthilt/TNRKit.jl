@@ -301,7 +301,7 @@ function ground_state_degeneracy(scheme::TNRScheme, unitcell::Int = 1)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
     S = 0.0
-    @inbounds @fastmath for v in vals
+    for v in vals
         ev = abs(v)
         if ev > 0
             S -= ev * log(ev)
@@ -332,7 +332,7 @@ function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
     S = 0.0
-    @inbounds @fastmath for v in vals
+    for v in vals
         ev = abs(v)
         if ev > 0
             S -= ev * log(ev)
@@ -357,7 +357,7 @@ function ground_state_degeneracy(scheme::LoopTNR)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
     S = 0.0
-    @inbounds @fastmath for v in vals
+    for v in vals
         ev = abs(v)
         if ev > 0
             S -= ev * log(ev)
