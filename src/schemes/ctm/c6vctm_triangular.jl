@@ -65,7 +65,6 @@ function c6vCTM_triangular(T_flipped::TensorMap{A, S, 3, 3}; symmetrize = false)
     return c6vCTM_triangular(T_unflipped)
 end
 
-
 # Functions to permute (flipped and unflipped) tensors under 60 degree rotation
 function rotl60_pf(T::TensorMap{A, S, 3, 3}) where {A, S}
     return permute(T, ((4, 1, 2), (5, 6, 3)))
@@ -87,6 +86,14 @@ function symmetrize_C6v(T_unflipped)
     return T_c4v_unflipped
 end
 
+function c6vCTM_triangular_init(T::TensorMap{A, S, 0, 6}) where {A, S}
+    S_type = scalartype(T)
+    Vp = space(T)[1]'
+    C = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    Ea = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    Eb = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    return C, Ea, Eb
+end
 
 # Based on
 # https://arxiv.org/pdf/2510.04907
@@ -195,11 +202,6 @@ function lnz(scheme::c6vCTM_triangular)
     return real(log(network_value_triangular(scheme)))
 end
 
-function build_single_corner_matrix_triangular(scheme::c6vCTM_triangular)
-    @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[]
-    return mat
-end
-
 function build_double_corner_matrix_triangular(scheme::c6vCTM_triangular)
     @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[1 3; 2] * scheme.C[6 5; 1] *
         scheme.Ea[-1 7; 6] * scheme.Eb[2 4; -3] * scheme.T[3 4 -4 -2 7 5]
@@ -255,15 +257,6 @@ function renormalize_edges!(scheme::c6vCTM_triangular, Ẽa, Ẽb, Qa, Qb)
     @tensor scheme.Eb[-1 -2; -3] := Ẽb[-1 -2; 1] * Qb[1; -3]
     @tensor scheme.Ea[-1 -2; -3] := Qa[-1; 1] * Ẽa[1 -2; -3]
     return scheme
-end
-
-function c6vCTM_triangular_init(T::TensorMap{A, S, 0, 6}) where {A, S}
-    S_type = scalartype(T)
-    Vp = space(T)[1]'
-    C = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    Ea = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    Eb = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    return C, Ea, Eb
 end
 
 function Base.show(io::IO, scheme::c6vCTM_triangular)

@@ -68,20 +68,12 @@ function CTM_triangular_init(T::TensorMap{A, S, 0, 6}, vspace) where {A, S}
     return C, Ea, Eb
 end
 
-function rotl60!(scheme::CTM_triangular)
-    scheme.T = rotl60_pf(scheme.T)
-    circshift!(scheme.C, -1)
-    circshift!(scheme.Ea, -1)
-    circshift!(scheme.Eb, -1)
-    return scheme
-end
-
 # Based on
 # https://arxiv.org/pdf/2510.04907
 
 function run!(
         scheme::CTM_triangular, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
-        projectors = :full,
+        projectors = :twothirds,
         conditioning = true,
         verbosity = 1
     )
@@ -91,7 +83,6 @@ function run!(
         crit = true
         ε = Inf
         Ss_prev = [id(domain(scheme.C[dir])) for dir in 1:6]
-        println(summary(scheme.Ea[1]))
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), ε = $(ε)"
 
@@ -118,7 +109,6 @@ function step!(scheme::CTM_triangular, trunc; projectors = :twothirds, condition
     Ẽas, Ẽbs, Ẽastr, Ẽbstr = semi_renormalize(scheme, Pas, Pbs, trunc)
     Qas, Qbs = build_matrix_second_projectors(scheme, Ẽas, Ẽbs, Ẽastr, Ẽbstr, trunc; conditioning)
 
-    # renormalize_edges!(scheme, Ẽastr, Ẽbstr, Qas, Qbs)
     renormalize_edges!(scheme, Ẽas, Ẽbs, Qas, Qbs)
     normalize_edges!(scheme)
     return Ss
@@ -359,37 +349,4 @@ function _contract_corners(scheme::CTM_triangular)
     return @tensor opt = true scheme.C[1][χNW D120; χN] * scheme.C[2][χN D60; χNE] * scheme.C[3][χNE D0; χSE] *
         scheme.C[4][χSE D300; χS] * scheme.C[5][χS D240; χSW] * scheme.C[6][χSW D180; χNW] *
         scheme.T[D120 D60 D0; D300 D240 D180]
-end
-
-function _contract_onesite(state, op::TensorMap{E, S, 1, 1}, scheme::CTM_triangular) where {E, S}
-    return @tensor opt = true scheme.C[1][χNW D120; χN] * scheme.C[2][χN D60; χNE] * scheme.C[3][χNE D0; χSE] *
-        scheme.C[4][χSE D300; χS] * scheme.C[5][χS D240; χSW] * scheme.C[6][χSW D180; χNW] *
-        flip(state, [6 7 8])[d1 d2; D120 D60 D0 D300 D240 D180] * twist(op, 2)[d2; d1]
-end
-
-function _contract_twosite_0(state, op::TensorMap{E, S, 2, 2}, scheme::CTM_triangular) where {E, S}
-    return @tensor opt = true flip(state, [6 7 8]; inv = false)[dL1 dL2; DL120 DL60 DL0 DL300 DL240 DL180] * flip(state, [6 7])[dR1 dR2; DR120 DR60 DR0 DR300 DR240 DL0] *
-        twist(op, [3 4])[dL2 dR2; dL1 dR1] *
-        scheme.C[1][χNW DL120; χNa] * scheme.C[2][χNb DR60; χNE] * scheme.C[3][χNE DR0; χSE] *
-        scheme.C[4][χSE DR300; χSa] * scheme.C[5][χSb DL240; χSW] * scheme.C[6][χSW DL180; χNW] *
-        scheme.Eb[1][χNa DL60; χNC] * scheme.Ea[1][χNC DR120; χNb] *
-        scheme.Eb[4][χSa DR240; χSC] * scheme.Ea[4][χSC DL300; χSb]
-end
-
-function _contract_twosite_60(state, op::TensorMap{E, S, 2, 2}, scheme::CTM_triangular) where {E, S}
-    return @tensor opt = true flip(state, [6 8]; inv = false)[dL1 dL2; DTR120 DTR60 DTR0 DTR300 DBL60 DTR180] * flip(state, [6 7 8])[dR1 dR2; DBL120 DBL60 DBL0 DBL300 DBL240 DBL180] *
-        twist(op, [3 4])[dL2 dR2; dL1 dR1] *
-        scheme.C[1][χNWb DTR120; χN] * scheme.C[2][χN DTR60; χNE] * scheme.C[3][χNE DTR0; χSEa] *
-        scheme.C[4][χSEb DBL300; χS] * scheme.C[5][χS DBL240; χSW] * scheme.C[6][χSW DBL180; χNWa] *
-        scheme.Eb[3][χSEa DTR300; χSEC] * scheme.Ea[3][χSEC DBL0; χSEb] *
-        scheme.Eb[6][χNWa DBL120; χNWC] * scheme.Ea[6][χNWC DTR180; χNWb]
-end
-
-function _contract_twosite_120(state, op::TensorMap{E, S, 2, 2}, scheme::CTM_triangular) where {E, S}
-    return @tensor opt = true flip(state, [7 8]; inv = false)[dL1 dL2; DTL120 DTL60 DTL0 DTL300 DTL240 DTL180] * flip(state, [6 7 8])[dR1 dR2; DTL300 DBR60 DBR0 DBR300 DBR240 DBR180] *
-        twist(op, [3 4])[dL2 dR2; dL1 dR1] *
-        scheme.C[1][χNW DTL120; χN] * scheme.C[2][χN DTL60; χNEa] * scheme.C[3][χNEb DBR0; χSE] *
-        scheme.C[4][χSE DBR300; χS] * scheme.C[5][χS DBR240; χSWa] * scheme.C[6][χSWb DTL180; χNW] *
-        scheme.Eb[2][χNEa DTL0; χNEC] * scheme.Ea[2][χNEC DBR60; χNEb] *
-        scheme.Eb[5][χSWa DBR180; χSWC] * scheme.Ea[5][χSWC DTL240; χSWb]
 end
