@@ -20,6 +20,9 @@ Many common TNR schemes have already been implemented:
 * [`HOTRG`](@ref) (higher order TRG)
 * [`ATRG`](@ref) (anisotropic TRG)
 
+**2D triangular tensor networks**
+* [`c6vCTM_triangular`](@ref) (c6v symmetric CTM on the triangular lattice)
+
 **CTM methods (yet to be documented)**
 * `ctm_TRG` (Corner Transfer Matrix environment + TRG)
 * `ctm_HOTRG` (Corner Transfer Matrix environment + HOTRG)
@@ -66,12 +69,17 @@ There are 3 levels of verbosity implemented in TNRKit:
   
 to choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
 
-## Included Models
+## Included Models on the square lattice
 TNRKit includes several common models out of the box.
 - Ising model: [`classical_ising`](@ref) and [`classical_ising_symmetric`](@ref), which has a Z2 grading on each leg.
 - Potts model: [`classical_potts`](@ref) and [`classical_potts_symmetric`](@ref), which has a Zq grading on each leg.
 - Six Vertex model: [`sixvertex`](@ref)
 - Clock model: [`classical_clock`](@ref)
+
+## Included Models on the triangular lattice
+TNRKit includes several common models out of the box.
+- Ising model: [`classical_ising_triangular`](@ref) and [`classical_ising_triangular_symmetric`](@ref), which has a Z2 grading on each leg.
+  
 If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
 
 ## Leg-convention
