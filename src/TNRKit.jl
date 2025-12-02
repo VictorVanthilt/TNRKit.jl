@@ -27,6 +27,7 @@ include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
 include("schemes/ctm/c6vctm_triangular.jl")
+include("schemes/ctm/ctm_triangular.jl")
 
 # Impurity methods
 include("schemes/impuritytrg.jl")
@@ -54,6 +55,7 @@ export ctm_TRG
 export ctm_HOTRG
 export lnz
 export c6vCTM_triangular
+export CTM_triangular
 
 export ImpurityTRG
 export ImpurityHOTRG
