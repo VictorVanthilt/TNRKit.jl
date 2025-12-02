@@ -23,8 +23,12 @@ Many common TNR schemes have already been implemented:
 **CTM methods (yet to be documented)**
 * `ctm_TRG` (Corner Transfer Matrix environment + TRG)
 * `ctm_HOTRG` (Corner Transfer Matrix environment + HOTRG)
-* `c4CTM` (c4 symmetric CTM)
+* `c4vCTM` (c4v symmetric CTM)
 * `rCTM` (reflection symmetric CTM)
+
+**Impurity Methods**
+* [`ImpurityTRG`](@ref)
+* [`ImpurityHOTRG`](@ref)
 
 **3D cubic tensor networks**
 * [`ATRG_3D`](@ref) (anisotropic TRG)

@@ -4,12 +4,12 @@ $(TYPEDEF)
 c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
-    $(FUNCTIONNAME)(TA, TB, [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
+    $(FUNCTIONNAME)(TA, TB)
 
 ### Running the algorithm
     run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-              criterion::TNRKit.stopcrit[, finalize_beginning=true, oneloop=true,
+              criterion::TNRKit.stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
 `oneloop=true` will use disentangled tensors as a starting guess for the optimization.
@@ -21,17 +21,14 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017) (Fig. S6)
 
 """
-mutable struct SLoopTNR <: TNRScheme
-    T::TensorMap
+mutable struct SLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 4, 0}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
+    "Gradient optimization algorithm"
     gradalg::OptimKit.LBFGS
-    finalize!::Function
-    function SLoopTNR(
-            T::TensorMap;
-            gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000),
-            finalize = (finalize!)
-        )
-        return new(T, gradalg, finalize)
+    function SLoopTNR(T::TT; gradalg = LBFGS(10; verbosity = 0, gradtol = 6.0e-7, maxiter = 40000)) where {E, S, TT <: AbstractTensorMap{E, S, 4, 0}}
+        return new{E, S, TT}(T, gradalg)
     end
 end
 
@@ -197,16 +194,16 @@ end
 
 function run!(
         scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
-        criterion::TNRKit.stopcrit; finalize_beginning = true, oneloop = true,
+        criterion::TNRKit.stopcrit; finalizer = default_Finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )
-    data = []
+    data = output_type(finalizer)[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
 
         if finalize_beginning
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
         end
         steps = 0
         crit = true
@@ -214,7 +211,7 @@ function run!(
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
             step!(scheme, trscheme, oneloop)
-            push!(data, scheme.finalize!(scheme))
+            push!(data, finalizer.f!(scheme))
             steps += 1
             crit = criterion(steps, data)
         end

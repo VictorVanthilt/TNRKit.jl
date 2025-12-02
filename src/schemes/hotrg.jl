@@ -4,10 +4,10 @@ $(TYPEDEF)
 Higher-Order Tensor Renormalization Group
 
 ### Constructors
-    $(FUNCTIONNAME)(T [, finalize=finalize!])
+    $(FUNCTIONNAME)(T)
 
 ### Running the algorithm
-    run!(::HOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::HOTRG, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 
@@ -24,13 +24,12 @@ $(TYPEDFIELDS)
 * [Xie et. al. Phys. Rev. B 86 (2012)](@cite xieCoarsegrainingRenormalizationHigherorder2012)
 
 """
-mutable struct HOTRG <: TNRScheme
-    T::TensorMap
+mutable struct HOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
+    "Central tensor"
+    T::TT
 
-    finalize!::Function
-    function HOTRG(T::TensorMap{E, S, 2, 2}; finalize = (finalize!)) where {E, S}
-        @assert [isdual(space(T, ax)) for ax in 1:4] == [0, 0, 1, 1]
-        return new(T, finalize)
+    function HOTRG(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+        return new{E, S, TT}(T)
     end
 end
 

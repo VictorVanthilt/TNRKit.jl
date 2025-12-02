@@ -3,8 +3,6 @@ using TensorKit, LinearAlgebra
 using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
-using PEPSKit: InfinitePartitionFunction, CTMRGEnv
-using PEPSKit: network_value, twistdual, twistdual!
 using DocStringExtensions
 
 # stop criteria
@@ -20,15 +18,18 @@ include("schemes/hotrg.jl")
 include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
-include("schemes/impurityhotrg.jl")
 # CTM methods
 include("schemes/ctm/utility.jl")
-include("schemes/ctm/c4ctm.jl")
+include("schemes/ctm/c4vctm.jl")
 include("schemes/ctm/rctm.jl")
 include("schemes/ctm/ctm_trg.jl")
 include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
+
+# Impurity methods
+include("schemes/impuritytrg.jl")
+include("schemes/impurityhotrg.jl")
 
 # Loop Methods
 include("schemes/looptnr.jl")
@@ -43,15 +44,17 @@ export HOTRG
 export HOTRG_3D
 export ATRG
 export ATRG_3D
-export ImpurityHOTRG
 
 export CTM
 export Sublattice_CTM
-export c4CTM
+export c4vCTM
 export rCTM
 export ctm_TRG
 export ctm_HOTRG
 export lnz
+
+export ImpurityTRG
+export ImpurityHOTRG
 
 export LoopTNR
 export SLoopTNR
@@ -83,7 +86,7 @@ include("utility/cft.jl")
 export cft_data, central_charge, cft_data!
 
 include("utility/finalize.jl")
-export finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
+export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
 
 include("utility/cdl.jl")
 export cdl_tensor
@@ -92,4 +95,6 @@ include("utility/projectors.jl")
 
 include("utility/blocking.jl")
 export block_tensors
+
+include("utility/network_value.jl")
 end
