@@ -130,8 +130,18 @@ two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)
 
 # Finalizer for ground state degeneracy
 function finalize_groundstatedegeneracy!(scheme::TNRScheme)
-    n = finalize!(scheme)
-    return ground_state_degeneracy(scheme; v = 1, unitcell = 1)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 1)
+end
+
+function finalize_groundstatedegeneracy!(scheme::BTRG)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 1)
+end
+
+function finalize_groundstatedegeneracy!(scheme::LoopTNR)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 2)
 end
 
 GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
