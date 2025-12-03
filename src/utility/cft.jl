@@ -346,11 +346,11 @@ end
 function ground_state_degeneracy(scheme::LoopTNR)
 
     norm_const = area_term(scheme.TA, scheme.TB)
-    scheme.TA = scheme.TA / abs(norm_const)^(1 / 4)
-    scheme.TB = scheme.TB / abs(norm_const)^(1 / 4)
+    T1 = scheme.TA / abs(norm_const)^(1 / 4)
+    T2 = scheme.TB / abs(norm_const)^(1 / 4)
 
-    @tensor T_unit[-1 -2; -3 -4] := scheme.TA[-1 1; 3 2] * scheme.TB[2 6; 4 -3] *
-        scheme.TB[-2 3; 1 5] * scheme.TA[5 4; 6 -4]
+    @tensor T_unit[-1 -2; -3 -4] := T1[-1 1; 3 2] * T2[2 6; 4 -3] *
+        T2[-2 3; 1 5] * T1[5 4; 6 -4]
 
     D, _ = eig(T_unit)
     D = D / tr(D)
