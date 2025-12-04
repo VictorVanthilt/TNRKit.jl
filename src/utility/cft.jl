@@ -344,7 +344,6 @@ end
 
 
 function ground_state_degeneracy(scheme::LoopTNR)
-
     norm_const = area_term(scheme.TA, scheme.TB)
     T1 = scheme.TA / abs(norm_const)^(1 / 4)
     T2 = scheme.TB / abs(norm_const)^(1 / 4)
@@ -369,11 +368,10 @@ end
 
 """
     Gu_Wen_Ratio(scheme::TNRScheme, unitcell::Int = 1)
-    
 
 Calculate the Gu-Wen ratio X1 and X2 for a given TNRScheme. Proposed in PhysRevB.80.155131 by Gu and Wen.
 """
-function Gu_Wen_Ratio(scheme::TNRScheme)
+function gu_wen_ratio(scheme::TNRScheme)
     T_unit = scheme.T
 
     one_norm = norm(@tensor T_unit[1 2; 2 1])
@@ -385,12 +383,9 @@ function Gu_Wen_Ratio(scheme::TNRScheme)
     return X1, X2
 end
 
-function Gu_Wen_Ratio(scheme::BTRG)
-
-
+function gu_wen_ratio(scheme::BTRG)
     @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
         scheme.S2[-1; 1]
-
 
     one_norm = norm(@tensor T_unit[1 2; 2 1])
     two_norm_X1 = norm(@tensor T_unit[1 2; 2 3] * T_unit[3 4; 4 1])

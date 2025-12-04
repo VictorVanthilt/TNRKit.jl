@@ -147,14 +147,14 @@ end
 GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
 
 #Finalizer for Gu-Wen ratio
-function finalize_Gu_Wen_Ratio!(scheme::TNRScheme)
+function finalize_gu_wen_ratio!(scheme::TNRScheme)
     finalize!(scheme)
-    return Gu_Wen_Ratio(scheme)
+    return gu_wen_ratio(scheme)
 end
 
-function finalize_Gu_Wen_Ratio!(scheme::BTRG)
+function finalize_gu_wen_ratio!(scheme::BTRG)
     finalize!(scheme)
-    return Gu_Wen_Ratio(scheme)
+    return gu_wen_ratio(scheme)
 end
 
-GuWenRatio_Finalizer = Finalizer(finalize_Gu_Wen_Ratio!, Tuple{Float64, Float64})
+guwenratio_Finalizer = Finalizer(finalize_gu_wen_ratio!, Tuple{Float64, Float64})
