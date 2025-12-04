@@ -373,42 +373,28 @@ end
 
 Calculate the Gu-Wen ratio X1 and X2 for a given TNRScheme. Proposed in PhysRevB.80.155131 by Gu and Wen.
 """
-function Gu_Wen_Ratio(scheme::TNRScheme; unitcell::Int = 1)
-    # Construct contraction indices
-    indices = Vector{NTuple{4, Int}}(undef, unitcell)
-    @inbounds for i in 1:unitcell
-        indices[i] = (i, -i, -(i + unitcell), i + 1)
-    end
-    indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
+function Gu_Wen_Ratio(scheme::TNRScheme)
+    T_unit = scheme.T
 
-    # Contract tensors
-    Ts = fill(scheme.T, unitcell)
-    T = ncon(Ts, indices)
-
-    one_norm = norm(@tensor T[1 2; 2 1])
-    two_norm_X1 = norm(@tensor T[1 2; 2 3] * T[3 4; 4 1])
-    two_norm_X2 = norm(@tensor T[1 2; 3 4] * T[4 3; 2 1])
+    one_norm = norm(@tensor T_unit[1 2; 2 1])
+    two_norm_X1 = norm(@tensor T_unit[1 2; 2 3] * T_unit[3 4; 4 1])
+    two_norm_X2 = norm(@tensor T_unit[1 2; 3 4] * T_unit[4 3; 2 1])
 
     X1 = (one_norm^2) / (two_norm_X1)
     X2 = (one_norm^2) / (two_norm_X2)
     return X1, X2
 end
 
-function Gu_Wen_Ratio(scheme::BTRG; unitcell::Int = 1)
-    # Construct contraction indices
-    indices = Vector{NTuple{4, Int}}(undef, unitcell)
-    @inbounds for i in 1:unitcell
-        indices[i] = (i, -i, -(i + unitcell), i + 1)
-    end
-    indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
+function Gu_Wen_Ratio(scheme::BTRG)
+
 
     @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
         scheme.S2[-1; 1]
-    T = ncon(fill(T_unit, unitcell), indices)
 
-    one_norm = norm(@tensor T[1 2; 2 1])
-    two_norm_X1 = norm(@tensor T[1 2; 2 3] * T[3 4; 4 1])
-    two_norm_X2 = norm(@tensor T[1 2; 3 4] * T[4 3; 2 1])
+
+    one_norm = norm(@tensor T_unit[1 2; 2 1])
+    two_norm_X1 = norm(@tensor T_unit[1 2; 2 3] * T_unit[3 4; 4 1])
+    two_norm_X2 = norm(@tensor T_unit[1 2; 3 4] * T_unit[4 3; 2 1])
 
     X1 = (one_norm^2) / (two_norm_X1)
     X2 = (one_norm^2) / (two_norm_X2)
