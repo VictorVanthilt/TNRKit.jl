@@ -149,12 +149,12 @@ GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
 #Finalizer for Gu-Wen ratio
 function finalize_Gu_Wen_Ratio!(scheme::TNRScheme)
     n = finalize!(scheme)
-    return Gu_Wen_Ratio(scheme, n)
+    return Gu_Wen_Ratio(scheme, unitcell = 1)
 end
 
 function finalize_Gu_Wen_Ratio!(scheme::BTRG)
     n = finalize!(scheme)
-    return Gu_Wen_Ratio(scheme, n)
+    return Gu_Wen_Ratio(scheme, unitcell = 1)
 end
 
 GuWenRatio_Finalizer = Finalizer(finalize_Gu_Wen_Ratio!, Tuple{Float64, Float64})
