@@ -37,7 +37,7 @@ end
     scheme = TRG(T1)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
@@ -46,7 +46,7 @@ end
     scheme = TRG(T2)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2
@@ -75,7 +75,7 @@ end
     scheme = BTRG(T1)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
@@ -84,7 +84,7 @@ end
     scheme = BTRG(T2)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2
@@ -112,7 +112,7 @@ end
     scheme = HOTRG(T1)
     run!(scheme, truncdim(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
@@ -121,7 +121,7 @@ end
     scheme = HOTRG(T2)
     run!(scheme, truncdim(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2
@@ -149,7 +149,7 @@ end
     scheme = ATRG(T1)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
@@ -158,7 +158,7 @@ end
     scheme = ATRG(T2)
     run!(scheme, truncdim(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
-    X1, X2 = Gu_Wen_Ratio(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2
