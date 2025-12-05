@@ -204,13 +204,19 @@ end
     scheme = LoopTNR(T1)
     run!(scheme, truncdim(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
+    @test X1 ≈ 1.0 rtol = 1.0e-2
+    @test X2 ≈ 1.0 rtol = 1.0e
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = LoopTNR(T2)
     run!(scheme, truncdim(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
+    X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
+    @test X1 ≈ 2.0 rtol = 1.0e-2
+    @test X2 ≈ 2.0 rtol = 1.0e-2
 end
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
