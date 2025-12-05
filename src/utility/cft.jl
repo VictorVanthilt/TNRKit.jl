@@ -412,7 +412,7 @@ function gu_wen_ratio(scheme::LoopTNR)
 
     two_norm_X2 = norm(
         @tensor opt = true T1[1 2; 3 4] * T2[4 5; 6 7] *
-            T2[7 8; 9 10] * T1[10 11; 12 1] *
+            T1[7 8; 9 10] * T2[10 11; 12 1] *
             T2[13 9; 2 14] * T1[14 12; 5 15] *
             T2[15 3; 8 16] * T1[16 6; 11 13]
     )
