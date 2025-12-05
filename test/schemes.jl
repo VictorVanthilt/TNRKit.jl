@@ -207,7 +207,7 @@ end
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
-    @test X2 ≈ 1.0 rtol = 1.0e
+    @test X2 ≈ 1.0 rtol = 1.0e-2
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = LoopTNR(T2)
