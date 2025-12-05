@@ -396,4 +396,28 @@ function gu_wen_ratio(scheme::BTRG)
     return X1, X2
 end
 
-#TODO: LoopTNR version of Gu_Wen_Ratio
+function gu_wen_ratio(scheme::LoopTNR)
+    T1 = scheme.TA
+    T2 = scheme.TB
+    one_norm = norm(
+        @tensor opt = true T1[1 2; 3 4] * T2[4 5; 6 1] *
+            T2[7 3; 2 8] * T1[8 6; 5 7]
+    )
+
+    two_norm_X1 = norm(
+        @tensor opt = true T1[1 2; 3 4] * T2[4 5; 6 7] *
+            T1[7 8; 9 10] * T2[10 11; 12 1] *
+            T2[13 3; 2 14] * T1[14 6; 5 15] * T2[15 9; 8 16] * T1[16 12; 11 13]
+    )
+
+    two_norm_X2 = norm(
+        @tensor opt = true T1[1 2; 3 4] * T2[4 5; 6 7] *
+            T2[7 8; 9 10] * T1[10 11; 12 1] *
+            T2[13 9; 2 14] * T1[14 12; 5 15] *
+            T2[15 3; 8 16] * T1[16 6; 11 13]
+    )
+
+    X1 = (one_norm^2) / (two_norm_X1)
+    X2 = (one_norm^2) / (two_norm_X2)
+    return X1, X2
+end

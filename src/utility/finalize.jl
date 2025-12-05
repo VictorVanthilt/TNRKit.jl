@@ -157,4 +157,9 @@ function finalize_gu_wen_ratio!(scheme::BTRG)
     return gu_wen_ratio(scheme)
 end
 
+function finalize_gu_wen_ratio!(scheme::LoopTNR)
+    finalize!(scheme)
+    return gu_wen_ratio(scheme)
+end
+
 guwenratio_Finalizer = Finalizer(finalize_gu_wen_ratio!, Tuple{Float64, Float64})
