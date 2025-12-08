@@ -12,7 +12,7 @@ function T_ele(n1::Int, n2::Int, n3::Int, n4::Int, beta::Float64, trunc::Int)
     return T
 end
 
-function XY_init(beta::Float64, charge_trunc::Int)
+function classical_XY(beta::Float64, charge_trunc::Int)
     V = U1Space(map(x -> (x => 1), -charge_trunc:charge_trunc))
     T = zeros(Float64, V ⊗ V ← V ⊗ V)
     for n1 in -charge_trunc:charge_trunc, n2 in -charge_trunc:charge_trunc, n3 in -charge_trunc:charge_trunc
