@@ -84,6 +84,9 @@ export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_im
 include("models/clock.jl")
 export classical_clock
 
+include("models/XY.jl")
+export classical_XY
+
 # utility functions
 include("utility/free_energy.jl")
 export free_energy
