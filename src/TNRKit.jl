@@ -4,6 +4,7 @@ using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
 using DocStringExtensions
+using SpecialFunctions
 
 # stop criteria
 include("utility/stopping.jl")
