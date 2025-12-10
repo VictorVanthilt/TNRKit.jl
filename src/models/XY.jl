@@ -28,7 +28,7 @@ end
 
 function classical_XY_O2_symmetric(beta::Float64, charge_trunc::Int)
     FunU1_0 = CU1Space((0, 0) => 1)
-    FunU1_1 = CU1Space(((i, 2) => 1 for i = 1:charge_trunc))
+    FunU1_1 = CU1Space(((i, 2) => 1 for i in 1:charge_trunc))
     FunU1 = FunU1_0 ⊕ FunU1_1
 
     m = zeros(Float64, FunU1 ← FunU1 ⊗ FunU1)
