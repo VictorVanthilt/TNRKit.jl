@@ -277,10 +277,10 @@ end
     
 Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. 
 """
-function ground_state_degeneracy(scheme::TNRScheme, unitcell::Int = 1)
+function ground_state_degeneracy(scheme::TNRScheme{E}, unitcell::Int = 1) where {E}
     # Construct contraction indices
     indices = Vector{NTuple{4, Int}}(undef, unitcell)
-    @inbounds for i in 1:unitcell
+    for i in 1:unitcell
         indices[i] = (i, -i, -(i + unitcell), i + 1)
     end
     indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
@@ -311,9 +311,9 @@ function ground_state_degeneracy(scheme::TNRScheme, unitcell::Int = 1)
     return exp(S)
 end
 
-function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
+function ground_state_degeneracy(scheme::BTRG{E}; unitcell::Int = 1) where {E}
     indices = Vector{NTuple{4, Int}}(undef, unitcell)
-    @inbounds for i in 1:unitcell
+    for i in 1:unitcell
         indices[i] = (i, -i, -(i + unitcell), i + 1)
     end
     indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
@@ -343,7 +343,7 @@ function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
 end
 
 
-function ground_state_degeneracy(scheme::LoopTNR)
+function ground_state_degeneracy(scheme::LoopTNR{E}) where {E}
     norm_const = area_term(scheme.TA, scheme.TB)
     T1 = scheme.TA / abs(norm_const)^(1 / 4)
     T2 = scheme.TB / abs(norm_const)^(1 / 4)
@@ -371,7 +371,7 @@ end
 
 Calculate the Gu-Wen ratio X1 and X2 for a given TNRScheme. Proposed in PhysRevB.80.155131 by Gu and Wen.
 """
-function gu_wen_ratio(scheme::TNRScheme)
+function gu_wen_ratio(scheme::TNRScheme{E}) where {E}
     T_unit = scheme.T
 
     one_norm = norm(@tensor T_unit[1 2; 2 1])
@@ -383,7 +383,7 @@ function gu_wen_ratio(scheme::TNRScheme)
     return X1, X2
 end
 
-function gu_wen_ratio(scheme::BTRG)
+function gu_wen_ratio(scheme::BTRG{E}) where {E}
     @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
         scheme.S2[-1; 1]
 
@@ -396,7 +396,7 @@ function gu_wen_ratio(scheme::BTRG)
     return X1, X2
 end
 
-function gu_wen_ratio(scheme::LoopTNR)
+function gu_wen_ratio(scheme::LoopTNR{E}) where {E}
     T1 = scheme.TA
     T2 = scheme.TB
     one_norm = norm(
