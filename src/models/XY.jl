@@ -1,27 +1,53 @@
-function T_ele(n1::Int, n2::Int, n3::Int, n4::Int, beta::Float64, trunc::Int)
-    if n1 + n2 + n3 + n4 != 0
-        return ArgumentError("Charge not conserved")
-    end
-    list = sort([n2, n2 + n3, n2 + n3 + n4])
-    nmax = trunc - list[end]
-    nmin = -trunc - list[1]
-    T = 0.0
-    for n in nmin:nmax
-        T += besseli(n, beta) * besseli(n + n2, beta) * besseli(n + n2 + n3, beta) * besseli(n + n2 + n3 + n4, beta)
-    end
+function algebraic_initialization(m::TensorMap, bond::TensorMap)
+    @tensor opt = true T[l u; d r] :=
+        m[u; Au Bu] *
+        bond[Au; Ad] *
+        bond[Bu; Bd] *
+        m[Bd; Cu r] *
+        m'[l Ad; Du] *
+        bond[Du; Dd] *
+        bond[Cu; Cd] *
+        m'[Dd Cd; d]
     return T
 end
 
-function classical_XY(beta::Float64, charge_trunc::Int)
-    V = U1Space(map(x -> (x => 1), -charge_trunc:charge_trunc))
-    T = zeros(Float64, V ⊗ V ← V ⊗ V)
-    for n1 in -charge_trunc:charge_trunc, n2 in -charge_trunc:charge_trunc, n3 in -charge_trunc:charge_trunc
-        n4 = -(n1 + n2 + n3)
-        if abs(n4) > charge_trunc
-            continue
+function classical_XY_U1_symmetric(beta::Float64, charge_trunc::Int)
+    FunU1 = U1Space(map(x -> (x => 1), (-charge_trunc):charge_trunc))
+
+    m = ones(Float64, FunU1 ← FunU1 ⊗ FunU1)
+
+    bond = zeros(Float64, FunU1 ← FunU1)
+
+    for sector in fusiontrees(bond)
+        charge = sector[1].uncoupled[1].charge
+        bond[sector...] .= besseli(charge, beta)
+    end
+
+    return algebraic_initialization(m, bond)
+end
+
+function classical_XY_O2_symmetric(beta::Float64, charge_trunc::Int)
+    FunU1_0 = CU1Space((0, 0) => 1)
+    FunU1_1 = CU1Space(((i, 2) => 1 for i = 1:charge_trunc))
+    FunU1 = FunU1_0 ⊕ FunU1_1
+
+    m = zeros(Float64, FunU1 ← FunU1 ⊗ FunU1)
+
+    for (to, from) in fusiontrees(m)
+        left, right = from.uncoupled
+        if (left == right) && left != CU1Irrep(0, 0) && from.coupled == CU1Irrep(0, 0)
+            m[to, from] .= sqrt(2)
         else
-            T[(n1, n2, n4, n3)] .= T_ele(n1, n2, n3, n4, beta, charge_trunc)
+            m[to, from] .= 1
         end
     end
-    return T
+
+    bond = zeros(Float64, FunU1 ← FunU1)
+
+    for sector in fusiontrees(bond)
+        charge = sector[1].uncoupled[1].j
+        bond[sector...] .= besseli(charge, beta)
+    end
+
+    return algebraic_initialization(m, bond)
 end
