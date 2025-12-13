@@ -61,6 +61,7 @@ export ImpurityTRG
 export ImpurityHOTRG
 
 export LoopTNR
+export KagomeLoopTNR
 export SLoopTNR
 
 export run!
