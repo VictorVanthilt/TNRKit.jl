@@ -29,7 +29,7 @@ function Ψ_A(scheme::KagomeLoopTNR)
 end
 
 function _entanglement_filtering(
-    TA::AbstractTensorMap{E,S,2,2}, TB::AbstractTensorMap{E,S,2,2}, TC::AbstractTensorMap{E,S,2,2},
+    TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}, TC::AbstractTensorMap{E, S, 2, 2},
     entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
 ) where {E,S}
     ΨA = Ψ_A(TA, TB, TC)
@@ -48,7 +48,7 @@ end
 function entanglement_filtering!(
     scheme::KagomeLoopTNR,
     trunc::TensorKit.TruncationScheme,
-    entanglement_criterion::stopcrit=default_entanglement_criterion
+    entanglement_criterion::stopcrit = default_entanglement_criterion
 )
     scheme.TA, scheme.TB, scheme.TC = _entanglement_filtering(
         scheme.TA, scheme.TB, scheme.TC, entanglement_criterion, trunc
@@ -93,8 +93,8 @@ function run!(
     scheme::KagomeLoopTNR, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
     criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
     finalizer::Finalizer{E};
-    finalize_beginning=true,
-    verbosity=1
+    finalize_beginning = true,
+    verbosity = 1
 ) where {E}
     data = Vector{E}()
 
@@ -122,12 +122,12 @@ end
 
 function run!(
     scheme::KagomeLoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-    finalize_beginning=true, verbosity=1, max_loop=50, tol_loop=1.0e-8
+    finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
 )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
         scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion, loop_criterion;
-        finalize_beginning=finalize_beginning,
+        finalize_beginning = finalize_beginning,
         verbosity=verbosity
     )
 end

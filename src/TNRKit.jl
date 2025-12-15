@@ -69,10 +69,12 @@ export run!
 # models
 include("models/ising.jl")
 include("models/ising_triangular.jl")
+include("models/ising_honeycomb.jl")
 export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
     ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, classical_ising_impurity,
     classical_ising_triangular, classical_ising_triangular_symmetric,
-    ising_βc_triangular, f_onsager_triangular
+    ising_βc_triangular, f_onsager_triangular, ising_βc_honeycomb, classical_ising_honeycomb,
+    classical_ising_honeycomb_symmetric, honeycomb_to_kagome
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
