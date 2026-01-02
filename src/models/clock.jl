@@ -24,18 +24,18 @@ end
 
 function fourier_matrix(q::Int64, β::Float64)
     U = zeros(ComplexF64, q, q)
-    for i in 0:q-1
-        for j in 0:q-1
-            U[i+1,j+1] = exp(2im*π/q*i*j)/sqrt(q)
+    for i in 0:(q - 1)
+        for j in 0:(q - 1)
+            U[i + 1, j + 1] = exp(2im * π / q * i * j) / sqrt(q)
         end
     end
-    return U = TensorMap(U, ℂ^q←ℂ^q)
+    return U = TensorMap(U, ℂ^q ← ℂ^q)
 end
 
 function classical_clock_symmetric(q::Int64, β::Float64)
-    A = classical_clock(q,β)
+    A = classical_clock(q, β)
     U = fourier_matrix(q)
-    @tensor Anew[-1 -2;-3 -4] := A[1 2; 3 4] * U[4; -4]*conj(U[1; -1]) *  U[3; -3]*conj(U[2; -2])
-    V = ZNSpace{q}(i=>1 for i in 0:q-1)
-    return real(TensorMap(Anew[],V⊗V←V⊗V))
+    @tensor Anew[-1 -2;-3 -4] := A[1 2; 3 4] * U[4; -4] * conj(U[1; -1]) * U[3; -3] * conj(U[2; -2])
+    V = ZNSpace{q}(i => 1 for i in 0:(q - 1))
+    return real(TensorMap(Anew[], V ⊗ V ← V ⊗ V))
 end
