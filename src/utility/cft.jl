@@ -264,6 +264,6 @@ function central_charge(scheme::BTRG, n::Number)
         (scheme.T)[1 -1; 3 2] * scheme.S1[3; -2] *
             scheme.S2[2; 1]
     ) / n
-    _, S, _ = tsvd(M)
+    _, S, _ = svd_full(M)
     return log(S.data[1]) * 6 / (π)
 end
