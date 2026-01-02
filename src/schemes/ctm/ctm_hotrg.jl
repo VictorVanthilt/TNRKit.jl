@@ -20,7 +20,7 @@ mutable struct ctm_HOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: Abstra
         @info "Finding the environment using rCTM..."
         run!(
             scheme_init,
-            truncdim(χenv),
+            truncrank(χenv),
             ctm_tol & ctm_iter;
             verbosity = 0,
         )

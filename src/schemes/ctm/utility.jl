@@ -50,7 +50,7 @@ function tr_tensor(T; inv = false)
     end
 end
 
-function rctm_step!(scheme; trunc = truncdim(dim(space(scheme.C2, 1))))
+function rctm_step!(scheme; trunc = truncrank(dim(space(scheme.C2, 1))))
     mat, U, S, Vt = find_UVt(scheme, trunc)
     scheme.C2 = adjoint(U) * mat * adjoint(Vt)
     @tensor opt = true scheme.E1[-1 -2; -3] := scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] *
