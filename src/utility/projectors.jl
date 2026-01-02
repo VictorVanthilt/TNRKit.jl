@@ -18,7 +18,7 @@ function QR_L(
     )
     LT = transpose(L * transpose(T, permT), permLT)
     _, Rt = leftorth(LT)
-    return Rt / norm(Rt, Inf)
+    return normalize!(Rt, Inf)
 end
 
 function QR_R(
@@ -40,7 +40,7 @@ function QR_R(
     )
     TR = transpose(transpose(T, permT) * R, permTR)
     Lt, _ = rightorth(TR)
-    return Lt / norm(Lt, Inf)
+    return normalize!(Lt, Inf)
 end
 
 # Functions to find the left and right projectors
