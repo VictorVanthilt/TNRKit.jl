@@ -106,7 +106,7 @@ end
     run!(scheme, truncdim(12), maxiter(10))
 
     for shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]]
-        cft = cft_data!(scheme, shape)
+        cft = cft_data(scheme, shape)
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
         @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-4
@@ -114,7 +114,7 @@ end
     end
 
     for shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]]
-        cft = cft_data!(scheme, shape, truncdim(12), truncbelow(1.0e-10))
+        cft = cft_data(scheme, shape, truncdim(12), truncbelow(1.0e-10))
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
         @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
