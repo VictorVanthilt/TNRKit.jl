@@ -270,12 +270,6 @@ end
 
 
 """
-    ground_state_degeneracy(scheme::TNRScheme; unitcell = 1)
-    
-Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. 
-"""
-
-"""
     $(SIGNATURES)
 
     Calculates the Ground State Degeneracy (GSD) from the fixed-point tensor of a TNRScheme,
@@ -346,7 +340,6 @@ function ground_state_degeneracy(scheme::BTRG{E}; unitcell::Int = 1) where {E}
     return exp(S)
 end
 
-
 function ground_state_degeneracy(scheme::LoopTNR{E}) where {E}
     norm_const = area_term(scheme.TA, scheme.TB)
     T1 = scheme.TA / abs(norm_const)^(1 / 4)
@@ -369,12 +362,6 @@ function ground_state_degeneracy(scheme::LoopTNR{E}) where {E}
 
     return exp(S)
 end
-
-"""
-    Gu_Wen_Ratio(scheme::TNRScheme, unitcell::Int = 1)
-
-Calculate the Gu-Wen ratio X1 and X2 for a given TNRScheme. Proposed in PhysRevB.80.155131 by Gu and Wen.
-"""
 
 """
 $(SIGNATURES)
