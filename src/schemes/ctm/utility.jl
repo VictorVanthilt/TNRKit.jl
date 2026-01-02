@@ -33,7 +33,7 @@ end
 
 function oblique_projector(R1, R2, trunc; cutoff = 1.0e-16)
     mat = R1 * R2
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(cutoff))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & truncbelow(cutoff))
 
     P1 = R2 * adjoint(Vt) / sqrt(S)
     P2 = adjoint(U) * R1

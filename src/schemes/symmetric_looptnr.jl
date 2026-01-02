@@ -153,7 +153,7 @@ end
 
 ########## Initialization of loop optimizations ##########
 function decompose_T(T, trunc)
-    u, s, _ = tsvd(T, (1, 2), (3, 4); trunc)
+    u, s, _ = svd_trunc(T, (1, 2), (3, 4); trunc = trunc)
     return u * sqrt(s)
 end
 
