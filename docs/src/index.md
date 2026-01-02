@@ -78,7 +78,7 @@ TNRKit includes several common models out of the box.
 - Ising model: [`classical_ising`](@ref) and [`classical_ising_symmetric`](@ref), which has a Z2 grading on each leg.
 - Potts model: [`classical_potts`](@ref) and [`classical_potts_symmetric`](@ref), which has a Zq grading on each leg.
 - Six Vertex model: [`sixvertex`](@ref)
-- Clock model: [`classical_clock`](@ref)
+- Clock model: [`classical_clock`](@ref) and [`classical_clock_symmetric`](@ref) which has a Zq grading on each leg.
 
 ## Included Models on the triangular lattice
 TNRKit includes several common models out of the box.

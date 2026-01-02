@@ -4,7 +4,7 @@ $(SIGNATURES)
 Constructs the partition function tensor for the classical clock model with `q` states
 and a given inverse temperature `β`.
 """
-function classical_clock(q::Int64, β::Float64)
+function classical_clock(q::Int, β::Float64)
     V = ℂ^q
     A_clock = TensorMap(zeros, V ⊗ V ← V ⊗ V)
     clock(i, j) = -cos(2π / q * (i - j))
@@ -22,19 +22,26 @@ function classical_clock(q::Int64, β::Float64)
     return A_clock
 end
 
-function fourier_matrix(q::Int64, β::Float64)
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for the classical clock model with `q` states
+and a given inverse temperature `β`.
+
+This tensor has explicit ℤq symmetry on each of it spaces.
+"""
+function classical_clock_symmetric(q::Int, β::Float64)
+    A = classical_clock(q, β)
+
+    # Construct the Fourier matrix for the clock model
     U = zeros(ComplexF64, q, q)
     for i in 0:(q - 1)
         for j in 0:(q - 1)
             U[i + 1, j + 1] = exp(2im * π / q * i * j) / sqrt(q)
         end
     end
-    return U = TensorMap(U, ℂ^q ← ℂ^q)
-end
+    U = TensorMap(U, ℂ^q ← ℂ^q)
 
-function classical_clock_symmetric(q::Int64, β::Float64)
-    A = classical_clock(q, β)
-    U = fourier_matrix(q)
     @tensor Anew[-1 -2;-3 -4] := A[1 2; 3 4] * U[4; -4] * conj(U[1; -1]) * U[3; -3] * conj(U[2; -2])
     V = ZNSpace{q}(i => 1 for i in 0:(q - 1))
     return real(TensorMap(Anew[], V ⊗ V ← V ⊗ V))
