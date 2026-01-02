@@ -94,33 +94,32 @@ function CTM_init(TA, TB; bc = ones, bc_free = false)
     return C, C, C, C, C, C, C, C, ElA, ElB, EbA, EbB, ErA, ErB, EtA, EtB
 end
 
-function normalize!(ctm::Sublattice_CTM)
-    ctm.Ctl1 /= norm(ctm.Ctl1)
-    ctm.Ctr1 /= norm(ctm.Ctr1)
-    ctm.Cbr1 /= norm(ctm.Cbr1)
-    ctm.Cbl1 /= norm(ctm.Cbl1)
+function LinearAlgebra.normalize!(ctm::Sublattice_CTM)
+    normalize!(ctm.Ctl1)
+    normalize!(ctm.Ctr1)
+    normalize!(ctm.Cbr1)
+    normalize!(ctm.Cbl1)
 
-    ctm.Ctl2 /= norm(ctm.Ctl2)
-    ctm.Ctr2 /= norm(ctm.Ctr2)
-    ctm.Cbr2 /= norm(ctm.Cbr2)
-    ctm.Cbl2 /= norm(ctm.Cbl2)
+    normalize!(ctm.Ctl2)
+    normalize!(ctm.Ctr2)
+    normalize!(ctm.Cbr2)
+    normalize!(ctm.Cbl2)
 
-    ctm.EtA /= norm(ctm.EtA)
-    ctm.ErA /= norm(ctm.ErA)
-    ctm.EbA /= norm(ctm.EbA)
-    ctm.ElA /= norm(ctm.ElA)
-    ctm.EtB /= norm(ctm.EtB)
-    ctm.ErB /= norm(ctm.ErB)
-    ctm.EbB /= norm(ctm.EbB)
-    ctm.ElB /= norm(ctm.ElB)
-    return nothing
+    normalize!(ctm.EtA)
+    normalize!(ctm.ErA)
+    normalize!(ctm.EbA)
+    normalize!(ctm.ElA)
+    normalize!(ctm.EtB)
+    normalize!(ctm.ErB)
+    normalize!(ctm.EbB)
+    normalize!(ctm.ElB)
+    return ctm
 end
 
 function corner_spectrum(ctm::Sublattice_CTM)
     rho = ρA(ctm)
-    rho /= abs(tr(rho))
-    _, S, _ = tsvd(rho)
-    return S.data
+    S = LinearAlgebra.svdvals!(rho)
+    return normalize!(S, 1)
 end
 
 function contract_C1s(ctm::Sublattice_CTM)
@@ -222,11 +221,11 @@ function run!(
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if size(ES) == size(ES_new)
+            if space(ES) == space(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
-                if norm(ES - ES_new) < conv_criterion
+                if normdiff < conv_criterion
                     @infov 1 "CTM converged after $(steps + 1) iterations"
                     break
                 end

@@ -4,6 +4,7 @@ using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
 using DocStringExtensions
+using SpecialFunctions
 
 # stop criteria
 include("utility/stopping.jl")
@@ -26,6 +27,7 @@ include("schemes/ctm/ctm_trg.jl")
 include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
+include("schemes/ctm/c6vctm_triangular.jl")
 
 # Impurity methods
 include("schemes/impuritytrg.jl")
@@ -52,6 +54,7 @@ export rCTM
 export ctm_TRG
 export ctm_HOTRG
 export lnz
+export c6vCTM_triangular
 
 export ImpurityTRG
 export ImpurityHOTRG
@@ -63,8 +66,11 @@ export run!
 
 # models
 include("models/ising.jl")
+include("models/ising_triangular.jl")
 export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
-    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, classical_ising_impurity
+    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, classical_ising_impurity,
+    classical_ising_triangular, classical_ising_triangular_symmetric,
+    ising_βc_triangular, f_onsager_triangular
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
@@ -78,12 +84,20 @@ export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_im
 include("models/clock.jl")
 export classical_clock
 
+include("models/XY.jl")
+export classical_XY_U1_symmetric
+export classical_XY_O2_symmetric
+
 # utility functions
 include("utility/free_energy.jl")
 export free_energy
 
 include("utility/cft.jl")
+<<<<<<< HEAD
 export cft_data, central_charge, cft_data!, ground_state_degeneracy, gu_wen_ratio
+=======
+export cft_data, central_charge
+>>>>>>> master
 
 include("utility/finalize.jl")
 export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!,
