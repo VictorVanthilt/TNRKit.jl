@@ -383,6 +383,7 @@ $(SIGNATURES)
 
     ### References
 * [Zheng-Cheng Gu & Xiao-Gang Wen. PhysRevB.80.155131](@cite GuWenTEFR2009)
+* [Satoshi Morita et al. arxiv:2512.03395](@cite Morita2025Ratios)
 ```
 function gu_wen_ratio(scheme::TNRScheme{E}) where {E}
     T_unit = scheme.T
