@@ -111,7 +111,7 @@ function step!(
 end
 
 function run!(
-        scheme::ctm_HOTRG, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::ctm_HOTRG, trunc::TruncationStrategy, criterion::stopcrit;
         sweep = 30, return_cft = false, inv = false, conv_criterion = 1.0e-12
     )
     area = 1

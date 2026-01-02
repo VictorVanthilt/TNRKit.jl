@@ -32,7 +32,7 @@ mutable struct ATRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S
     end
 end
 
-function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::ATRG, trunc::TruncationStrategy)
     _step!(scheme, trunc)
 
     scheme.T = permute(scheme.T, ((2, 4), (1, 3)))
@@ -42,7 +42,7 @@ function step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
     return scheme.T = permute(scheme.T, ((3, 1), (4, 2)))
 end
 
-function _step!(scheme::ATRG, trunc::TensorKit.TruncationScheme)
+function _step!(scheme::ATRG, trunc::TruncationStrategy)
     A, S, B, _ = tsvd(scheme.T, ((1, 3), (2, 4)); trunc = trunc)
     C, D = deepcopy.([A, B])
 

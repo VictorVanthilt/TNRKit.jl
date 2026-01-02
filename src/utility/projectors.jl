@@ -108,7 +108,7 @@ end
 # Function to find the projector P_L and P_R
 function P_decomp(
         R::TensorMap{E, S, 1, 1}, L::TensorMap{E, S, 1, 1},
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     ) where {E, S}
     U, s, V, _ = tsvd(L * R; trunc = trunc, alg = TensorKit.SVD())
     re_sq = pseudopow(s, -0.5)
@@ -120,7 +120,7 @@ end
 # Function to find the list of projectors
 function find_projectors(
         psi::Vector{T}, in_inds::Vector{Int}, out_inds::Vector{Int},
-        entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
+        entanglement_criterion::stopcrit, trunc::TruncationStrategy
     ) where {T <: AbstractTensorMap}
     n = length(psi)
     Ls = find_L(psi, in_inds, out_inds, entanglement_criterion)
@@ -175,7 +175,7 @@ function MPO_disentangled!(
     return
 end
 
-function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme) where {E, S}
+function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TruncationStrategy) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
     U, s, V, e = tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
     @plansor S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
@@ -183,7 +183,7 @@ function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationSche
     return S1, S2
 end
 
-function SVD12(T::AbstractTensorMap{E, S, 2, 2}, trunc::TensorKit.TruncationScheme) where {E, S}
+function SVD12(T::AbstractTensorMap{E, S, 2, 2}, trunc::TruncationStrategy) where {E, S}
     U, s, V, e = tsvd(T; trunc = trunc)
     return U * sqrt(s), sqrt(s) * V
 end

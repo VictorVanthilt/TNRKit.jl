@@ -1,5 +1,7 @@
 module TNRKit
 using TensorKit, LinearAlgebra
+using MatrixAlgebraKit
+using MatrixAlgebraKit: TruncationStrategy
 using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote

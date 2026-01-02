@@ -72,7 +72,7 @@ function step!(scheme::rCTM, trunc)
 end
 
 function run!(
-        scheme::rCTM, trunc::TensorKit.TruncationScheme,
+        scheme::rCTM, trunc::TruncationStrategy,
         criterion::TNRKit.stopcrit; verbosity = 1
     )
     LoggingExtras.withlevel(; verbosity) do

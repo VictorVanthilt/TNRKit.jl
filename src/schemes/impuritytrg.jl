@@ -60,7 +60,7 @@ mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRSche
     end
 end
 
-function step!(scheme::ImpurityTRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::ImpurityTRG, trunc::TruncationStrategy)
     # Tensor1
     A1, B1 = SVD12(scheme.T_imp1, trunc)
 
@@ -100,4 +100,4 @@ function Base.show(io::IO, scheme::ImpurityTRG)
     return nothing
 end
 
-run!(scheme::ImpurityTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityTRG_Finalizer; kwargs...)
+run!(scheme::ImpurityTRG, trscheme::TruncationStrategy, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityTRG_Finalizer; kwargs...)

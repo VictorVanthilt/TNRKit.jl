@@ -102,7 +102,7 @@ end
 
 function step!(
         scheme::ctm_TRG,
-        trunc::TensorKit.TruncationScheme, ;
+        trunc::TruncationStrategy, ;
         sweep = 30,
         enlarge = true,
         inv = false,
@@ -145,7 +145,7 @@ end
 
 function run!(
         scheme::ctm_TRG,
-        trunc::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
         criterion::maxiter;
         sweep = 30,
         enlarge = true,

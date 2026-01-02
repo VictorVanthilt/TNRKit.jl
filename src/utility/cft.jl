@@ -99,8 +99,8 @@ function area_term(A, B; is_real = true)
 end
 
 function MPO_opt(
-        TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        TA::TensorMap, TB::TensorMap, trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy
     )
     pretrunc = truncdim(2 * trunc.dim)
     dl, ur = SVD12(TA, pretrunc)
@@ -126,7 +126,7 @@ end
 
 function reduced_MPO(
         dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     )
     @plansor temp[-1 -2; -3 -4] := ur[-1; 1 4] *
         ul[4; 3 -2] *
@@ -218,8 +218,8 @@ end
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
 function cft_data(
         scheme::LoopTNR, shape::Array,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy
     )
     if !(shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]])
         throw(ArgumentError("The shape $shape is not correct."))

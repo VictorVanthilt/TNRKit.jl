@@ -8,7 +8,7 @@ c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(TA, TB)
 
 ### Running the algorithm
-    run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
+    run!(::SLoopTNR, trscheme::TruncationStrategy,
               criterion::TNRKit.stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
@@ -157,7 +157,7 @@ function decompose_T(T, trunc)
     return u * sqrt(s)
 end
 
-function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
+function ef_oneloop(T, trunc::TruncationStrategy)
     ΨA = Ψ_center(T)
     ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
@@ -193,7 +193,7 @@ function step!(scheme, trunc, oneloop)
 end
 
 function run!(
-        scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
+        scheme::SLoopTNR, trscheme::TruncationStrategy,
         criterion::TNRKit.stopcrit; finalizer = default_Finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )

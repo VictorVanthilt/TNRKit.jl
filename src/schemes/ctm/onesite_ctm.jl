@@ -120,7 +120,7 @@ function corner_spectrum(ctm::CTM)
     return normalize!(S, 1)
 end
 
-function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
+function step!(ctm::CTM, trunc::TruncationStrategy)
     Ctl_new = block_four_corner(ctm.T, ctm.Ctl, ctm.El, ctm.Et)
     Ctr_new = block_four_corner(rotate_T(ctm.T), ctm.Ctr, ctm.Et, ctm.Er)
     Cbr_new = block_four_corner(rotate_T(ctm.T, num = 2), ctm.Cbr, ctm.Er, ctm.Eb)
@@ -151,7 +151,7 @@ function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
 end
 
 
-function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; conv_criterion = 1.0e-8, verbosity = 1)
+function run!(ctm::CTM, trunc::TruncationStrategy, criterion::maxiter; conv_criterion = 1.0e-8, verbosity = 1)
     ES = corner_spectrum(ctm)
     crit = true
     steps = 0

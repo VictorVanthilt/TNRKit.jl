@@ -9,10 +9,10 @@ Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
-    run!(::LoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
+    run!(::LoopTNR, trunc::TruncationStrategy, truncentanglement::TruncationStrategy, criterion::stopcrit,
               entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
 
-    run!(::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
 
 ### Fields
 
@@ -41,8 +41,8 @@ end
     LoopTNR(
         unitcell_2x2::Matrix{T},
         loop_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy
     ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
 
 Initialize LoopTNR using a network with 2 x 2 unit cell, 
@@ -52,8 +52,8 @@ the network to a bipartite one (without normalization).
 function LoopTNR(
         unitcell_2x2::Matrix{T};
         loop_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy,
     ) where {T <: AbstractTensorMap{<:Number, <:VectorSpace, 2, 2}}
     ψA = Ψ_A(unitcell_2x2)
     ψB = loop_opt(ψA, loop_criterion, trunc, truncentanglement, 0)
@@ -86,7 +86,7 @@ function Ψ_A(scheme::LoopTNR)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
+function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, truncentanglement::TruncationStrategy) where {E, S}
     NA = length(ΨA)
     ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
 
@@ -150,7 +150,7 @@ default_entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_f
 
 function _entanglement_filtering(
         TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2},
-        entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
+        entanglement_criterion::stopcrit, trunc::TruncationStrategy
     ) where {E, S}
     ΨA = Ψ_A(TA, TB)
     PRs, PLs = find_projectors(
@@ -165,7 +165,7 @@ end
 # Entanglement filtering function
 function entanglement_filtering!(
         scheme::LoopTNR,
-        trunc::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
         entanglement_criterion::stopcrit = default_entanglement_criterion
     )
     scheme.TA, scheme.TB = _entanglement_filtering(
@@ -267,8 +267,8 @@ end
 # The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
 function loop_opt(
         psiA::Vector{T}, loop_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme, verbosity::Int
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy, verbosity::Int
     ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
     psiB = Ψ_B(psiA, trunc, truncentanglement)
     NB = length(psiB) # Number of tensors in the MPS Ψ_B
@@ -348,8 +348,8 @@ end
 function loop_opt!(
         scheme::LoopTNR,
         loop_criterion::stopcrit,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy,
         verbosity::Int
     )
     psiA = Ψ_A(scheme)
@@ -360,8 +360,8 @@ end
 
 function step!(
         scheme::LoopTNR,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy,
         entanglement_criterion::stopcrit,
         loop_criterion::stopcrit,
         verbosity::Int
@@ -372,7 +372,7 @@ function step!(
 end
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
+        scheme::LoopTNR, trscheme::TruncationStrategy, truncentanglement::TruncationStrategy,
         criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
         finalizer::Finalizer{E};
         finalize_beginning = true,
@@ -407,7 +407,7 @@ function run!(scheme, trscheme, truncentanglement, criterion, entanglement_crite
 end
 
 function run!(
-        scheme::LoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit;
         finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
     )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)

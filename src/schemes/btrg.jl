@@ -57,7 +57,7 @@ function pseudopow(t::DiagonalTensorMap, a::Real; tol = eps(scalartype(t))^(3 / 
     return t′
 end
 
-function step!(scheme::BTRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::BTRG, trunc::TruncationStrategy)
     U, S, V, _ = tsvd(scheme.T, ((1, 2), (3, 4)); trunc = trunc)
 
     S_a = pseudopow(S, (1 - scheme.k) / 2)

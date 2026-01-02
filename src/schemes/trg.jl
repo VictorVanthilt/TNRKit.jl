@@ -32,7 +32,7 @@ mutable struct TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
     end
 end
 
-function step!(scheme::TRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::TRG, trunc::TruncationStrategy)
     A, B = SVD12(scheme.T, trunc)
     Tp = transpose(scheme.T, ((2, 4), (1, 3)))
     C, D = SVD12(Tp, trunc)
