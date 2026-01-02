@@ -275,12 +275,12 @@ end
 Ground state Degeneracy calculation for TNRScheme. Based on private communications with Atsushi Ueda. 
 """
 
-```
+"""
     $(SIGNATURES)
 
     Calculates the Ground State Degeneracy (GSD) from the fixed-point tensor of a TNRScheme,
     using the eigenvalues of the transfer matrix. The GSD is the exponential of the Shannon entropy.
-```
+"""
 function ground_state_degeneracy(scheme::TNRScheme{E}, unitcell::Int = 1) where {E}
     # Construct contraction indices
     indices = Vector{NTuple{4, Int}}(undef, unitcell)
@@ -376,7 +376,7 @@ end
 Calculate the Gu-Wen ratio X1 and X2 for a given TNRScheme. Proposed in PhysRevB.80.155131 by Gu and Wen.
 """
 
-```
+"""
 $(SIGNATURES)
     Calculates the Gu-Wen ratio X1 and X2 from the fixed-point tensor of a TNRScheme.
     The Gu-Wen ratios are related to the Ground state Degeneracy and the the scaling dimensions. See references.
@@ -384,7 +384,7 @@ $(SIGNATURES)
     ### References
 * [Zheng-Cheng Gu & Xiao-Gang Wen. PhysRevB.80.155131](@cite GuWenTEFR2009)
 * [Satoshi Morita et al. arxiv:2512.03395](@cite Morita2025Ratios)
-```
+"""
 function gu_wen_ratio(scheme::TNRScheme{E}) where {E}
     T_unit = scheme.T
 
