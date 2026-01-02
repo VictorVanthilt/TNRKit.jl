@@ -71,16 +71,16 @@ function CTM_init(T; bc = ones, bc_free = false)
     return C, C, C, C, El, Eb, Et, Er
 end
 
-function normalize!(ctm::CTM)
-    ctm.Ctl /= norm(ctm.Ctl)
-    ctm.Ctr /= norm(ctm.Ctr)
-    ctm.Cbr /= norm(ctm.Cbr)
-    ctm.Cbl /= norm(ctm.Cbl)
-    ctm.Et /= norm(ctm.Et)
-    ctm.Er /= norm(ctm.Er)
-    ctm.Eb /= norm(ctm.Eb)
-    ctm.El /= norm(ctm.El)
-    return nothing
+function LinearAlgebra.normalize!(ctm::CTM)
+    normalize!(ctm.Ctl)
+    normalize!(ctm.Ctr)
+    normalize!(ctm.Cbr)
+    normalize!(ctm.Cbl)
+    normalize!(ctm.Et)
+    normalize!(ctm.Er)
+    normalize!(ctm.Eb)
+    normalize!(ctm.El)
+    return ctm
 end
 
 """
