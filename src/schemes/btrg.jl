@@ -69,7 +69,7 @@ function step!(scheme::BTRG, trunc::TruncationStrategy)
         S1′[-1; -2] := S_b[-1; -2]
     end
 
-    U, S, V, _ = svd_trunc(transpose(scheme.T, ((3, 1), (4, 2))); trunc = trunc)
+    U, S, V, _ = svd_trunc(permute(scheme.T, ((3, 1), (4, 2))); trunc = trunc)
 
     S_a = pseudopow(S, (1 - scheme.k) / 2)
     S_b = pseudopow(S, scheme.k)
