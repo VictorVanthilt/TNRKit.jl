@@ -82,7 +82,7 @@ function finalize!(scheme::ImpurityTRG)
     scheme.T /= npure
 
     # Then calculate the contracted/traced 4 impurity tensors
-    nimp = norm(@tensoropt scheme.T_imp1[5 4;6 1] * scheme.T_imp2[1 2;7 5] * scheme.T_imp3[3 7;2 8] * scheme.T_imp4[8 6;4 3])
+    nimp = norm(@tensoropt scheme.T_imp1[5 4; 6 1] * scheme.T_imp2[1 2; 7 5] * scheme.T_imp3[3 7; 2 8] * scheme.T_imp4[8 6; 4 3])
 
     return npure, nimp
 end
@@ -126,3 +126,40 @@ end
 
 # TODO: add Finalizers for CFT and central charge
 two_by_two_Finalizer = Finalizer(finalize_two_by_two!, Float64)
+
+
+# Finalizer for ground state degeneracy
+function finalize_groundstatedegeneracy!(scheme::TNRScheme)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 1)
+end
+
+function finalize_groundstatedegeneracy!(scheme::BTRG)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 1)
+end
+
+function finalize_groundstatedegeneracy!(scheme::LoopTNR)
+    finalize!(scheme)
+    return ground_state_degeneracy(scheme; unitcell = 2)
+end
+
+GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
+
+#Finalizer for Gu-Wen ratio
+function finalize_gu_wen_ratio!(scheme::TNRScheme)
+    finalize!(scheme)
+    return gu_wen_ratio(scheme)
+end
+
+function finalize_gu_wen_ratio!(scheme::BTRG)
+    finalize!(scheme)
+    return gu_wen_ratio(scheme)
+end
+
+function finalize_gu_wen_ratio!(scheme::LoopTNR)
+    finalize!(scheme)
+    return gu_wen_ratio(scheme)
+end
+
+const guwenratio_Finalizer = Finalizer(finalize_gu_wen_ratio!, Tuple{Float64, Float64})
