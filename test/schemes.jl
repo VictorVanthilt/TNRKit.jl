@@ -35,7 +35,7 @@ end
 
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = TRG(T1)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
@@ -44,7 +44,7 @@ end
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = TRG(T2)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
@@ -73,7 +73,7 @@ end
     @info "BTRG ising ground state degeneracy"
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = BTRG(T1)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
@@ -82,7 +82,7 @@ end
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = BTRG(T2)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
@@ -110,7 +110,7 @@ end
     @info "HOTRG ising ground state degeneracy"
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = HOTRG(T1)
-    run!(scheme, truncdim(12), maxiter(20))
+    run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
@@ -119,7 +119,7 @@ end
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = HOTRG(T2)
-    run!(scheme, truncdim(12), maxiter(20))
+    run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
@@ -147,7 +147,7 @@ end
     @info "ATRG ising ground state degeneracy"
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = ATRG(T1)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
@@ -156,7 +156,7 @@ end
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = ATRG(T2)
-    run!(scheme, truncdim(16), maxiter(20))
+    run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2
@@ -202,7 +202,7 @@ end
     @info "LoopTNR ising ground state degeneracy"
     T1 = classical_ising_symmetric(ising_βc - 0.01)
     scheme = LoopTNR(T1)
-    run!(scheme, truncdim(12), maxiter(20))
+    run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 1 rtol = 1.0e-2
@@ -211,7 +211,7 @@ end
 
     T2 = classical_ising_symmetric(ising_βc + 0.01)
     scheme = LoopTNR(T2)
-    run!(scheme, truncdim(12), maxiter(20))
+    run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
     X1, X2 = gu_wen_ratio(scheme)
     @test gsd ≈ 2 rtol = 1.0e-2

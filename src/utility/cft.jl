@@ -294,7 +294,7 @@ function ground_state_degeneracy(scheme::TNRScheme{E}, unitcell::Int = 1) where 
     T = permute(T, (outinds, ininds))
 
     # Compute normalized eigenvalues
-    D, _ = eig(T)
+    D, _ = eig_full(T)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
@@ -325,7 +325,7 @@ function ground_state_degeneracy(scheme::BTRG{E}; unitcell::Int = 1) where {E}
     ininds = ntuple(i -> unitcell + i, unitcell)
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
@@ -348,7 +348,7 @@ function ground_state_degeneracy(scheme::LoopTNR{E}) where {E}
     @tensor T_unit[-1 -2; -3 -4] := T1[-1 1; 3 2] * T2[2 6; 4 -3] *
         T2[-2 3; 1 5] * T1[5 4; 6 -4]
 
-    D, _ = eig(T_unit)
+    D, _ = eig_full(T_unit)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
