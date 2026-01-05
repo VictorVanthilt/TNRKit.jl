@@ -95,7 +95,7 @@ end
     loop_criterion = maxiter(5)
 
     data = run!(
-        scheme, truncrank(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        scheme, truncrank(8), truntol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
 
@@ -114,7 +114,7 @@ end
     end
 
     for shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]]
-        cft = cft_data(scheme, shape, truncrank(12), truncbelow(1.0e-10))
+        cft = cft_data(scheme, shape, truncrank(12), trunctol(atol = 1.0e-10))
         d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
         @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
         @test d1 ≈ ising_cft_exact[1] rtol = 1.0e-3
@@ -125,11 +125,11 @@ end
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
     loop_criterion = maxiter(5)
     trunc = truncrank(8)
-    truncentanglement = truncbelow(1.0e-12)
+    truncentanglement = trunctol(atol = 1.0e-12)
     entanglement_criterion = maxiter(100)
     scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
     data = run!(
-        scheme, truncrank(8), truncbelow(1.0e-12), maxiter(25), entanglement_criterion,
+        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
     @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6

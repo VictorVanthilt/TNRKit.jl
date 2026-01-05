@@ -124,7 +124,7 @@ function Ψ_corner(T)
     return psi
 end
 
-function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
+function entanglement_filtering(T; trunc = trunctol(atol = 1.0e-12))
     entanglement_function(steps, data) = abs(data[end])
     entanglement_criterion = maxiter(100) & convcrit(1.0e-12, entanglement_function)
 

@@ -151,7 +151,7 @@ function find_U_sym(scheme, trunc)
     # avoid symmetry breaking due to numerical accuracy
     mat = 0.5 * (mat + adjoint(mat))
 
-    U, S, _ = svd_trunc(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, _ = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S
 end
 

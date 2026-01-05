@@ -7,7 +7,7 @@ trg_f(steps::Int, data) = abs(log(data[end]) * 2.0^(-steps))
 stopping_criterion = convcrit(1.0e-16, trg_f) & maxiter(20)
 
 # choose a TensorKit truncation scheme
-trunc = truncrank(16) & truncbelow(1.0e-40)
+trunc = truncrank(16) & trunctol(atol = 1.0e-40)
 
 # initialize the TRG scheme
 scheme = TRG(classical_ising(1.0))

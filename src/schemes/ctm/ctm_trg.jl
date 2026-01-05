@@ -36,7 +36,7 @@ end
 
 function find_UVt(scheme::ctm_TRG, trunc)
     mat = corner_matrix(scheme)
-    U, S, Vt = svd_trunc(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S, Vt
 end
 
