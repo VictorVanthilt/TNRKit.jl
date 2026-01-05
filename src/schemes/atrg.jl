@@ -43,7 +43,7 @@ function step!(scheme::ATRG, trunc::TruncationStrategy)
 end
 
 function _step!(scheme::ATRG, trunc::TruncationStrategy)
-    A, S, B, _ = svd_trunc(scheme.T, ((1, 3), (2, 4)); trunc = trunc)
+    A, S, B, _ = svd_trunc(permute(scheme.T, ((1, 3), (2, 4))); trunc = trunc)
     C, D = deepcopy.([A, B])
 
     @tensor begin
@@ -53,7 +53,7 @@ function _step!(scheme::ATRG, trunc::TruncationStrategy)
 
     @tensor M[-1 -2; -3 -4] := B[-3; 1 -4] * C[-1 1; -2]
 
-    X, S, Y, _ = svd_trunc(M, ((1, 3), (2, 4)); trunc = trunc)
+    X, S, Y, _ = svd_trunc(permute(M, ((1, 3), (2, 4))); trunc = trunc)
     sqrtS = sqrt(S)
 
     @tensor begin
