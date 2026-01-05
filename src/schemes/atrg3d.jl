@@ -33,7 +33,7 @@ mutable struct ATRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E
 end
 
 function _step!(scheme::ATRG_3D, trunc::TruncationStrategy)
-    U, S, V, _ = svd_trunc(scheme.T, ((2, 5, 6), (3, 4, 1)); trunc = trunc)
+    U, S, V, _ = svd_trunc(permute(scheme.T, ((2, 5, 6), (3, 4, 1))); trunc = trunc)
     A = permute(U, ((4, 1), (2, 3)))
     D = permute(V, ((4, 1), (2, 3)))
     C = permute(U * S, ((4, 1), (2, 3)))
@@ -41,7 +41,7 @@ function _step!(scheme::ATRG_3D, trunc::TruncationStrategy)
 
     @tensor M[-1 -2; -3 -4 -5 -6] := B[1 -2; -3 -4] * C[-1 1; -5 -6]
 
-    U, S, V, _ = svd_trunc(M, ((2, 5, 6), (3, 4, 1)); trunc = trunc)
+    U, S, V, _ = svd_trunc(permute(M, ((2, 5, 6), (3, 4, 1))); trunc = trunc)
     sqrtS = sqrt(S)
 
     X = permute(U * sqrtS, ((4, 1), (2, 3)))
