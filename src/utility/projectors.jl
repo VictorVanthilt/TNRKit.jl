@@ -17,7 +17,7 @@ function QR_L(
         ), (in_ind + out_ind,),
     )
     LT = transpose(L * transpose(T, permT), permLT)
-    _, Rt = leftorth(LT)
+    _, Rt = left_orth(LT)
     return normalize!(Rt, Inf)
 end
 
@@ -39,7 +39,7 @@ function QR_R(
         ),
     )
     TR = transpose(transpose(T, permT) * R, permTR)
-    Lt, _ = rightorth(TR)
+    Lt, _ = right_orth(TR)
     return normalize!(Lt, Inf)
 end
 
