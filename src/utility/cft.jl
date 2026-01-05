@@ -102,7 +102,7 @@ function MPO_opt(
         TA::TensorMap, TB::TensorMap, trunc::TruncationStrategy,
         truncentanglement::TruncationStrategy
     )
-    pretrunc = truncrank(2 * trunc.dim)
+    pretrunc = truncrank(2 * trunc.howmany)
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, ((2, 4), (1, 3))), pretrunc)
 

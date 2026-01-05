@@ -64,7 +64,7 @@ function insert_PtoS(scheme, trunc; enlarge = true)
     if enlarge
         P1, P2 = find_P1P2(
             env_left_top, env_right_bottom, (3,), (1,),
-            truncrank(trunc.dim * 2)
+            truncrank(trunc.howmany * 2)
         )
     else
         P1, P2 = find_P1P2(env_left_top, env_right_bottom, (3,), (1,), trunc)
