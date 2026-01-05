@@ -110,7 +110,7 @@ function P_decomp(
         R::TensorMap{E, S, 1, 1}, L::TensorMap{E, S, 1, 1},
         trunc::TruncationStrategy
     ) where {E, S}
-    U, s, V, _ = svd_trunc(L * R; trunc = trunc, alg = TensorKit.SVD())
+    U, s, V, _ = svd_trunc(L * R; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     re_sq = pseudopow(s, -0.5)
     PR = R * V' * re_sq
     PL = re_sq * U' * L
@@ -177,7 +177,7 @@ end
 
 function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TruncationStrategy) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
-    U, s, V = svd_trunc(T_trans; trunc = trunc, alg = TensorKit.SVD())
+    U, s, V = svd_trunc(T_trans; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     @plansor S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @plansor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2

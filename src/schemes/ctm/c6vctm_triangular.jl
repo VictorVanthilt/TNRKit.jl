@@ -153,7 +153,7 @@ function calculate_twothirds_projectors(scheme::c6vCTM_triangular, trunc)
     @tensor ρρ[-1 -2; -3 -4] := ρ[-1 -2; 1 2] * flip(ρ, 2; inv = false)[1 2; -3 -4]
     ρρ /= norm(ρρ)
 
-    U, S, V = svd_trunc(ρρ; trunc = trunc & trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+    U, S, V = svd_trunc(ρρ; trunc = trunc & trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
 
     Pb = ρ * V' * pseudopow(S, -1 / 2)
     Pa = pseudopow(S, -1 / 2) * U' * ρ
@@ -163,13 +163,13 @@ end
 function calculate_full_projectors(scheme::c6vCTM_triangular, trunc)
     ρ = build_double_corner_matrix_triangular(scheme)
     ρ /= norm(ρ)
-    Ū, S̄, V̄ᴴ = svd_trunc(ρ; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+    Ū, S̄, V̄ᴴ = svd_trunc(ρ; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
     ρ̄ᴿ = Ū * sqrt(S̄)
     ρ̄ᴸ = sqrt(S̄) * V̄ᴴ
     @tensor ρρ[-1; -2] := ρ̄ᴸ[-1; 1 2] * flip(ρ, 2; inv = false)[1 2; 3 4] * flip(ρ, 2; inv = false)[3 4; 5 6] * flip(ρ̄ᴿ, 2; inv = false)[5 6; -2]
     ρρ /= norm(ρρ)
 
-    U, S, Vᴴ = svd_trunc(ρρ; trunc = trunc & trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+    U, S, Vᴴ = svd_trunc(ρρ; trunc = trunc & trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
 
     @tensor Pb[-1 -2; -3] := ρ[-1 -2; 1 2] * flip(ρ̄ᴿ, 2)[1 2; 3] * Vᴴ'[3; 4] * pseudopow(S, -1 / 2)[4; -3]
     @tensor Pa[-1; -2 -3] := pseudopow(S, -1 / 2)[-1; 1] * U'[1; 2] * ρ̄ᴸ[2; 3 4] * flip(ρ, 2)[3 4; -2 -3]
@@ -209,11 +209,11 @@ end
 function semi_renormalize(scheme::c6vCTM_triangular, Pa, Pb, trunc)
     @tensor opt = true mat[-1 -2; -3 -4] := Pa[-1; 1 2] * Pb[6 7; -3] *
         scheme.Ea[1 3; 4] * scheme.Eb[4 5; 6] * flip(scheme.T, (3, 4, 5, 6); inv = false)[3 5 7 -4 -2 2]
-    U, S, V = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+    U, S, V = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
     Ẽb = U * sqrt(S)
     Ẽa = permute(sqrt(S) * V, ((1, 3), (2,)))
 
-    Utr, Str, Vtr = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+    Utr, Str, Vtr = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
     Ẽbtr = Utr * sqrt(Str)
     Ẽatr = permute(sqrt(Str) * Vtr, ((1, 3), (2,)))
 
@@ -229,22 +229,22 @@ function build_matrix_second_projector(scheme::c6vCTM_triangular, Ẽa, Ẽb, E�
     if conditioning
         σL /= norm(σL)
         σR /= norm(σR)
-        UL, SL, VLᴴ = svd_trunc(σL; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
-        UR, SR, VRᴴ = svd_trunc(σR; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+        UL, SL, VLᴴ = svd_trunc(σL; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
+        UR, SR, VRᴴ = svd_trunc(σR; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
 
         FLU = sqrt(SL) * VLᴴ
         FRU = UR * sqrt(SR)
 
         mat = FLU * FRU
         mat /= norm(mat)
-        WU, SU, QUᴴ = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+        WU, SU, QUᴴ = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
 
         Qa = pseudopow(SU, -1 / 2) * WU' * FLU
         Qb = FRU * QUᴴ' * pseudopow(SU, -1 / 2)
     else
         mat = σL * σR
         mat /= norm(mat)
-        U, S, V = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = TensorKit.SVD())
+        U, S, V = svd_trunc(mat; trunc = trunctol(atol = 1.0e-20), alg = MatrixAlgebraKit.LAPACK_QRIteration())
         Qa = pseudopow(S, -1 / 2) * U' * σL
         Qb = σR * V' * pseudopow(S, -1 / 2)
     end
