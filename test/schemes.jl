@@ -95,7 +95,7 @@ end
     loop_criterion = maxiter(5)
 
     data = run!(
-        scheme, truncrank(8), truntol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
+        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
         loop_criterion
     )
 
