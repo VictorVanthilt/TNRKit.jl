@@ -162,4 +162,4 @@ function finalize_gu_wen_ratio!(scheme::LoopTNR)
     return gu_wen_ratio(scheme)
 end
 
-guwenratio_Finalizer = Finalizer(finalize_gu_wen_ratio!, Tuple{Float64, Float64})
+const guwenratio_Finalizer = Finalizer(finalize_gu_wen_ratio!, Tuple{Float64, Float64})
