@@ -35,9 +35,9 @@ function rCTM_init(T)
     elt = typeof(T.data[1])
     Vp1 = space(T)[3]'
     Vp2 = space(T)[4]'
-    C = TensorMap(ones, elt, oneunit(Vp1) ← oneunit(Vp2))
-    E1 = TensorMap(ones, elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
-    E2 = TensorMap(ones, elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
+    C = ones(elt, oneunit(Vp1) ← oneunit(Vp2))
+    E1 = ones(elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
+    E2 = ones(elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
     return C, E1, E2
 end
 

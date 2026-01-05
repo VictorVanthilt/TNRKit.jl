@@ -158,8 +158,8 @@ end
 function c4vCTM_init(T::TensorMap{A, S, 0, 4}) where {A, S}
     S_type = scalartype(T)
     Vp = space(T)[1]'
-    C = TensorMap(ones, S_type, oneunit(Vp) ← oneunit(Vp))
-    E = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    C = ones(S_type, oneunit(Vp) ← oneunit(Vp))
+    E = ones(S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
     return C, E
 end
 

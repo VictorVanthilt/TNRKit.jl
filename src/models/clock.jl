@@ -6,7 +6,7 @@ and a given inverse temperature `β`.
 """
 function classical_clock(q::Int64, β::Float64)
     V = ℂ^q
-    A_clock = TensorMap(zeros, V ⊗ V ← V ⊗ V)
+    A_clock = zeros(Float64, V ⊗ V ← V ⊗ V)
     clock(i, j) = -cos(2π / q * (i - j))
 
     for i in 1:q
