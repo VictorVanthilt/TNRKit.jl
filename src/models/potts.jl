@@ -23,7 +23,7 @@ See also: [`classical_potts_symmetric`](@ref), [`potts_βc`](@ref).
 """
 function classical_potts(q::Int, β::Float64)
     V = ℂ^q
-    A_potts = TensorMap(zeros, V ⊗ V ← V ⊗ V)
+    A_potts = zeros(Float64, V ⊗ V ← V ⊗ V)
 
     for i in 1:q
         for j in 1:q
@@ -73,7 +73,7 @@ See also: [`classical_potts`](@ref), [`potts_βc`](@ref).
 """
 function classical_potts_symmetric(q::Int64, β::Float64)
     V = ℂ^q
-    A_potts = TensorMap(zeros, Float64, V ⊗ V ← V ⊗ V)
+    A_potts = zeros(Float64, V ⊗ V ← V ⊗ V)
     for i in 1:q
         for j in 1:q
             for k in 1:q

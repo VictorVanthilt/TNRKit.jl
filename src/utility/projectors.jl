@@ -17,7 +17,7 @@ function QR_L(
         ), (in_ind + out_ind,),
     )
     LT = transpose(L * transpose(T, permT), permLT)
-    _, Rt = leftorth(LT)
+    _, Rt = left_orth(LT)
     return normalize!(Rt, Inf)
 end
 
@@ -39,7 +39,7 @@ function QR_R(
         ),
     )
     TR = transpose(transpose(T, permT) * R, permTR)
-    Lt, _ = rightorth(TR)
+    Lt, _ = right_orth(TR)
     return normalize!(Lt, Inf)
 end
 
@@ -108,9 +108,9 @@ end
 # Function to find the projector P_L and P_R
 function P_decomp(
         R::TensorMap{E, S, 1, 1}, L::TensorMap{E, S, 1, 1},
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     ) where {E, S}
-    U, s, V, _ = tsvd(L * R; trunc = trunc, alg = TensorKit.SVD())
+    U, s, V, _ = svd_trunc(L * R; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     re_sq = pseudopow(s, -0.5)
     PR = R * V' * re_sq
     PL = re_sq * U' * L
@@ -120,7 +120,7 @@ end
 # Function to find the list of projectors
 function find_projectors(
         psi::Vector{T}, in_inds::Vector{Int}, out_inds::Vector{Int},
-        entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
+        entanglement_criterion::stopcrit, trunc::TruncationStrategy
     ) where {T <: AbstractTensorMap}
     n = length(psi)
     Ls = find_L(psi, in_inds, out_inds, entanglement_criterion)
@@ -175,15 +175,15 @@ function MPO_disentangled!(
     return
 end
 
-function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme) where {E, S}
+function SVD12(T::AbstractTensorMap{E, S, 1, 3}, trunc::TruncationStrategy) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
-    U, s, V, e = tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
+    U, s, V = svd_trunc(T_trans; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     @plansor S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @plansor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
     return S1, S2
 end
 
-function SVD12(T::AbstractTensorMap{E, S, 2, 2}, trunc::TensorKit.TruncationScheme) where {E, S}
-    U, s, V, e = tsvd(T; trunc = trunc)
+function SVD12(T::AbstractTensorMap{E, S, 2, 2}, trunc::TruncationStrategy) where {E, S}
+    U, s, V, e = svd_trunc(T; trunc = trunc)
     return U * sqrt(s), sqrt(s) * V
 end

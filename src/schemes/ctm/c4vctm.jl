@@ -12,7 +12,7 @@ or with a (0,4) tensor (North, East, South, West) (unflipped arrow convention).
 The keyword argument symmetrize makes the tensor C4v symmetric when set to true. If symmetrize = false, it checks the symmetry explicitly.
 
 ### Running the algorithm
-    run!(::c4vCTM, trunc::TensorKit.TruncationScheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::c4vCTM, trunc::TruncationStrategy, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
 
 !!! info "verbosity levels"
     - 0: No output
@@ -84,7 +84,7 @@ end
 =#
 
 function run!(
-        scheme::c4vCTM, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::c4vCTM, trunc::TruncationStrategy, criterion::stopcrit;
         verbosity = 1
     )
     LoggingExtras.withlevel(; verbosity) do
@@ -151,15 +151,15 @@ function find_U_sym(scheme, trunc)
     # avoid symmetry breaking due to numerical accuracy
     mat = 0.5 * (mat + adjoint(mat))
 
-    U, S, _ = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, _ = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S
 end
 
 function c4vCTM_init(T::TensorMap{A, S, 0, 4}) where {A, S}
     S_type = scalartype(T)
     Vp = space(T)[1]'
-    C = TensorMap(ones, S_type, oneunit(Vp) ← oneunit(Vp))
-    E = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    C = ones(S_type, oneunit(Vp) ← oneunit(Vp))
+    E = ones(S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
     return C, E
 end
 

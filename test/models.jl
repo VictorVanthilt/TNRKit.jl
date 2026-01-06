@@ -39,7 +39,7 @@ answers = [
 @testset "2D Models" begin
     for (model, temp, answer) in zip(models_2D, temperatures, answers)
         scheme = TRG(model)
-        data = run!(scheme, truncdim(16), maxiter(25))
+        data = run!(scheme, truncrank(16), maxiter(25))
         @test free_energy(data, temp) ≈ answer rtol = 1.0e-3
     end
 end

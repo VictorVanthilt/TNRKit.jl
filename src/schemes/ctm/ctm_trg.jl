@@ -17,7 +17,7 @@ mutable struct ctm_TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: Abstract
         @info "Finding the environment using rCTM..."
         TNRKit.run!(
             scheme_init,
-            truncdim(χenv),
+            truncrank(χenv),
             trivial_convcrit(ctm_tol) & maxiter(ctm_iter);
             verbosity = 0,
         )
@@ -36,12 +36,12 @@ end
 
 function find_UVt(scheme::ctm_TRG, trunc)
     mat = corner_matrix(scheme)
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S, Vt
 end
 
 function Levin_decomposition(T, trunc)
-    U, S, Vt = tsvd(T, ((1, 3), (2, 4)); trunc = trunc)
+    U, S, Vt = svd_trunc(permute(T, ((1, 3), (2, 4))); trunc = trunc)
 
     S1 = U * sqrt(S)
     S2 = sqrt(S) * Vt
@@ -64,7 +64,7 @@ function insert_PtoS(scheme, trunc; enlarge = true)
     if enlarge
         P1, P2 = find_P1P2(
             env_left_top, env_right_bottom, (3,), (1,),
-            truncdim(trunc.dim * 2)
+            truncrank(trunc.howmany * 2)
         )
     else
         P1, P2 = find_P1P2(env_left_top, env_right_bottom, (3,), (1,), trunc)
@@ -102,7 +102,7 @@ end
 
 function step!(
         scheme::ctm_TRG,
-        trunc::TensorKit.TruncationScheme, ;
+        trunc::TruncationStrategy, ;
         sweep = 30,
         enlarge = true,
         inv = false,
@@ -145,7 +145,7 @@ end
 
 function run!(
         scheme::ctm_TRG,
-        trunc::TensorKit.TruncationScheme,
+        trunc::TruncationStrategy,
         criterion::maxiter;
         sweep = 30,
         enlarge = true,

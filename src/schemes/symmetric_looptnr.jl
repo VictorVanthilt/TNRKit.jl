@@ -8,7 +8,7 @@ c4 & inversion symmetric Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(TA, TB)
 
 ### Running the algorithm
-    run!(::SLoopTNR, trscheme::TensorKit.TruncationScheme,
+    run!(::SLoopTNR, trscheme::TruncationStrategy,
               criterion::TNRKit.stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, oneloop=true,
               verbosity=1])
 
@@ -124,7 +124,7 @@ function Ψ_corner(T)
     return psi
 end
 
-function entanglement_filtering(T; trunc = truncbelow(1.0e-12))
+function entanglement_filtering(T; trunc = trunctol(atol = 1.0e-12))
     entanglement_function(steps, data) = abs(data[end])
     entanglement_criterion = maxiter(100) & convcrit(1.0e-12, entanglement_function)
 
@@ -153,13 +153,13 @@ end
 
 ########## Initialization of loop optimizations ##########
 function decompose_T(T, trunc)
-    u, s, _ = tsvd(T, (1, 2), (3, 4); trunc)
+    u, s, _ = svd_trunc(T, (1, 2), (3, 4); trunc = trunc)
     return u * sqrt(s)
 end
 
-function ef_oneloop(T, trunc::TensorKit.TruncationScheme)
+function ef_oneloop(T, trunc::TruncationStrategy)
     ΨA = Ψ_center(T)
-    ΨB = [s for A in ΨA for s in SVD12(A, truncdim(trunc.dim * 2))]
+    ΨB = [s for A in ΨA for s in SVD12(A, truncrank(trunc.howmany * 2))]
 
     ΨB_function(steps, data) = abs(data[end])
     criterion = maxiter(100) & convcrit(1.0e-12, ΨB_function)
@@ -193,7 +193,7 @@ function step!(scheme, trunc, oneloop)
 end
 
 function run!(
-        scheme::SLoopTNR, trscheme::TensorKit.TruncationScheme,
+        scheme::SLoopTNR, trscheme::TruncationStrategy,
         criterion::TNRKit.stopcrit; finalizer = default_Finalizer, finalize_beginning = true, oneloop = true,
         verbosity = 1
     )

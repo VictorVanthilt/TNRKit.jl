@@ -46,7 +46,7 @@ twistdual(t::AbstractTensorMap, is) = twistdual!(copy(t), is)
 
 function _get_hotrg3d_xproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
     # left unitary
@@ -56,7 +56,7 @@ function _get_hotrg3d_xproj(
         A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
-    U, s, _, ε = tsvd!(MM; trunc)
+    U, s, _, ε = svd_trunc!(MM; trunc = trunc)
     # right unitary
     A2′ = twistdual(A2, [2, 3, 5, 6])
     A1′ = twistdual(A1, [1, 3, 5, 6])
@@ -64,7 +64,7 @@ function _get_hotrg3d_xproj(
         conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
+    _, s′, U′, ε′ = svd_trunc!(MM; trunc = trunc)
     if ε > ε′
         U, s, ε = adjoint(U′), s′, ε′
     end
@@ -73,7 +73,7 @@ end
 
 function _get_hotrg3d_yproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     ) where {E, S}
     perm = ((1, 2), (4, 3, 6, 5))
     return _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc)
@@ -91,14 +91,14 @@ function _step_hotrg3d(
 end
 
 # HOTRG step to compress along z direction
-function _step!(scheme::HOTRG_3D, trunc::TensorKit.TruncationScheme)
+function _step!(scheme::HOTRG_3D, trunc::TruncationStrategy)
     Ux, = _get_hotrg3d_xproj(scheme.T, scheme.T, trunc)
     Uy, = _get_hotrg3d_yproj(scheme.T, scheme.T, trunc)
     scheme.T = _step_hotrg3d(scheme.T, scheme.T, Ux, Uy)
     return scheme
 end
 
-function step!(scheme::HOTRG_3D, trunc::TensorKit.TruncationScheme)
+function step!(scheme::HOTRG_3D, trunc::TruncationStrategy)
     _step!(scheme, trunc)
     scheme.T = permute(scheme.T, ((6, 4), (2, 3, 1, 5)))
     _step!(scheme, trunc)

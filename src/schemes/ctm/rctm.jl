@@ -35,9 +35,9 @@ function rCTM_init(T)
     elt = typeof(T.data[1])
     Vp1 = space(T)[3]'
     Vp2 = space(T)[4]'
-    C = TensorMap(ones, elt, oneunit(Vp1) ← oneunit(Vp2))
-    E1 = TensorMap(ones, elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
-    E2 = TensorMap(ones, elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
+    C = ones(elt, oneunit(Vp1) ← oneunit(Vp2))
+    E1 = ones(elt, oneunit(Vp1) ⊗ Vp1 ← oneunit(Vp1))
+    E2 = ones(elt, oneunit(Vp2) ⊗ Vp2 ← oneunit(Vp2))
     return C, E1, E2
 end
 
@@ -49,7 +49,7 @@ end
 
 function find_UVt(scheme, trunc)
     mat = rt_build_corner_matrix(scheme)
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S, Vt
 end
 
@@ -72,7 +72,7 @@ function step!(scheme::rCTM, trunc)
 end
 
 function run!(
-        scheme::rCTM, trunc::TensorKit.TruncationScheme,
+        scheme::rCTM, trunc::TruncationStrategy,
         criterion::TNRKit.stopcrit; verbosity = 1
     )
     LoggingExtras.withlevel(; verbosity) do

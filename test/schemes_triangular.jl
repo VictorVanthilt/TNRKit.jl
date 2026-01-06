@@ -6,7 +6,7 @@
                 T_flipped = method(ising_βc_triangular)
 
                 scheme = c6vCTM_triangular(T_flipped)
-                lz = run!(scheme, truncdim(20), maxiter(100); projectors, conditioning)
+                lz = run!(scheme, truncrank(20), maxiter(100); projectors, conditioning)
 
                 fs = lz * -1 / ising_βc_triangular
                 @test fs ≈ f_onsager_triangular rtol = 1.0e-4

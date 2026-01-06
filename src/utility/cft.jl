@@ -13,7 +13,7 @@ function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
 
@@ -49,7 +49,7 @@ function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
 
     data = zeros(ComplexF64, dim(space(D, 1)))
 
@@ -99,10 +99,10 @@ function area_term(A, B; is_real = true)
 end
 
 function MPO_opt(
-        TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        TA::TensorMap, TB::TensorMap, trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy
     )
-    pretrunc = truncdim(2 * trunc.dim)
+    pretrunc = truncrank(2 * trunc.howmany)
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, ((2, 4), (1, 3))), pretrunc)
 
@@ -126,7 +126,7 @@ end
 
 function reduced_MPO(
         dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
-        trunc::TensorKit.TruncationScheme
+        trunc::TruncationStrategy
     )
     @plansor temp[-1 -2; -3 -4] := ur[-1; 1 4] *
         ul[4; 3 -2] *
@@ -218,8 +218,8 @@ end
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
 function cft_data(
         scheme::LoopTNR, shape::Array,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        trunc::TruncationStrategy,
+        truncentanglement::TruncationStrategy
     )
     if !(shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]])
         throw(ArgumentError("The shape $shape is not correct."))
@@ -255,7 +255,7 @@ Get the central charge given the current state of a `TNRScheme` and the previous
 """
 function central_charge(scheme::TNRScheme, n::Number)
     @tensor M[-1; -2] := (scheme.T / n)[1 -1; -2 1]
-    _, S, _ = tsvd(M)
+    _, S, _ = svd_full(M)
     return log(S.data[1]) * 6 / (π)
 end
 
@@ -264,7 +264,7 @@ function central_charge(scheme::BTRG, n::Number)
         (scheme.T)[1 -1; 3 2] * scheme.S1[3; -2] *
             scheme.S2[2; 1]
     ) / n
-    _, S, _ = tsvd(M)
+    _, S, _ = svd_full(M)
     return log(S.data[1]) * 6 / (π)
 end
 
@@ -294,7 +294,7 @@ function ground_state_degeneracy(scheme::TNRScheme{E}, unitcell::Int = 1) where 
     T = permute(T, (outinds, ininds))
 
     # Compute normalized eigenvalues
-    D, _ = eig(T)
+    D, _ = eig_full(T)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
@@ -325,7 +325,7 @@ function ground_state_degeneracy(scheme::BTRG{E}; unitcell::Int = 1) where {E}
     ininds = ntuple(i -> unitcell + i, unitcell)
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig(T)
+    D, _ = eig_full(T)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)
@@ -348,7 +348,7 @@ function ground_state_degeneracy(scheme::LoopTNR{E}) where {E}
     @tensor T_unit[-1 -2; -3 -4] := T1[-1 1; 3 2] * T2[2 6; 4 -3] *
         T2[-2 3; 1 5] * T1[5 4; 6 -4]
 
-    D, _ = eig(T_unit)
+    D, _ = eig_full(T_unit)
     D = D / tr(D)
     vals = filter(!iszero, abs.(D.data))
     # Shannon entropy (stable + efficient)

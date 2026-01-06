@@ -6,9 +6,9 @@ end
 # QR decomposition
 function R1R2(A1, A2, p1, p2; check_space = true)
     p, q1 = ind_pair(A1, p1)
-    _, RA1 = leftorth(A1, (q1, p1))
+    _, RA1 = left_orth(permute(A1, (q1, p1)))
     p, q2 = ind_pair(A2, p2)
-    RA2, _ = rightorth(A2, (p2, q2))
+    RA2, _ = right_orth(permute(A2, (p2, q2)))
     if check_space
         if domain(RA1) != codomain(RA2)
             @error "space mismatch"
@@ -33,7 +33,7 @@ end
 
 function oblique_projector(R1, R2, trunc; cutoff = 1.0e-16)
     mat = R1 * R2
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(cutoff))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & trunctol(atol = cutoff))
 
     P1 = R2 * adjoint(Vt) / sqrt(S)
     P2 = adjoint(U) * R1
@@ -50,7 +50,7 @@ function tr_tensor(T; inv = false)
     end
 end
 
-function rctm_step!(scheme; trunc = truncdim(dim(space(scheme.C2, 1))))
+function rctm_step!(scheme; trunc = truncrank(dim(space(scheme.C2, 1))))
     mat, U, S, Vt = find_UVt(scheme, trunc)
     scheme.C2 = adjoint(U) * mat * adjoint(Vt)
     @tensor opt = true scheme.E1[-1 -2; -3] := scheme.E1[1 5; 3] * scheme.T[2 -2; 5 4] *

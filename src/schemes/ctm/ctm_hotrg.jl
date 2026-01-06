@@ -20,7 +20,7 @@ mutable struct ctm_HOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: Abstra
         @info "Finding the environment using rCTM..."
         run!(
             scheme_init,
-            truncdim(χenv),
+            truncrank(χenv),
             ctm_tol & ctm_iter;
             verbosity = 0,
         )
@@ -60,7 +60,7 @@ end
 
 function find_UVt(scheme::ctm_HOTRG, trunc)
     mat = corner_matrix(scheme)
-    U, S, Vt = tsvd(mat; trunc = trunc & truncbelow(1.0e-20))
+    U, S, Vt = svd_trunc(mat; trunc = trunc & trunctol(atol = 1.0e-20))
     return mat, U, S, Vt
 end
 
@@ -111,7 +111,7 @@ function step!(
 end
 
 function run!(
-        scheme::ctm_HOTRG, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::ctm_HOTRG, trunc::TruncationStrategy, criterion::stopcrit;
         sweep = 30, return_cft = false, inv = false, conv_criterion = 1.0e-12
     )
     area = 1

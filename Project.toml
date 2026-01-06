@@ -1,13 +1,14 @@
 name = "TNRKit"
 uuid = "7dfc3ef0-df9b-475f-b8e2-b91f34f5d84d"
-authors = ["Victor Vanthilt, Adwait Naravane, Atsushi Ueda and contributors"]
 version = "0.3.0"
+authors = ["Victor Vanthilt, Adwait Naravane, Atsushi Ueda and contributors"]
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 KrylovKit = "0b1a1467-8014-51b9-945f-bf0ae24f4b77"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
+MatrixAlgebraKit = "6c742aac-3347-4629-af66-fc926824e5e4"
 OptimKit = "77e91f04-9b3b-57a6-a776-40b61faaebe0"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
@@ -18,9 +19,10 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 DocStringExtensions = "0.9.4"
 KrylovKit = "0.10"
 LoggingExtras = "~1.0"
+MatrixAlgebraKit = "0.6.1"
 OptimKit = "0.4.0"
 SpecialFunctions = "2.6.1"
-TensorKit = "0.14"
+TensorKit = "0.16"
 Zygote = "0.7.7"
 julia = "1.11"
 

@@ -45,7 +45,7 @@ mutable struct ImpurityHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRSc
     end
 end
 
-function step!(scheme::ImpurityHOTRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::ImpurityHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
 
     T = _step_hotrg_x(scheme.T, scheme.T, Uy)
@@ -92,4 +92,4 @@ function Base.show(io::IO, scheme::ImpurityHOTRG)
     return nothing
 end
 
-run!(scheme::ImpurityHOTRG, trscheme::TensorKit.TruncationScheme, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityHOTRG_Finalizer; kwargs...)
+run!(scheme::ImpurityHOTRG, trscheme::TruncationStrategy, criterion::stopcrit; kwargs...) = run!(scheme, trscheme, criterion, ImpurityHOTRG_Finalizer; kwargs...)
