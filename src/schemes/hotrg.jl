@@ -99,13 +99,13 @@ function _get_hotrg_xproj(
             └---3---┘                   └---3---┘
     =#
     # get left unitary
-    @tensor MM[-1 -2; -3 -4] :=
+    @plansor MM[-1 -2; -3 -4] :=
         A2[-1 5; 1 2] * A1[-2 3; 5 4] *
         conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
     s, U, ε = eigh_trunc!(MM; trunc)
     # U, s, _, ε = eigh_trunc!(MM; trunc)
     # get right unitary
-    @tensor MM[-1 -2; -3 -4] :=
+    @plansor MM[-1 -2; -3 -4] :=
         conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
         A2[2 6; 1 -3] * A1[4 3; 6 -4]
     # _, s′, U′, ε′ = eigh_trunc!(MM; trunc)
@@ -134,13 +134,13 @@ function _get_hotrg_yproj(
             -1      -2              -1      -2
     =#
     # get bottom unitary
-    @tensor MM[-1 -2; -3 -4] :=
+    @plansor MM[-1 -2; -3 -4] :=
         A1[1 -1; 2 5] * A2[5 -2; 4 3] *
         conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
     # U, s, _, ε = eigh_trunc!(MM; trunc)
     s, U, ε = eigh_trunc!(MM; trunc)
     # get top unitary
-    @tensor MM[-1 -2; -3 -4] :=
+    @plansor MM[-1 -2; -3 -4] :=
         conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
         A1[1 2; -3 6] * A2[6 4; -4 3]
     # _, s′, U′, ε′ = eigh_trunc!(MM; trunc)
