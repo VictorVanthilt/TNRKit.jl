@@ -242,7 +242,7 @@ function loop_opt(
 end
 
 function step!(
-    scheme::LoopScheme,
+    scheme::LinearLoopScheme,
     trunc::TensorKit.TruncationScheme,
     truncentanglement::TensorKit.TruncationScheme,
     entanglement_criterion::stopcrit,
