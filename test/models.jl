@@ -12,6 +12,10 @@ models_2D = [
     sixvertex(Float64, Trivial),
     sixvertex(Float64, U1Irrep),
     sixvertex(Float64, CU1Irrep),
+    phi4_real(10, -1, 1),
+    phi4_real_symmetric(10, -1, 1),
+    phi4_complex(6, -1, 1),
+    phi4_complex_symmetric(6, -1, 1),
 ]
 
 temperatures = [
@@ -23,6 +27,10 @@ temperatures = [
     1.0,
     1.0,
     1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
 ]
 
 answers = [
@@ -34,6 +42,10 @@ answers = [
     3 / 2 * log(3 / 4),
     3 / 2 * log(3 / 4),
     3 / 2 * log(3 / 4),
+    0.4241912271276211, # This is an approximation!
+    0.4232381701937374, # This is an approximation!
+    0.7583605364656325, # This is an approximation!
+    4.91362301061858, # This is an approximation!
 ]
 
 @testset "2D Models" begin
