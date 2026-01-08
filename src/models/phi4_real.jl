@@ -62,7 +62,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 See also: [`phi4_real_imp1`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real(K::Integer, μ0::Number, λ::Number, h = 0)
+function phi4_real(K::Integer, μ0::Number, λ::Number, h::Number = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -112,7 +112,7 @@ The impurity is a ϕ operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp1(K, μ0, λ, h = 0)
+function phi4_real_imp1(K::Integer, μ0::Number, λ::Number, h::Number = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -162,7 +162,7 @@ The impurity is a ϕ^2 operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp2(K, μ0, λ, h = 0)
+function phi4_real_imp2(K::Integer, μ0::Number, λ::Number, h::Number = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -214,7 +214,7 @@ This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_symmetric(K, μ0, λ)
+function phi4_real_symmetric(K::Integer, μ0::Number, λ::Number)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
