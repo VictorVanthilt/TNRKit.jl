@@ -1,5 +1,5 @@
 #####################################
-#       HELPER FUNCTIONS            #        
+#       HELPER FUNCTIONS            #
 #####################################
 
 function f(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
@@ -15,7 +15,7 @@ function fmatrix(ys, μ0, λ)
     K = length(ys)
     matrix = zeros(K^2, K^2)
     @threads for i in 1:K
-        for j in i:K 
+        for j in i:K
             for k in 1:K
                 for l in 1:K
                     idx1 = (i - 1) * K + j
@@ -40,26 +40,26 @@ end
 
 
 function precompute_moments_complex(K, μ0, λ)
-    a = (4 + μ0)/2
-    b = λ/4
-    nmax = 8*(K-1) + 1
-    M = zeros(Float64, nmax+1)
+    a = (4 + μ0) / 2
+    b = λ / 4
+    nmax = 8 * (K - 1) + 1
+    M = zeros(Float64, nmax + 1)
 
     for n in 0:nmax
         f(φ) = begin
-            logval = n * log(φ) - a*φ^2 - b*φ^4
+            logval = n * log(φ) - a * φ^2 - b * φ^4
             return exp(logval)        # safe everywhere, never NaN
         end
 
-        val, _ = quadgk(f, 0.0, Inf; rtol=1e-8, maxevals=10^7)
-        M[n+1] = val * 2π
+        val, _ = quadgk(f, 0.0, Inf; rtol = 1.0e-8, maxevals = 10^7)
+        M[n + 1] = val * 2π
     end
     return M
 end
 
 
 #####################################
-#       TENSOR FUNCTIONS            #        
+#       TENSOR FUNCTIONS            #
 #####################################
 
 """
@@ -88,7 +88,7 @@ function phi4_complex(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
     T_arr = zeros(eltype(S), N, N, N, N)
 
@@ -101,19 +101,19 @@ function phi4_complex(K, μ0, λ)
             for k in j:N
                 for l in k:N
                     s = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
                         s += factor *
-                             weights[α, β] *
-                             U[(α-1)*K+β, i]*U[(α-1)*K+β, j] *
-                             V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                            weights[α, β] *
+                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
+                        T_arr[ii, jj, kk, ll] = s
                     end
                 end
             end
@@ -152,7 +152,7 @@ function phi4_complex_impϕ(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
 
@@ -165,19 +165,19 @@ function phi4_complex_impϕ(K, μ0, λ)
             for k in j:N
                 for l in k:N
                     s = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
                         s += factor *
-                             weights[α, β] *
-                             U[(α-1)*K+β, i]*U[(α-1)*K+β, j] *
-                             V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                            weights[α, β] *
+                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
+                        T_arr[ii, jj, kk, ll] = s
                     end
                 end
             end
@@ -217,7 +217,7 @@ function phi4_complex_impϕdag(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
 
@@ -230,19 +230,19 @@ function phi4_complex_impϕdag(K, μ0, λ)
             for k in j:N
                 for l in k:N
                     s = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
                         s += factor *
-                             weights[α, β] *
-                             U[(α-1)*K+β, i]*U[(α-1)*K+β, j] *
-                             V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                            weights[α, β] *
+                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
+                        T_arr[ii, jj, kk, ll] = s
                     end
                 end
             end
@@ -281,7 +281,7 @@ function phi4_complex_impϕabs(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
 
@@ -294,19 +294,19 @@ function phi4_complex_impϕabs(K, μ0, λ)
             for k in j:N
                 for l in k:N
                     s = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
                         s += factor *
-                             weights[α, β] *
-                             U[(α-1)*K+β, i]*U[(α-1)*K+β, j] *
-                             V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                            weights[α, β] *
+                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
+                        T_arr[ii, jj, kk, ll] = s
                     end
                 end
             end
@@ -345,7 +345,7 @@ function phi4_complex_impϕ2(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
 
@@ -358,19 +358,19 @@ function phi4_complex_impϕ2(K, μ0, λ)
             for k in j:N
                 for l in k:N
                     s = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
                         s += factor *
-                             weights[α, β] *
-                             U[(α-1)*K+β, i]*U[(α-1)*K+β, j] *
-                             V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                            weights[α, β] *
+                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
+                        T_arr[ii, jj, kk, ll] = s
                     end
                 end
             end
@@ -380,7 +380,6 @@ function phi4_complex_impϕ2(K, μ0, λ)
     T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
     return T
 end
-
 
 
 """
@@ -411,7 +410,7 @@ function phi4_complex_all(K, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
-    
+
     N = K^2
 
 
@@ -439,24 +438,24 @@ function phi4_complex_all(K, μ0, λ)
                     s_ϕdag = 0.0
                     s_ϕabs = 0.0
                     s_ϕ2 = 0.0
-                    factor = √(S[i,i]*S[j,j]*S[k,k]*S[l,l])
+                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
                     for α in 1:K, β in 1:K
-                        s += factor * w[α, β] * U[(α-1)*K+β, i]*U[(α-1)*K+β, j] * V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
-                        s_ϕ += factor * w_ϕ[α, β] * U[(α-1)*K+β, i]*U[(α-1)*K+β, j] * V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
-                        s_ϕdag += factor * w_ϕdag[α, β] * U[(α-1)*K+β, i]*U[(α-1)*K+β, j] * V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
-                        s_ϕabs += factor * w_ϕabs[α, β] * U[(α-1)*K+β, i]*U[(α-1)*K+β, j] * V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
-                        s_ϕ2 += factor * w_ϕ2[α, β] * U[(α-1)*K+β, i]*U[(α-1)*K+β, j] * V[k, (α-1)*K+β]*V[l, (α-1)*K+β]
+                        s += factor * w[α, β] * U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] * V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
+                        s_ϕ += factor * w_ϕ[α, β] * U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] * V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
+                        s_ϕdag += factor * w_ϕdag[α, β] * U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] * V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
+                        s_ϕabs += factor * w_ϕabs[α, β] * U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] * V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
+                        s_ϕ2 += factor * w_ϕ2[α, β] * U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] * V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
                     end
 
                     # Fill all 24 symmetric permutations
-                    idxs = (i,j,k,l)
+                    idxs = (i, j, k, l)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii,jj,kk,ll] = s
-                        T_ϕ_arr[ii,jj,kk,ll] = s_ϕ
-                        T_ϕdag_arr[ii,jj,kk,ll] = s_ϕdag
-                        T_ϕabs_arr[ii,jj,kk,ll] = s_ϕabs
-                        T_ϕ2_arr[ii,jj,kk,ll] = s_ϕ2
+                        T_arr[ii, jj, kk, ll] = s
+                        T_ϕ_arr[ii, jj, kk, ll] = s_ϕ
+                        T_ϕdag_arr[ii, jj, kk, ll] = s_ϕdag
+                        T_ϕabs_arr[ii, jj, kk, ll] = s_ϕabs
+                        T_ϕ2_arr[ii, jj, kk, ll] = s_ϕ2
                     end
                 end
             end
@@ -493,7 +492,7 @@ This tensor has explicit U(1) symmetry on each of its spaces.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_symmetric(K, μ0, λ; μ=0)
+function phi4_complex_symmetric(K, μ0, λ; μ = 0)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
@@ -501,38 +500,38 @@ function phi4_complex_symmetric(K, μ0, λ; μ=0)
     # precompute
     moments = precompute_moments_complex(K, μ0, λ)
     # log factorials 0..K-1
-    logfact = log.(factorial.(0:K-1))
+    logfact = log.(factorial.(0:(K - 1)))
     # precompute exp(μ*s/2) for s = 0 .. 2*(K-1)
-    maxsum = 2*(K-1)
-    E = exp.((μ/2) .* (0:maxsum))   # E[s+1] = exp( μ*s/2 )
+    maxsum = 2 * (K - 1)
+    E = exp.((μ / 2) .* (0:maxsum))   # E[s+1] = exp( μ*s/2 )
 
     T_arr = zeros(Float64, K, K, K, K, K, K, K, K)
 
-    @threads for r1 in 0:K-1
-        for r2 in 0:K-1
-            for r3 in 0:K-1
-                for r4 in 0:K-1
+    @threads for r1 in 0:(K - 1)
+        for r2 in 0:(K - 1)
+            for r3 in 0:(K - 1)
+                for r4 in 0:(K - 1)
                     # precompute sums depending only on r's
                     rsum = r1 + r2 + r3 + r4
                     r24 = r2 + r4     # used in exp factor
                     # clever computational trick
-                    logr = logfact[r1+1] + logfact[r2+1] + logfact[r3+1] + logfact[r4+1]
+                    logr = logfact[r1 + 1] + logfact[r2 + 1] + logfact[r3 + 1] + logfact[r4 + 1]
 
-                    for l1 in 0:K-1
-                        for l2 in 0:K-1
-                            for l3 in 0:K-1
+                    for l1 in 0:(K - 1)
+                        for l2 in 0:(K - 1)
+                            for l3 in 0:(K - 1)
                                 # solve delta for l4:
                                 # r1 + r2 + l3 + l4 = r3 + r4 + l1 + l2
                                 l4 = r3 + r4 + l1 + l2 - r1 - r2 - l3
 
-                                if l4 < 0 || l4 > K-1
+                                if l4 < 0 || l4 > K - 1
                                     continue
                                 end
 
                                 # total power n
                                 n = rsum + 1 + l1 + l2 + l3 + l4
                                 # quick skip if moment is zero
-                                M = moments[n+1]
+                                M = moments[n + 1]
                                 if M == 0.0
                                     continue
                                 end
@@ -540,17 +539,19 @@ function phi4_complex_symmetric(K, μ0, λ; μ=0)
                                 # exp factor: exp( μ*(r2+r4 - l2 - l4)/2 ) =
                                 #   E[r24]/E[l2+l4]
                                 l24 = l2 + l4
-                                expfactor = E[r24+1] / E[l24+1]
+                                expfactor = E[r24 + 1] / E[l24 + 1]
 
                                 # denomenator via logfacts
-                                logdenom = 0.5 * (logr + logfact[l1+1] + logfact[l2+1] +
-                                                logfact[l3+1] + logfact[l4+1])
+                                logdenom = 0.5 * (
+                                    logr + logfact[l1 + 1] + logfact[l2 + 1] +
+                                        logfact[l3 + 1] + logfact[l4 + 1]
+                                )
                                 denom = exp(logdenom)
 
                                 val = M * expfactor / denom
 
                                 # store into array (indices +1)
-                                T_arr[r1+1, l1+1, r2+1, l2+1, r3+1, l3+1, r4+1, l4+1] = val
+                                T_arr[r1 + 1, l1 + 1, r2 + 1, l2 + 1, r3 + 1, l3 + 1, r4 + 1, l4 + 1] = val
                             end
                         end
                     end
@@ -560,8 +561,8 @@ function phi4_complex_symmetric(K, μ0, λ; μ=0)
     end
 
     # Build U1 spaces
-    V1 = U1Space([U1Irrep(q) => 1 for q in 0:K-1]...)
-    V2 = U1Space([U1Irrep(q) => 1 for q in 0:-1:-K+1]...)
+    V1 = U1Space([U1Irrep(q) => 1 for q in 0:(K - 1)]...)
+    V2 = U1Space([U1Irrep(q) => 1 for q in 0:-1:(-K + 1)]...)
     T_unfused = TensorMap(T_arr, V1 ⊗ V2 ⊗ V1 ⊗ V2 ← V1 ⊗ V2 ⊗ V1 ⊗ V2)
 
     U = isometry(fuse(V1, V2), V1 ⊗ V2)

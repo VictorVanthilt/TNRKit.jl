@@ -1,5 +1,5 @@
 #####################################
-#       HELPER FUNCTIONS            #        
+#       HELPER FUNCTIONS            #
 #####################################
 
 function f(ϕ1, ϕ2, μ0, λ, h = 0)
@@ -26,25 +26,25 @@ function precompute_moments(K, μ0, λ)
     a = (4 + μ0) / 2
     b = λ / 4
 
-    M = zeros(Float64, 4(K-1)+1)
+    M = zeros(Float64, 4(K - 1) + 1)
 
-    for n in 0:2:4(K-1)   # only even n
-        f(φ) = exp(-a*φ^2 - b*φ^4) * φ^n
-        M[n+1], _ = quadgk(f, -Inf, Inf)
+    for n in 0:2:4(K - 1)   # only even n
+        f(φ) = exp(-a * φ^2 - b * φ^4) * φ^n
+        M[n + 1], _ = quadgk(f, -Inf, Inf)
     end
     return M
 end
 
 
 #####################################
-#       TENSOR FUNCTIONS            #        
+#       TENSOR FUNCTIONS            #
 #####################################
 
 """
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 ### Arguments
 - `K::Int`: Number of quadrature points for Gauss-Hermite integration.
@@ -92,7 +92,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ operator on this site.
 
@@ -142,7 +142,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ^2 operator on this site.
 
@@ -185,14 +185,14 @@ function phi4_real_imp2(K, μ0, λ, h = 0)
 
     T = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
     return T
-end 
+end
 
 
 """
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
@@ -219,7 +219,7 @@ function phi4_real_symmetric(K, μ0, λ)
         error("K must be even to split into even/odd groups")
     end
 
-    logfact = log.(factorial.(0:K-1))
+    logfact = log.(factorial.(0:(K - 1)))
     moments = precompute_moments(K, μ0, λ)
 
     T = zeros(Float64, K, K, K, K)
@@ -227,27 +227,27 @@ function phi4_real_symmetric(K, μ0, λ)
     perms = collect(permutations(1:4))  # 24 total
 
     # loop only over sorted tuples
-    for s1 in 0:K-1
-        for s2 in s1:K-1
-            for s3 in s2:K-1
-                for s4 in s3:K-1
+    for s1 in 0:(K - 1)
+        for s2 in s1:(K - 1)
+            for s3 in s2:(K - 1)
+                for s4 in s3:(K - 1)
 
-                    n = s1+s2+s3+s4
+                    n = s1 + s2 + s3 + s4
                     if isodd(n)
                         continue
                     end
 
-                    M = moments[n+1]
-                    denom_log = (logfact[s1+1] + logfact[s2+1] + logfact[s3+1] + logfact[s4+1]) / 2
+                    M = moments[n + 1]
+                    denom_log = (logfact[s1 + 1] + logfact[s2 + 1] + logfact[s3 + 1] + logfact[s4 + 1]) / 2
                     denom = exp(denom_log)
 
                     val = M / denom
 
                     # assign to all permutations
-                    idxs = (s1+1, s2+1, s3+1, s4+1)
+                    idxs = (s1 + 1, s2 + 1, s3 + 1, s4 + 1)
                     for p in perms
                         ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T[ii,jj,kk,ll] = val
+                        T[ii, jj, kk, ll] = val
                     end
                 end
             end
@@ -256,10 +256,10 @@ function phi4_real_symmetric(K, μ0, λ)
 
     # even/odd rearrangement
     evens = 1:2:K
-    odds  = 2:2:K
+    odds = 2:2:K
     perm = vcat(evens, odds)
-    T = T[perm,perm,perm,perm]
+    T = T[perm, perm, perm, perm]
 
-    V = Z2Space(0 => K/2, 1 => K/2)
-    return TensorMap(T, V⊗V ← V⊗V)
+    V = Z2Space(0 => K / 2, 1 => K / 2)
+    return TensorMap(T, V ⊗ V ← V ⊗ V)
 end
