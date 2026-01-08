@@ -2,7 +2,7 @@
 #       HELPER FUNCTIONS            #
 #####################################
 
-function f(ϕ1, ϕ2, μ0, λ, h = 0)
+function f_real(ϕ1, ϕ2, μ0, λ, h = 0)
     return exp(
         -1 / 2 * (ϕ1 - ϕ2)^2
             - μ0 / 8 * (ϕ1^2 + ϕ2^2)
@@ -11,18 +11,18 @@ function f(ϕ1, ϕ2, μ0, λ, h = 0)
     )
 end
 
-function fmatrix(ys, μ0, λ, h = 0)
+function fmatrix_real(ys, μ0, λ, h = 0)
     K = length(ys)
     matrix = zeros(K, K)
     for i in 1:K
         for j in 1:K
-            matrix[i, j] = f(ys[i], ys[j], μ0, λ, h)
+            matrix[i, j] = f_real(ys[i], ys[j], μ0, λ, h)
         end
     end
     return TensorMap(matrix, ℂ^K ← ℂ^K)
 end
 
-function precompute_moments(K, μ0, λ)
+function precompute_moments_real(K, μ0, λ)
     a = (4 + μ0) / 2
     b = λ / 4
 
@@ -67,7 +67,7 @@ function phi4_real(K::Integer, μ0::Number, λ::Number, h = 0)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ, h)
+    f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -117,7 +117,7 @@ function phi4_real_imp1(K, μ0, λ, h = 0)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ, h)
+    f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -167,7 +167,7 @@ function phi4_real_imp2(K, μ0, λ, h = 0)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ, h)
+    f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -220,7 +220,7 @@ function phi4_real_symmetric(K, μ0, λ)
     end
 
     logfact = log.(factorial.(0:(K - 1)))
-    moments = precompute_moments(K, μ0, λ)
+    moments = precompute_moments_real(K, μ0, λ)
 
     T = zeros(Float64, K, K, K, K)
 

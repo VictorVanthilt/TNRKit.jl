@@ -2,7 +2,7 @@
 #       HELPER FUNCTIONS            #
 #####################################
 
-function f(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
+function f_complex(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
     return exp(
         -1 / 2 * ((ℝϕ1 - ℝϕ2)^2 + (ℂϕ1 - ℂϕ2)^2)
             - μ0 / 8 * (ℝϕ1^2 + ℂϕ1^2 + ℝϕ2^2 + ℂϕ2^2)
@@ -11,7 +11,7 @@ function f(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
 end
 
 
-function fmatrix(ys, μ0, λ)
+function fmatrix_complex(ys, μ0, λ)
     K = length(ys)
     matrix = zeros(K^2, K^2)
     @threads for i in 1:K
@@ -21,7 +21,7 @@ function fmatrix(ys, μ0, λ)
                     idx1 = (i - 1) * K + j
                     idx2 = (k - 1) * K + l
                     if idx2 >= idx1  # only compute upper triangle
-                        val = f(ys[i], ys[j], ys[k], ys[l], μ0, λ)
+                        val = f_complex(ys[i], ys[j], ys[k], ys[l], μ0, λ)
                         matrix[idx1, idx2] = val
                         matrix[idx2, idx1] = val  # symmetric counterpart
 
@@ -84,7 +84,7 @@ function phi4_complex(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -148,7 +148,7 @@ function phi4_complex_impϕ(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -213,7 +213,7 @@ function phi4_complex_impϕdag(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -277,7 +277,7 @@ function phi4_complex_impϕabs(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -341,7 +341,7 @@ function phi4_complex_impϕ2(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
@@ -406,7 +406,7 @@ function phi4_complex_all(K, μ0, λ)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
-    f = fmatrix(ys, μ0, λ)
+    f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
     U, S, V = tsvd(f)
