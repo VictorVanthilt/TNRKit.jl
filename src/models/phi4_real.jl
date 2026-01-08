@@ -210,7 +210,7 @@ This tensor has explicit ℤ₂ symmetry on each of its spaces.
 ```
 
 ### References
-* [Delcamp et. al. Phys. Rev. Research 2, 033278 (2020)](@cite delcampTensorNetworkAnalysis2020)
+* [Delcamp et. al. Phys. Rev. Research 2, 033278 (2020)](@cite delcampComputingRenormalizationGroup2020)
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
