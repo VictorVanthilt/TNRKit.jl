@@ -82,7 +82,7 @@ include("models/potts.jl")
 export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_impurity
 
 include("models/clock.jl")
-export classical_clock
+export classical_clock, classical_clock_symmetric
 
 include("models/XY.jl")
 export classical_XY_U1_symmetric
