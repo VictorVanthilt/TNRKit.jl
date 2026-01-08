@@ -75,7 +75,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 ### Examples
 ```julia
-    phi4_complex(10, -1, 1)
+    phi4_complex(10, -1., 1.)
 ```
 
 See also: [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -139,7 +139,7 @@ The impurity is a ϕ operator on this site.
 
 ### Examples
 ```julia
-    phi4_complex_impϕ(10, -1, 1)
+    phi4_complex_impϕ(10, -1., 1.)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -204,7 +204,7 @@ The impurity is a ϕ† operator on this site.
 
 ### Examples
 ```julia
-    phi4_complex_impϕdag(10, -1, 1)
+    phi4_complex_impϕdag(10, -1., 1.)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -268,7 +268,7 @@ The impurity is a √(ϕϕ†) operator on this site.
 
 ### Examples
 ```julia
-    phi4_complex_impϕabs(10, -1, 1)
+    phi4_complex_impϕabs(10, -1., 1.)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -332,7 +332,7 @@ The impurity is a ϕϕ† operator on this site.
 
 ### Examples
 ```julia
-    phi4_complex_impϕ2(10, -1, 1)
+    phi4_complex_impϕ2(10, -1., 1.)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -397,7 +397,7 @@ It is faster to compute them all at once then one for one individually.
 
 ### Examples
 ```julia
-    phi4_complex_all(10, -1, 1)
+    phi4_complex_all(10, -1., 1.)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_symmetric`](@ref).
@@ -487,7 +487,7 @@ This tensor has explicit U(1) symmetry on each of its spaces.
 
 ### Examples
 ```julia
-    phi4_complex_symmetric(10, -1, 1; μ=0)
+    phi4_complex_symmetric(10, -1., 1.; μ=0)
 ```
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).

@@ -54,7 +54,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 ### Examples
 ```julia
-    phi4_real(10, -1, 1, 0)
+    phi4_real(10, -1., 1., 0)
 ```
 
 ### References
@@ -104,7 +104,7 @@ The impurity is a ϕ operator on this site.
 
 ### Examples
 ```julia
-    phi4_real_imp1(10, -1, 1, 0)
+    phi4_real_imp1(10, -1., 1., 0)
 ```
 
 ### References
@@ -154,7 +154,7 @@ The impurity is a ϕ^2 operator on this site.
 
 ### Examples
 ```julia
-    phi4_real_imp2(10, -1, 1, 0)
+    phi4_real_imp2(10, -1., 1., 0)
 ```
 
 ### References
@@ -206,7 +206,7 @@ This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
 ### Examples
 ```julia
-    phi4_real_symmetric(10, -1, 1)
+    phi4_real_symmetric(10, -1., 1.)
 ```
 
 ### References
