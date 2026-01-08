@@ -6,7 +6,7 @@ using OptimKit, Zygote
 using DocStringExtensions
 using SpecialFunctions
 using FastGaussQuadrature
-using QuadGK 
+using QuadGK
 using Base.Threads
 using Combinatorics: permutations
 
