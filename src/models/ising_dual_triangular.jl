@@ -9,7 +9,7 @@ for the classical Ising model with a given inverse temperature `β`.
     classical_ising_dual_triangular() # Default inverse temperature is `ising_βc_triangular`
 ```
 
-See also: [`classical_ising_triangular_symmetric`](@ref).
+See also: [`classical_ising_dual_triangular`](@ref).
 """
 function classical_ising_dual_triangular(β) # Ref: 10.1103/physrevlett.99.120601
     T_ele = zeros(Float64, 2, 2, 2)
@@ -37,12 +37,12 @@ This tensor has explicit ℤ₂ symmetry on each of it spaces.
     classical_ising_dual_triangular_symmetric(0.5) # Custom inverse temperature.
 ```
 
-See also: [`classical_ising_dual_triangular`](@ref).
+See also: [`classical_ising_dual_triangular_symmetric`](@ref).
 """
 function classical_ising_dual_triangular_symmetric(β) # Ref: 10.1103/physrevlett.99.120601
     V = Z2Space(0 => 1, 1 => 1)
     α = Float64(exp(β/2))
-    T = ones(Float64, V ← V ⊗ V) * 1/α
+    T = ones(Float64, V ← V ⊗ V) / α
     T[(0, 0, 0)] .= α^3
     return T
 end
