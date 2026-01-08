@@ -69,7 +69,7 @@ Constructs the partition function tensor for a 2D square lattice
 for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -133,7 +133,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 The impurity is a ϕ operator on this site.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -198,7 +198,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 The impurity is a ϕ† operator on this site.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -262,7 +262,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 The impurity is a √(ϕϕ†) operator on this site.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -326,7 +326,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 The impurity is a ϕϕ† operator on this site.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -391,7 +391,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 It is faster to compute them all at once then one for one individually.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
@@ -480,7 +480,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 This tensor has explicit U(1) symmetry on each of its spaces.
     
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 - `μ::Number`: Chemical potential in the y direction. (Default μ=0, so no chemical potential)

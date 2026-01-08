@@ -47,7 +47,7 @@ Constructs the partition function tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 - `h::Number`: External field (default is 0).
@@ -97,7 +97,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 The impurity is a ϕ operator on this site.
 
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 - `h::Number`: External field (default is 0).
@@ -147,7 +147,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 The impurity is a ϕ^2 operator on this site.
 
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 - `h::Number`: External field (default is 0).
@@ -197,7 +197,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
 ### Arguments
-- `K::Int`: Number of quadrature points for Gauss-Hermite integration. K has to be even!
+- `K::Integer`: Number of quadrature points for Gauss-Hermite integration. K has to be even!
 - `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
 - `λ::Number`: Coupling constant.
 
