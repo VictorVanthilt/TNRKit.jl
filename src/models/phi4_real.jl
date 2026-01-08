@@ -1,7 +1,3 @@
-"""
-Note: we use μ0 instead of μ0^2 for readibility
-"""
-
 #####################################
 #       HELPER FUNCTIONS            #        
 #####################################
