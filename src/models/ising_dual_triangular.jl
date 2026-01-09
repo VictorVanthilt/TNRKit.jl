@@ -13,11 +13,11 @@ See also: [`classical_ising_dual_triangular`](@ref).
 """
 function classical_ising_dual_triangular(β) # Ref: 10.1103/physrevlett.99.120601
     T_ele = zeros(Float64, 2, 2, 2)
-    α = Float64(exp(β/2))
+    α = Float64(exp(β / 2))
     T_ele[1, 1, 1] = α^3
-    T_ele[1, 2, 2] = 1/α
-    T_ele[2, 1, 2] = 1/α
-    T_ele[2, 2, 1] = 1/α
+    T_ele[1, 2, 2] = 1 / α
+    T_ele[2, 1, 2] = 1 / α
+    T_ele[2, 2, 1] = 1 / α
 
     return TensorMap(T_ele, ℝ^2 ← ℝ^2 ⊗ ℝ^2)
 end
@@ -41,7 +41,7 @@ See also: [`classical_ising_dual_triangular_symmetric`](@ref).
 """
 function classical_ising_dual_triangular_symmetric(β) # Ref: 10.1103/physrevlett.99.120601
     V = Z2Space(0 => 1, 1 => 1)
-    α = Float64(exp(β/2))
+    α = Float64(exp(β / 2))
     T = ones(Float64, V ← V ⊗ V) / α
     T[(0, 0, 0)] .= α^3
     return T

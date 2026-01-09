@@ -104,7 +104,7 @@ function area_term(A::TensorMap, B::TensorMap, C::TensorMap; is_real = true)
     function f0(x)
         fx = B * x
         @plansor contractcheck = true ffx[-1 -2] := fx[1 2] * A[mid -2; 2 cir] * C[cir -1; 1 mid]
-        return permute(ffx, ((2,1), ()))
+        return permute(ffx, ((2, 1), ()))
     end
 
     spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
@@ -251,7 +251,7 @@ function spec(TA::TensorMap, TB::TensorMap, TC::TensorMap, shape::Array; Nh = 25
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
 
-    xspace, f = if shape ≈ [3/2, 2*sqrt(3), 1/4]
+    xspace, f = if shape ≈ [3 / 2, 2 * sqrt(3), 1 / 4]
         domain(TB) ⊗ domain(TB), MPO_action_two_triangles
     end
 
@@ -328,7 +328,7 @@ function cft_data!(scheme::LoopTNR, shape::Array)
 end
 
 function cft_data!(scheme::KagomeLoopTNR, shape::Array)
-    if !(shape in [[3/2, 2*sqrt(3), 1/4]])
+    if !(shape in [[3 / 2, 2 * sqrt(3), 1 / 4]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
     norm_const = area_term(scheme.TA, scheme.TB, scheme.TC)

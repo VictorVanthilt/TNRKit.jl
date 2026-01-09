@@ -29,9 +29,9 @@ function Ψ_A(scheme::KagomeLoopTNR)
 end
 
 function _entanglement_filtering(
-    TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}, TC::AbstractTensorMap{E, S, 2, 2},
-    entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
-) where {E,S}
+        TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}, TC::AbstractTensorMap{E, S, 2, 2},
+        entanglement_criterion::stopcrit, trunc::TensorKit.TruncationScheme
+    ) where {E, S}
     ΨA = Ψ_A(TA, TB, TC)
     PRs, PLs = find_projectors(
         ΨA, [1, 1, 1, 1, 1, 1], [3, 3, 3, 3, 3, 3],
@@ -46,10 +46,10 @@ end
 
 
 function entanglement_filtering!(
-    scheme::KagomeLoopTNR,
-    trunc::TensorKit.TruncationScheme,
-    entanglement_criterion::stopcrit = default_entanglement_criterion
-)
+        scheme::KagomeLoopTNR,
+        trunc::TensorKit.TruncationScheme,
+        entanglement_criterion::stopcrit = default_entanglement_criterion
+    )
     scheme.TA, scheme.TB, scheme.TC = _entanglement_filtering(
         scheme.TA, scheme.TB, scheme.TC, entanglement_criterion, trunc
     )
@@ -64,12 +64,12 @@ function ΨB_to_TATBTC(psiB::Vector{T}, TA::AbstractTensorMap{E, S, 2, 2}, TB::A
 end
 
 function loop_opt!(
-    scheme::KagomeLoopTNR,
-    loop_criterion::stopcrit,
-    trunc::TensorKit.TruncationScheme,
-    truncentanglement::TensorKit.TruncationScheme,
-    verbosity::Int
-)
+        scheme::KagomeLoopTNR,
+        loop_criterion::stopcrit,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        verbosity::Int
+    )
     psiA = Ψ_A(scheme)
     psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
     scheme.TA, scheme.TB, scheme.TC = ΨB_to_TATBTC(psiB, scheme.TA, scheme.TB, scheme.TC)

@@ -1,5 +1,5 @@
-abstract type LoopScheme{E,S} <: TNRScheme{E,S} end
-abstract type LinearLoopScheme{E,S} <: LoopScheme{E,S} end
+abstract type LoopScheme{E, S} <: TNRScheme{E, S} end
+abstract type LinearLoopScheme{E, S} <: LoopScheme{E, S} end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme) where {E, S}
@@ -242,25 +242,25 @@ function loop_opt(
 end
 
 function step!(
-    scheme::LinearLoopScheme,
-    trunc::TensorKit.TruncationScheme,
-    truncentanglement::TensorKit.TruncationScheme,
-    entanglement_criterion::stopcrit,
-    loop_criterion::stopcrit,
-    verbosity::Int
-)
+        scheme::LinearLoopScheme,
+        trunc::TensorKit.TruncationScheme,
+        truncentanglement::TensorKit.TruncationScheme,
+        entanglement_criterion::stopcrit,
+        loop_criterion::stopcrit,
+        verbosity::Int
+    )
     entanglement_filtering!(scheme, truncentanglement, entanglement_criterion)
     loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
     return scheme
 end
 
 function run!(
-    scheme::LinearLoopScheme, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
-    criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
-    finalizer::Finalizer{E};
-    finalize_beginning = true,
-    verbosity = 1
-) where {E}
+        scheme::LinearLoopScheme, trscheme::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme,
+        criterion::stopcrit, entanglement_criterion::stopcrit, loop_criterion::stopcrit,
+        finalizer::Finalizer{E};
+        finalize_beginning = true,
+        verbosity = 1
+    ) where {E}
     data = Vector{E}()
 
     LoggingExtras.withlevel(; verbosity) do
@@ -290,13 +290,13 @@ function run!(scheme, trscheme, truncentanglement, criterion, entanglement_crite
 end
 
 function run!(
-    scheme::LinearLoopScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
-    finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
-)
+        scheme::LinearLoopScheme, trscheme::TensorKit.TruncationScheme, criterion::stopcrit;
+        finalize_beginning = true, verbosity = 1, max_loop = 50, tol_loop = 1.0e-8
+    )
     loop_criterion = maxiter(max_loop) & convcrit(tol_loop, entanglement_function)
     return run!(
         scheme, trscheme, truncbelow(1.0e-15), criterion, default_entanglement_criterion, loop_criterion;
         finalize_beginning = finalize_beginning,
-        verbosity=verbosity
+        verbosity = verbosity
     )
 end

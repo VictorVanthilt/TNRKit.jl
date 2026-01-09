@@ -1,4 +1,4 @@
-const ising_βc_triangular = log(big(3.0))/4
+const ising_βc_triangular = log(big(3.0)) / 4
 const f_onsager_triangular::BigFloat = -3.20253248660790791834355252025862951439
 
 """
