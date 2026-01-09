@@ -2,7 +2,7 @@
 #       HELPER FUNCTIONS            #
 #####################################
 
-function f_complex(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
+function f_complex(ℝϕ1::Float64, ℂϕ1::Float64, ℝϕ2::Float64, ℂϕ2::Float64, μ0::Float64, λ::Float64)
     return exp(
         -1 / 2 * ((ℝϕ1 - ℝϕ2)^2 + (ℂϕ1 - ℂϕ2)^2)
             - μ0 / 8 * (ℝϕ1^2 + ℂϕ1^2 + ℝϕ2^2 + ℂϕ2^2)
@@ -11,7 +11,7 @@ function f_complex(ℝϕ1, ℂϕ1, ℝϕ2, ℂϕ2, μ0, λ)
 end
 
 
-function fmatrix_complex(ys, μ0, λ)
+function fmatrix_complex(ys::Float64, μ0::Float64, λ::Float64)
     K = length(ys)
     matrix = zeros(K^2, K^2)
     @threads for i in 1:K
@@ -39,7 +39,7 @@ function fmatrix_complex(ys, μ0, λ)
 end
 
 
-function precompute_moments_complex(K, μ0, λ)
+function precompute_moments_complex(K::Integer, μ0::Float64, λ::Float64)
     a = (4 + μ0) / 2
     b = λ / 4
     nmax = 8 * (K - 1) + 1
