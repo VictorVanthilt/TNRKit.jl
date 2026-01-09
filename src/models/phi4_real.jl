@@ -48,9 +48,9 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
-- `h::Number`: External field (default is 0).
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
+- `h::Float64`: External field (default is 0).
 
 ### Examples
 ```julia
@@ -62,7 +62,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 See also: [`phi4_real_imp1`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real(K::Integer, μ0::Number, λ::Number, h::Number = 0)
+function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -98,9 +98,9 @@ The impurity is a ϕ operator on this site.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
-- `h::Number`: External field (default is 0).
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
+- `h::Float64`: External field (default is 0).
 
 ### Examples
 ```julia
@@ -112,7 +112,7 @@ The impurity is a ϕ operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp1(K::Integer, μ0::Number, λ::Number, h::Number = 0)
+function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -148,9 +148,9 @@ The impurity is a ϕ^2 operator on this site.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
-- `h::Number`: External field (default is 0).
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
+- `h::Float64`: External field (default is 0).
 
 ### Examples
 ```julia
@@ -162,7 +162,7 @@ The impurity is a ϕ^2 operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp2(K::Integer, μ0::Number, λ::Number, h::Number = 0)
+function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -198,8 +198,8 @@ This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration. K has to be even!
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 !!! info
     `h` is always 0.
@@ -214,7 +214,7 @@ This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_symmetric(K::Integer, μ0::Number, λ::Number)
+function phi4_real_symmetric(K::Integer, μ0::Float64, λ::Float64)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end

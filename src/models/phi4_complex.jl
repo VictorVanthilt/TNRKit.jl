@@ -70,8 +70,8 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -80,7 +80,7 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 See also: [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex(K::Integer, μ0::Number, λ::Number)
+function phi4_complex(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -134,8 +134,8 @@ The impurity is a ϕ operator on this site.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -144,7 +144,7 @@ The impurity is a ϕ operator on this site.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex_impϕ(K::Integer, μ0::Number, λ::Number)
+function phi4_complex_impϕ(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -199,8 +199,8 @@ The impurity is a ϕ† operator on this site.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -209,7 +209,7 @@ The impurity is a ϕ† operator on this site.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex_impϕdag(K::Integer, μ0::Number, λ::Number)
+function phi4_complex_impϕdag(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -263,8 +263,8 @@ The impurity is a √(ϕϕ†) operator on this site.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -273,7 +273,7 @@ The impurity is a √(ϕϕ†) operator on this site.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex_impϕabs(K::Integer, μ0::Number, λ::Number)
+function phi4_complex_impϕabs(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -327,8 +327,8 @@ The impurity is a ϕϕ† operator on this site.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -337,7 +337,7 @@ The impurity is a ϕϕ† operator on this site.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_all`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex_impϕ2(K::Integer, μ0::Number, λ::Number)
+function phi4_complex_impϕ2(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -392,8 +392,8 @@ It is faster to compute them all at once then one for one individually.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
 
 ### Examples
 ```julia
@@ -402,7 +402,7 @@ It is faster to compute them all at once then one for one individually.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_symmetric`](@ref).
 """
-function phi4_complex_all(K::Integer, μ0::Number, λ::Number)
+function phi4_complex_all(K::Integer, μ0::Float64, λ::Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -481,9 +481,9 @@ This tensor has explicit U(1) symmetry on each of its spaces.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Number`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
-- `λ::Number`: Coupling constant.
-- `μ::Number`: Chemical potential in the y direction. (Default μ=0, so no chemical potential)
+- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `λ::Float64`: Coupling constant.
+- `μ::Float64`: Chemical potential in the y direction. (Default μ=0, so no chemical potential)
 
 ### Examples
 ```julia
@@ -492,7 +492,7 @@ This tensor has explicit U(1) symmetry on each of its spaces.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_symmetric(K::Integer, μ0::Number, λ::Number; μ::Number = 0)
+function phi4_complex_symmetric(K::Integer, μ0::Float64, λ::Float64; μ::Float64 = 0)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
