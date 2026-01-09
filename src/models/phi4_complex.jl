@@ -11,7 +11,7 @@ function f_complex(ℝϕ1::Float64, ℂϕ1::Float64, ℝϕ2::Float64, ℂϕ2::Fl
 end
 
 
-function fmatrix_complex(ys::Float64, μ0::Float64, λ::Float64)
+function fmatrix_complex(ys::Vector{Float64}, μ0::Float64, λ::Float64)
     K = length(ys)
     matrix = zeros(K^2, K^2)
     @threads for i in 1:K
