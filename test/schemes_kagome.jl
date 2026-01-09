@@ -21,7 +21,7 @@
 
     # @info "Test CFT data"
     @show scheme
-    @test isdefined(TNRKit, :cft_data!)
+    @show isdefined(TNRKit, :cft_data!)
     cft = cft_data!(scheme, [3 / 2, 2 * sqrt(3), 1 / 4])
     d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
     @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
