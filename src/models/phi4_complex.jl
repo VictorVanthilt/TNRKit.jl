@@ -492,7 +492,7 @@ This tensor has explicit U(1) symmetry on each of its spaces.
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_symmetric(K::Integer, μ0::Float64, λ::Float64; μ::Float64 = 0)
+function phi4_complex_symmetric(K::Integer, μ0::Float64, λ::Float64; μ::Float64 = 0.0)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
