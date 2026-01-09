@@ -12,10 +12,10 @@ models_2D = [
     sixvertex(Float64, Trivial),
     sixvertex(Float64, U1Irrep),
     sixvertex(Float64, CU1Irrep),
-    phi4_real(10, -1, 1),
-    phi4_real_symmetric(10, -1, 1),
-    phi4_complex(6, -1, 1),
-    phi4_complex_symmetric(6, -1, 1),
+    phi4_real(10, -1.0, 1.0),
+    phi4_real_symmetric(10, -1.0, 1.0),
+    phi4_complex(6, -1.0, 1.0),
+    phi4_complex_symmetric(6, -1.0, 1.0),
 ]
 
 temperatures = [
