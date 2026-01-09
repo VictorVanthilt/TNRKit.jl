@@ -98,6 +98,26 @@ function area_term(A, B; is_real = true)
     end
 end
 
+function area_term(A::TensorMap, B::TensorMap, C::TensorMap; is_real = true)
+    x0 = ones(domain(B))
+
+    function f0(x)
+        fx = B * x
+        @plansor contractcheck = true ffx[-1 -2] := fx[1 2] * A[mid -2; 2 cir] * C[cir -1; 1 mid]
+        return permute(ffx, ((2,1), ()))
+    end
+
+    spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
+    if info.converged == 0
+        @warn "The area term eigensolver did not converge."
+    end
+    if is_real
+        return real(spec0[1])
+    else
+        return spec0[1]
+    end
+end
+
 function MPO_opt(
         TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
@@ -154,6 +174,11 @@ function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
     @tensor ffx[-1 -2 -3 -4; 5] := TA[-3 -4; 2 3] * fx[1 2 3 4; 5] *
         TA[-1 -2; 4 1]
     return permute(ffx, ((2, 3, 4, 1), (5,)))
+end
+
+function MPO_action_two_triangles(TA::TensorMap, TB::TensorMap, TC::TensorMap, x::TensorMap)
+    @tensor fx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TB[-1 -2; 1 2] * TB[-3 -4; 3 4]
+    return MPO_action_1x4_twist(TC, TA, fx)
 end
 
 function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
@@ -214,6 +239,57 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
     return conformal_data
 end
 
+
+function spec(TA::TensorMap, TB::TensorMap, TC::TensorMap, shape::Array; Nh = 25)
+    area = shape[1] * shape[2]
+    Imτ = shape[1] / shape[2]
+    relative_shift = shape[3] / shape[1]
+
+    I = sectortype(TA)
+    𝔽 = field(TA)
+    if BraidingStyle(I) != Bosonic()
+        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
+    end
+
+    xspace, f = if shape ≈ [3/2, 2*sqrt(3), 1/4]
+        domain(TB) ⊗ domain(TB), MPO_action_two_triangles
+    end
+
+    spec_sector = Dict(
+        map(sectors(fuse(xspace))) do charge
+            V = (I == Trivial) ? 𝔽^1 : Vect[I](charge => 1)
+            x = ones(xspace ← V)
+            if dim(x) == 0
+                return charge => [0.0]
+            else
+                spec, _, info = eigsolve(
+                    a -> f(TA, TB, TC, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
+                    tol = 1.0e-12,
+                    verbosity = 0
+                )
+                if info.converged == 0
+                    @warn "The spectrum eigensolver in sector $charge did not converge."
+                end
+                return charge => filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
+            end
+        end
+    )
+
+    conformal_data = Dict()
+
+    norm_const_0 = spec_sector[one(I)][1]
+
+    for charge in sectors(fuse(xspace))
+        DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
+        if !(relative_shift ≈ 0)
+            conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
+        else
+            conformal_data[charge] = DeltaS
+        end
+    end
+    return conformal_data
+end
+
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
 function cft_data!(
@@ -248,6 +324,18 @@ function cft_data!(scheme::LoopTNR, shape::Array)
     scheme.TB = scheme.TB / norm_const^(1 / 4)
     @infov 2 "CFT data calculating"
     conformal_data = spec(scheme.TA, scheme.TB, shape)
+    return conformal_data
+end
+
+function cft_data!(scheme::KagomeLoopTNR, shape::Array)
+    if !(shape in [[3/2, 2*sqrt(3), 1/4]])
+        throw(ArgumentError("The shape $shape is not correct."))
+    end
+    norm_const = area_term(scheme.TA, scheme.TB, scheme.TC)
+    scheme.TA = scheme.TA / norm_const^(1 / 3)
+    scheme.TB = scheme.TB / norm_const^(1 / 3)
+    scheme.TC = scheme.TC / norm_const^(1 / 3)
+    conformal_data = spec(scheme.TA, scheme.TB, scheme.TC, shape)
     return conformal_data
 end
 
