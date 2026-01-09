@@ -2,7 +2,7 @@
 #       HELPER FUNCTIONS            #
 #####################################
 
-function f_real(ϕ1::Float64, ϕ2::Float64, μ0::Float64, λ::Float64, h::Float64 = 0.)
+function f_real(ϕ1::Float64, ϕ2::Float64, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     return exp(
         -1 / 2 * (ϕ1 - ϕ2)^2
             - μ0 / 8 * (ϕ1^2 + ϕ2^2)
@@ -11,7 +11,7 @@ function f_real(ϕ1::Float64, ϕ2::Float64, μ0::Float64, λ::Float64, h::Float6
     )
 end
 
-function fmatrix_real(ys::Vector{Float64}, μ0::Float64, λ::Float64, h::Float64 = 0.)
+function fmatrix_real(ys::Vector{Float64}, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     K = length(ys)
     matrix = zeros(K, K)
     for i in 1:K
@@ -62,7 +62,7 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 See also: [`phi4_real_imp1`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.)
+function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -112,7 +112,7 @@ The impurity is a ϕ operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp2`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.)
+function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -162,7 +162,7 @@ The impurity is a ϕ^2 operator on this site.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.)
+function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     # Weights and locations
     ys, ws = gausshermite(K)
 
