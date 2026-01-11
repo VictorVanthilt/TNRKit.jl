@@ -51,12 +51,12 @@ classical_ising_dual_triangular_symmetric() = classical_ising_dual_triangular_sy
 #     ↙     ↘     ↙     ↘     ↙
 #  T           T           T
 #  ↓           ↓           ↓
-#  T'.         T'          T'
-#     ↓     ↙     ↘     ↙     ↓
+#  T'          T'          T'
+#     ↘     ↙     ↘     ↙     ↘
 #        T           T
 #        ↓           ↓
 #        T'          T'
-#     ↙     ↓     ↙     ↓     ↙
+#     ↙     ↘     ↙     ↘     ↙
 #  T           T           T
 #  ↓           ↓           ↓
 #  T'          T'          T'
