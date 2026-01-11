@@ -5,7 +5,7 @@
     data = run!(scheme, truncdim(8), maxiter(10); max_loop = 20, verbosity = 3)
 
     @info "Test free energy"
-    fs = free_energy(data, ising_βc_triangular; scalefactor = 3.0)
+    fs = free_energy(data, ising_βc_triangular; scalefactor = 1.0)
     @test fs ≈ f_onsager_triangular rtol = 1.0e-4
 end
 
@@ -16,11 +16,11 @@ end
     data = run!(scheme, truncdim(16), maxiter(12); max_loop = 30, verbosity = 3)
 
     @info "Test free energy"
-    fs = free_energy(data, ising_βc_triangular; scalefactor = 3.0)
+    fs = free_energy(data, ising_βc_triangular; scalefactor = 1.0)
     @test fs ≈ f_onsager_triangular rtol = 1.0e-6
 
     @info "Test CFT data"
-    cft = TNRKit.cft_data!(scheme, [3 / 2, 2 * sqrt(3), 1 / 4])
+    cft = TNRKit.cft_data!(scheme, [3 / 2, 2 * sqrt(3), sqrt(3) / 2])
     d1, d2 = real(cft[Z2Irrep(1)][1]), real(cft[Z2Irrep(0)][2])
     @info "Obtained lowest scaling dimensions:\n$(d1), $(d2)."
     @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-3

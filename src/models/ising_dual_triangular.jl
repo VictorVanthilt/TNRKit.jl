@@ -77,13 +77,13 @@ classical_ising_dual_triangular_symmetric() = classical_ising_dual_triangular_sy
 #        |  ↙     ↘  |
 #        C           B
 
-# where 
+# where
 # A:
 #  |     |       ↘     ↙
 #  ↘     ↙          T
 #     A        =    ↓
 #  ↙     ↘          T'
-#  |     |       ↙     ↘   
+#  |     |       ↙     ↘
 #
 # B:
 #  |    |        |          ↓

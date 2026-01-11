@@ -295,6 +295,7 @@ function spec(TA::TensorMap, TB::TensorMap, TC::TensorMap, shape::Array; Nh = 25
             conformal_data[charge] = DeltaS
         end
     end
+    @show conformal_data
     return conformal_data
 end
 
