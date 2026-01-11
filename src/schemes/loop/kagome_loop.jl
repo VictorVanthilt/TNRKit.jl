@@ -1,3 +1,15 @@
+#           |  ↘     ↙  |
+#           ↓     A     ↓
+#           |  ↙     ↘  |
+#           C           B
+#  ↘     ↙  |           |  ↘     ↙
+#     A     ↓     ↺     ↓     A
+#  ↙     ↘  |           |  ↙     ↘
+#           B           C
+#           |  ↘     ↙  |
+#           ↓     A     ↓
+#           |  ↙     ↘  |
+#           C           B
 mutable struct KagomeLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: LinearLoopScheme{E, S}
     "Central tensor on sublattice A"
     TA::TT

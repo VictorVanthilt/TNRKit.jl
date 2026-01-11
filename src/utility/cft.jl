@@ -175,6 +175,14 @@ function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
         TA[-1 -2; 4 1]
     return permute(ffx, ((2, 3, 4, 1), (5,)))
 end
+#         1       2               3       4
+#           ↘   ↙                   ↘   ↙
+#             B                       B
+#           ↙   ↘                   ↙   ↘
+#         ↙       ↘               ↙       ↘
+# --←-- C ----←---- A ----←---- C ----←---- A --←--
+#     ↙               ↘       ↙               ↘
+#   4                   1   2                   3
 
 function MPO_action_two_triangles(TA::TensorMap, TB::TensorMap, TC::TensorMap, x::TensorMap)
     @tensor fx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TB[-1 -2; 1 2] * TB[-3 -4; 3 4]
@@ -251,7 +259,7 @@ function spec(TA::TensorMap, TB::TensorMap, TC::TensorMap, shape::Array; Nh = 25
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
     end
 
-    xspace, f = if shape ≈ [3 / 2, 2 * sqrt(3), 1 / 4]
+    xspace, f = if shape ≈ [3 / 2, 2 * sqrt(3), sqrt(3) / 2]
         domain(TB) ⊗ domain(TB), MPO_action_two_triangles
     end
 
@@ -328,7 +336,7 @@ function cft_data!(scheme::LoopTNR, shape::Array)
 end
 
 function cft_data!(scheme::KagomeLoopTNR, shape::Array)
-    if !(shape in [[3 / 2, 2 * sqrt(3), 1 / 4]])
+    if !(shape in [[3 / 2, 2 * sqrt(3), sqrt(3) / 2]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
     norm_const = area_term(scheme.TA, scheme.TB, scheme.TC)

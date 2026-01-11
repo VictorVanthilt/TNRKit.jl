@@ -48,6 +48,57 @@ function classical_ising_dual_triangular_symmetric(β) # Ref: 10.1103/physrevlet
 end
 classical_ising_dual_triangular_symmetric() = classical_ising_dual_triangular_symmetric(ising_βc_triangular)
 
+#     ↙     ↘     ↙     ↘     ↙
+#  T           T           T
+#  ↓           ↓           ↓
+#  T'.         T'          T'
+#     ↓     ↙     ↘     ↙     ↓
+#        T           T
+#        ↓           ↓
+#        T'          T'
+#     ↙     ↓     ↙     ↓     ↙
+#  T           T           T
+#  ↓           ↓           ↓
+#  T'          T'          T'
+#     ↘     ↙     ↘     ↙     ↘
+
+# contraction ⟶
+
+#        |  ↘     ↙  |
+#        ↓     A     ↓
+#        |  ↙     ↘  |
+#        C           B
+#     ↙  |           |  ↘     ↙
+#  A     ↓     ↺     ↓     A
+#     ↘  |           |  ↙     ↘
+#        B           C
+#        |  ↘     ↙  |
+#        ↓     A     ↓
+#        |  ↙     ↘  |
+#        C           B
+
+# where 
+# A:
+#  |     |       ↘     ↙
+#  ↘     ↙          T
+#     A        =    ↓
+#  ↙     ↘          T'
+#  |     |       ↙     ↘   
+#
+# B:
+#  |    |        |          ↓
+#    ↘  ↓        |          T'
+#       B      =   ↘     ↙     ↘
+#       ↓  ↘          T          |
+#       |    |        ↓          |
+#
+# C:
+#       |   |          ↓          |
+#       ↓  ↙           T'         |
+#       C      =    ↙     ↘     ↙
+#    ↓  ↓         |          T
+#   |   |         |          ↓
+
 function honeycomb_to_kagome(T::AbstractTensorMap{E, S, 1, 2}) where {E, S}
     TA = T' * T
     @tensor TB[-1 -2; -3 -4] := T'[5 -2; -4] * T[-1; -3 5]
