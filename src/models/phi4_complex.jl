@@ -68,6 +68,8 @@ $(SIGNATURES)
 Constructs the partition function tensor for a 2D square lattice
 for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -132,6 +134,8 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 The impurity is a ϕ operator on this site.
     
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -196,6 +200,8 @@ Constructs the impurity tensor for a 2D square lattice
 for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ† operator on this site.
+
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
@@ -261,6 +267,8 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 The impurity is a √(ϕϕ†) operator on this site.
     
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -325,6 +333,8 @@ for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0
 
 The impurity is a ϕϕ† operator on this site.
     
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -389,6 +399,8 @@ Constructs all the tensors: the partition function tensor and all the impurity t
 for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 It is faster to compute them all at once then one for one individually.
+
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
@@ -478,6 +490,8 @@ Constructs the partition function tensor for a 2D square lattice
 for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 This tensor has explicit U(1) symmetry on each of its spaces.
+
+It is based on Taylor expanding the mixed sites term.
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.

@@ -46,6 +46,8 @@ $(SIGNATURES)
 Constructs the partition function tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -95,6 +97,8 @@ Constructs the impurity tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ operator on this site.
+
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
@@ -146,6 +150,8 @@ for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, 
 
 The impurity is a ϕ^2 operator on this site.
 
+It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
+
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
@@ -195,6 +201,8 @@ Constructs the partition function tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 This tensor has explicit ℤ₂ symmetry on each of its spaces.
+
+It is based on Taylor expanding the mixed sites term.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration. K has to be even!
