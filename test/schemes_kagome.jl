@@ -23,7 +23,7 @@ end
     c, conformal_dim = TNRKit.cft_data(scheme, [3 / 2, 2 * sqrt(3), sqrt(3) / 2])
     d1, d2 = real(conformal_dim[Z2Irrep(1)][1]), real(conformal_dim[Z2Irrep(0)][2])
     @info "Obtained central charge:\n$c and lowest scaling dimensions:\n$(d1), $(d2)."
-    @test c ≈ 1 / 2 rtol = 2.0e-4
+    @test real(c) ≈ 1 / 2 rtol = 2.0e-4
     @test d1 ≈ ising_cft_exact[1] rtol = 5.0e-3
     @test d2 ≈ ising_cft_exact[2] rtol = 5.0e-4
 end
