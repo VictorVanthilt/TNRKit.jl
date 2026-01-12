@@ -71,16 +71,16 @@ function CTM_init(T; bc = ones, bc_free = false)
     return C, C, C, C, El, Eb, Et, Er
 end
 
-function normalize!(ctm::CTM)
-    ctm.Ctl /= norm(ctm.Ctl)
-    ctm.Ctr /= norm(ctm.Ctr)
-    ctm.Cbr /= norm(ctm.Cbr)
-    ctm.Cbl /= norm(ctm.Cbl)
-    ctm.Et /= norm(ctm.Et)
-    ctm.Er /= norm(ctm.Er)
-    ctm.Eb /= norm(ctm.Eb)
-    ctm.El /= norm(ctm.El)
-    return nothing
+function LinearAlgebra.normalize!(ctm::CTM)
+    normalize!(ctm.Ctl)
+    normalize!(ctm.Ctr)
+    normalize!(ctm.Cbr)
+    normalize!(ctm.Cbl)
+    normalize!(ctm.Et)
+    normalize!(ctm.Er)
+    normalize!(ctm.Eb)
+    normalize!(ctm.El)
+    return ctm
 end
 
 """
@@ -116,9 +116,8 @@ end
 
 function corner_spectrum(ctm::CTM)
     rho = ρA(ctm)
-    rho /= abs(tr(rho))
-    _, S, _ = tsvd(rho)
-    return S.data
+    S = LinearAlgebra.svdvals!(rho)
+    return normalize!(S, 1)
 end
 
 function step!(ctm::CTM, trunc::TensorKit.TruncationScheme)
@@ -161,11 +160,11 @@ function run!(ctm::CTM, trunc::TensorKit.TruncationScheme, criterion::maxiter; c
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if size(ES) == size(ES_new)
+            if space(ES) == space(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
-                if norm(ES - ES_new) < conv_criterion
+                if normdiff < conv_criterion
                     @infov 1 "CTM converged after $(steps + 1) iterations"
                     break
                 end

@@ -90,15 +90,20 @@ export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_im
 include("models/clock.jl")
 export classical_clock
 
+include("models/XY.jl")
+export classical_XY_U1_symmetric
+export classical_XY_O2_symmetric
+
 # utility functions
 include("utility/free_energy.jl")
 export free_energy
 
 include("utility/cft.jl")
-export cft_data, central_charge
+export cft_data, central_charge, ground_state_degeneracy, gu_wen_ratio
 
 include("utility/finalize.jl")
-export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
+export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!,
+    finalize_groundstatedegeneracy!, GSDegeneracy_Finalizer, guwenratio_Finalizer
 
 include("utility/cdl.jl")
 export cdl_tensor
