@@ -1,73 +1,3 @@
-"""
-$(TYPEDEF)
-
-Corner Transfer Matrix Renormalization Group for the triangular lattice
-
-### Constructors
-    $(FUNCTIONNAME)(T)
-    $(FUNCTIONNAME)(T, [, symmetrize=false])
-
-     (120°)     (60°)
-        ╲       ╱
-         ╲     ╱
-          ╲   ╱
-(180°)----- T -----(0°)
-           ╱ ╲
-          ╱   ╲
-         ╱     ╲
-      (240°) (300°)
-
-CTM can be called with a (3, 3) tensor, where the directions are (180°, 240°, 300°, 120°, 60°, 0°) clockwise with respect to the positive x-axis.
-In the flipped arrow convention, the arrows point from (120°, 60°, 0°) to (180°, 240°, 300°).
-or with a (0,6) tensor (120°, 60°, 0°, 300°, 240°, 180°) where all arrows point inward (unflipped arrow convention).
-The keyword argument symmetrize makes the tensor C6v symmetric when set to true. If symmetrize = false, it checks the symmetry explicitly.
-
-### Running the algorithm
-    run!(::CTM, trunc::TensorKit.TruncationSheme, stop::Stopcrit[, finalize_beginning=true, verbosity=1])
-
-!!! info "verbosity levels"
-    - 0: No output
-    - 1: Print information at start and end of the algorithm
-    - 2: Print information at each step
-
-### Fields
-
-$(TYPEDFIELDS)
-"""
-mutable struct CTM_triangular{A, S}
-    T::TensorMap{A, S, 0, 6}
-    C::Array{TensorMap{A, S, 2, 1}, 1}
-    Ea::Array{TensorMap{A, S, 2, 1}, 1}
-    Eb::Array{TensorMap{A, S, 2, 1}, 1}
-
-    function CTM_triangular(T::TensorMap{A, S, 0, 6}; vspace = oneunit(space(T)[1]')) where {A, S}
-        C, Ea, Eb = CTM_triangular_init(T, vspace)
-
-        if BraidingStyle(sectortype(T)) != Bosonic()
-            @warn "$(summary(BraidingStyle(sectortype(T)))) braiding style is not supported for c6vCTM"
-        end
-        return new{A, S}(T, C, Ea, Eb)
-    end
-end
-
-function CTM_triangular(T_flipped::TensorMap{A, S, 3, 3}; vspace = oneunit(space(T_flipped)[4]'), symmetrize = false) where {A, S}
-    T_unflipped = permute(flip(T_flipped, (1, 2, 3); inv = true), ((), (4, 5, 6, 3, 2, 1)))
-
-    if symmetrize
-        T_unflipped = symmetrize_C6v(T_unflipped)
-    end
-    return CTM_triangular(T_unflipped; vspace)
-end
-
-function CTM_triangular_init(T::TensorMap{A, S, 0, 6}, vspace) where {A, S}
-    S_type = scalartype(T)
-    Vp = space(T)[1]'
-    C = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
-    Ea = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
-    Eb = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
-    return C, Ea, Eb
-end
-
 # Based on
 # https://arxiv.org/pdf/2510.04907
 
@@ -114,7 +44,7 @@ function step!(scheme::CTM_triangular, trunc; projectors = :twothirds, condition
     return Ss
 end
 
-function calculate_projectors(scheme::CTM_triangular, trunc, projectors)
+function calculate_projectors(scheme::Union{CTM_triangular, c6vCTM_triangular}, trunc, projectors)
     if projectors == :full
         return calculate_full_projectors(scheme, trunc)
     elseif projectors == :twothirds
@@ -180,7 +110,7 @@ function renormalize_corners!(scheme, Pas, Pbs)
     return
 end
 
-function network_value_triangular(scheme::CTM_triangular)
+function network_value(scheme::Union{CTM_triangular, c6vCTM_triangular})
     nw_corners = _contract_corners(scheme)
     nw_full = _contract_site_large(scheme)
     nw_0 = _contract_edges_0(scheme)
@@ -189,8 +119,8 @@ function network_value_triangular(scheme::CTM_triangular)
     return (nw_full * nw_corners^2 / (nw_0 * nw_60 * nw_120))^(1 / 3)
 end
 
-function lnz(scheme::CTM_triangular)
-    return real(log(network_value_triangular(scheme)))
+function lnz(scheme::Union{CTM_triangular, c6vCTM_triangular})
+    return real(log(network_value(scheme)))
 end
 
 function build_double_corner_matrix_triangular(scheme::CTM_triangular, dir::Int)

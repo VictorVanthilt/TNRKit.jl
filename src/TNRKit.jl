@@ -26,8 +26,9 @@ include("schemes/ctm/ctm_trg.jl")
 include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
-include("schemes/ctm/c6vctm_triangular.jl")
+include("schemes/ctm/triangular.jl")
 include("schemes/ctm/ctm_triangular.jl")
+include("schemes/ctm/c6vctm_triangular.jl")
 
 # Impurity methods
 include("schemes/impuritytrg.jl")
