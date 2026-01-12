@@ -10,6 +10,28 @@
 #           ↓     A     ↓
 #           |  ↙     ↘  |
 #           C           B
+"""
+$(TYPEDEF)
+
+Loop Optimization for Tensor Network Renormalization on Kagome lattice
+
+### Constructors
+    $(FUNCTIONNAME)(TA, TB, TC)
+
+### Running the algorithm: the same as the one on the square lattice
+    run!(::KagomeLoopTNR, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme, criterion::stopcrit,
+              entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+
+    run!(::KagomeLoopTNR, trscheme::TensorKit.TruncationScheme, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* NaN
+
+"""
 mutable struct KagomeLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: LinearLoopScheme{E, S}
     "Central tensor on sublattice A"
     TA::TT
