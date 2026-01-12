@@ -75,8 +75,14 @@ end
 """
 The "canonical" normalization constant for loop-TNR tensors,
 which is the eigenvalue with largest norm of the 2 x 2 transfer matrix.
+If the system is described by a CFT, this constant is
+Λ₀ = exp(-π/6 * ℑ(τ) * c + fA)
+where A is the area of the unit block, τ is the modular parameter and c is the central charge.
+
+On the square lattice, we have τ = i and A = 4. On the Kagome lattice, we have τ = exp(2πi/3) and A = 3√3/2.
+Here we have assumed each tensor represents a partition function on a diamond shape with angle π/3 and 2π/3 and each edge has lenth 1.
 """
-function area_term(A, B; is_real = true)
+function area_term(A::TensorMap{E, S, 2, 2}, B::TensorMap{E, S, 2, 2}; is_real = true) where {E, S}
     a_in = domain(A)[1]
     b_in = domain(B)[1]
     x0 = ones(a_in ⊗ b_in)
@@ -87,18 +93,42 @@ function area_term(A, B; is_real = true)
         return ffx
     end
 
-    spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
+    spec0, _, info = eigsolve(f0, x0, 1, :LM; verbosity = 0)
     if info.converged == 0
         @warn "The area term eigensolver did not converge."
     end
-    if is_real
-        return real(spec0[1])
+    if is_real                  # If the central charge is real and the ground state is of spin-0
+        return norm(spec0[1])
     else
         return spec0[1]
     end
 end
 
-function area_term(A::TensorMap, B::TensorMap, C::TensorMap; is_real = true)
+# The fixed-point tensor network represents the partition function of the original system on a hexagon:
+#         1       2
+#           ↘   ↙
+#             B
+#           ↙   ↘
+#         ↙       ↘
+# --←-- C ----←---- A --←--
+#     ↙               ↘
+#   2                   1
+#
+# =
+#
+# Z(
+#                / \
+#           ↙           ⇘
+#      /                     \
+#      \          B          /
+#     |     \           /     |
+#     ⇊          \ /          ⇊
+#     |     C     |     A     |
+#      \          |          /
+#           ⇘     |     ↙
+#                \ /
+# )
+function area_term(A::TensorMap{E, S, 2, 2}, B::TensorMap{E, S, 2, 2}, C::TensorMap{E, S, 2, 2}; is_real = true) where {E, S}
     x0 = ones(domain(B))
 
     function f0(x)
@@ -107,21 +137,21 @@ function area_term(A::TensorMap, B::TensorMap, C::TensorMap; is_real = true)
         return permute(ffx, ((2, 1), ()))
     end
 
-    spec0, _, info = eigsolve(f0, x0, 1, :LR; verbosity = 0)
+    spec0, _, info = eigsolve(f0, x0, 1, :LM; verbosity = 0)
     if info.converged == 0
         @warn "The area term eigensolver did not converge."
     end
     if is_real
-        return real(spec0[1])
+        return abs(spec0[1])
     else
         return spec0[1]
     end
 end
 
 function MPO_opt(
-        TA::TensorMap, TB::TensorMap, trunc::TensorKit.TruncationScheme,
+        TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, trunc::TensorKit.TruncationScheme,
         truncentanglement::TensorKit.TruncationScheme
-    )
+    ) where {E, S}
     pretrunc = truncdim(2 * trunc.dim)
     dl, ur = SVD12(TA, pretrunc)
     dr, ul = SVD12(transpose(TB, ((2, 4), (1, 3))), pretrunc)
@@ -145,9 +175,9 @@ function MPO_opt(
 end
 
 function reduced_MPO(
-        dl::TensorMap, ur::TensorMap, ul::TensorMap, dr::TensorMap,
+        dl::TensorMap{E, S, 1, 2}, ur::TensorMap{E, S, 1, 2}, ul::TensorMap{E, S, 1, 2}, dr::TensorMap{E, S, 1, 2},
         trunc::TensorKit.TruncationScheme
-    )
+    ) where {E, S}
     @plansor temp[-1 -2; -3 -4] := ur[-1; 1 4] *
         ul[4; 3 -2] *
         dr[-3; 2 1] * dl[2; -4 3]
@@ -156,70 +186,81 @@ function reduced_MPO(
     return translate
 end
 
-function MPO_action_1x4(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1})
-    @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TA[41 -1; 1 12] *
+function MPO_action_1x4(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}) where {E, S}
+    @tensor contractcheck = true TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TA[41 -1; 1 12] *
         TB[12 -2; 2 23] *
         TA[23 -3; 3 34] * TB[34 -4; 4 41]
     return TTTTx
 end
 
-function MPO_action_1x4_twist(TA::TensorMap, TB::TensorMap, x::TensorMap)
+function MPO_action_1x4_twist(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}) where {E, S}
     TTTTx = MPO_action_1x4(TA, TB, x)
     return permute(TTTTx, ((2, 3, 4, 1), (5,)))
 end
 
 # Fig.25 of https://arxiv.org/pdf/2311.18785. Firstly appear in Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
-function MPO_action_2gates(TA::TensorMap, TB::TensorMap, x::TensorMap)
+function MPO_action_2gates(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}) where {E, S}
     @tensor fx[-1 -2 -3 -4; 5] := TB[-1 -2; 1 2] * x[1 2 3 4; 5] * TB[-3 -4; 3 4]
     @tensor ffx[-1 -2 -3 -4; 5] := TA[-3 -4; 2 3] * fx[1 2 3 4; 5] *
         TA[-1 -2; 4 1]
     return permute(ffx, ((2, 3, 4, 1), (5,)))
 end
-#         1       2               3       4
-#           ↘   ↙                   ↘   ↙
-#             B                       B
-#           ↙   ↘                   ↙   ↘
-#         ↙       ↘               ↙       ↘
-# --←-- C ----←---- A ----←---- C ----←---- A --←--
-#     ↙               ↘       ↙               ↘
-#   4                   1   2                   3
+#       1       2         3       4
+#         ↘   ↙             ↘   ↙
+#           B                 B
+#         ↙   ↘             ↙   ↘
+# --←-- C --←-- A ---←--- C --←-- A --←--
+#     ↙           ↘     ↙           ↘
+#   4               1 2               3
 
-function MPO_action_two_triangles(TA::TensorMap, TB::TensorMap, TC::TensorMap, x::TensorMap)
+function MPO_action_2triangles(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, TC::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}) where {E, S}
     @tensor fx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TB[-1 -2; 1 2] * TB[-3 -4; 3 4]
     return MPO_action_1x4_twist(TC, TA, fx)
 end
 
-function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
+# Assign the corresponding Hilbert space and action functions
+function _action_assignmentor_no_approximation(scheme::LinearLoopScheme, shape::Array)
+    return if shape ≈ [1, 4, 1]
+        return domain(scheme.TA)[1] ⊗ domain(scheme.TB)[1] ⊗ domain(scheme.TA)[1] ⊗ domain(scheme.TB)[1],
+            x -> MPO_action_1x4_twist(scheme.TA, scheme.TB, x)
+    elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0]
+        return domain(scheme.TB) ⊗ domain(scheme.TB), x -> MPO_action_2gates(scheme.TA, scheme.TB, x)
+    elseif shape ≈ [3 / 2, 2 * sqrt(3), sqrt(3) / 2]
+        return domain(scheme.TB) ⊗ domain(scheme.TB), x -> MPO_action_2triangles(scheme.TA, scheme.TB, scheme.TC, x)
+    end
+end
+function _action_assignmentor_approximation(scheme::LinearLoopScheme, shape::Array, trunc::TensorKit.TruncationScheme, truncentanglement::TensorKit.TruncationScheme)
+    return if shape ≈ [1, 8, 1] || shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
+        dl, ur, ul, dr = MPO_opt(scheme.TA, scheme.TB, trunc, truncentanglement)
+        T = reduced_MPO(dl, ur, ul, dr, trunc)
+        if shape ≈ [1, 8, 1]
+            return domain(T)[1] ⊗ domain(T)[1] ⊗ domain(T)[1] ⊗ domain(T)[1], x -> MPO_action_1x4(T, T, x)
+        elseif shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
+            return domain(T) ⊗ domain(T), x -> MPO_action_2gates(T, T, x)
+        end
+    end
+end
+
+# area0: the area in the unitcell, used in the function area_term.
+function cft_data_solver(xspace::TensorSpace, f::Function, shape::Array; Nh = 25, area0 = 4.0, Imτ0 = 1.0)
+    I = sectortype(xspace)
     area = shape[1] * shape[2]
     Imτ = shape[1] / shape[2]
     relative_shift = shape[3] / shape[1]
 
-    I = sectortype(TA)
-    𝔽 = field(TA)
     if BraidingStyle(I) != Bosonic()
         throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
-    xspace, f = if shape ≈ [1, 4, 1]
-        domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1],
-            MPO_action_1x4_twist
-    elseif shape ≈ [1, 8, 1]
-        domain(TA)[1] ⊗ domain(TB)[1] ⊗ domain(TA)[1] ⊗ domain(TB)[1],
-            MPO_action_1x4
-    elseif shape ≈ [sqrt(2), 2 * sqrt(2), 0] ||
-            shape ≈ [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]
-        domain(TB) ⊗ domain(TB), MPO_action_2gates
     end
 
     spec_sector = Dict(
         map(sectors(fuse(xspace))) do charge
             V = (I == Trivial) ? 𝔽^1 : Vect[I](charge => 1)
-            x = ones(xspace ← V)
+            x = ones(xspace ← V) # Initial guess of the eigenvector
             if dim(x) == 0
                 return charge => [0.0]
             else
                 spec, _, info = eigsolve(
-                    a -> f(TA, TB, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
+                    f, x, Nh, :LM; krylovdim = 40, maxiter = 100,
                     tol = 1.0e-12,
                     verbosity = 0
                 )
@@ -231,121 +272,63 @@ function spec(TA::TensorMap, TB::TensorMap, shape::Array; Nh = 25)
         end
     )
 
-    conformal_data = Dict()
-
     norm_const_0 = spec_sector[one(I)][1]
-    conformal_data["c"] = 6 / pi / (Imτ - area / 4) * log(norm_const_0)
+    central_charge = 6 / pi / (Imτ - area / area0 * Imτ0) * log(norm_const_0) # calculate central charge
 
-    for charge in sectors(fuse(xspace))
-        DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
-        if !(relative_shift ≈ 0)
-            conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
-        else
-            conformal_data[charge] = DeltaS
-        end
-    end
-    return conformal_data
-end
-
-
-function spec(TA::TensorMap, TB::TensorMap, TC::TensorMap, shape::Array; Nh = 25)
-    area = shape[1] * shape[2]
-    Imτ = shape[1] / shape[2]
-    relative_shift = shape[3] / shape[1]
-
-    I = sectortype(TA)
-    𝔽 = field(TA)
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
-    xspace, f = if shape ≈ [3 / 2, 2 * sqrt(3), sqrt(3) / 2]
-        domain(TB) ⊗ domain(TB), MPO_action_two_triangles
-    end
-
-    spec_sector = Dict(
+    conformal_dims = Dict(                                                          # transform eigenvalue data to conformal dimension data
         map(sectors(fuse(xspace))) do charge
-            V = (I == Trivial) ? 𝔽^1 : Vect[I](charge => 1)
-            x = ones(xspace ← V)
-            if dim(x) == 0
-                return charge => [0.0]
+            DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
+            if !(relative_shift ≈ 0)
+                return charge => real.(DeltaS) + imag.(DeltaS) / relative_shift * im
+                @info "The shape $shape with horizontal displacement $(shape[3]) can only resolve conformal spins up to $(shape[2] / shape[3])"
             else
-                spec, _, info = eigsolve(
-                    a -> f(TA, TB, TC, a), x, Nh, :LM; krylovdim = 40, maxiter = 100,
-                    tol = 1.0e-12,
-                    verbosity = 0
-                )
-                if info.converged == 0
-                    @warn "The spectrum eigensolver in sector $charge did not converge."
-                end
-                return charge => filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
+                @warn "The shape $shape with horizontal displacement $(shape[3])≈0 cannot resolve conformal spins."
+                return charge => DeltaS
             end
         end
     )
 
-    conformal_data = Dict()
-
-    norm_const_0 = spec_sector[one(I)][1]
-
-    for charge in sectors(fuse(xspace))
-        DeltaS = -1 / (2 * pi * Imτ) * log.(spec_sector[charge] / norm_const_0)
-        if !(relative_shift ≈ 0)
-            conformal_data[charge] = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
-        else
-            conformal_data[charge] = DeltaS
-        end
-    end
-    @show conformal_data
-    return conformal_data
+    return central_charge, conformal_dims       # output is a two-elements tuple
 end
+
 
 # The function to obtain central charge and conformal spectrum from the fixed-point tensor with G-symmetry. Here the conformal spectrum is obtained by different charge sectors.
 # The case with spin is based on https://arxiv.org/pdf/1512.03846 and some private communications with Yingjie Wei and Atsushi Ueda
-function cft_data!(
+function cft_data(
         scheme::LoopTNR, shape::Array,
-        trunc::TensorKit.TruncationScheme,
-        truncentanglement::TensorKit.TruncationScheme
+        trunc::TensorKit.TruncationScheme;
+        truncentanglement = truncbelow(1.0e-13)
     )
     if !(shape in [[1, 8, 1], [4 / sqrt(10), 2 * sqrt(10), 2 / sqrt(10)]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
 
-    norm_const = area_term(scheme.TA, scheme.TB)
-    scheme.TA = scheme.TA / norm_const^(1 / 4)
-    scheme.TB = scheme.TB / norm_const^(1 / 4)
+    norm_const = area_term(scheme.TA, scheme.TB)^(1 / 4) # calculate the normalization constant
     @infov 2 "CFT data calculating"
 
-    dl, ur, ul, dr = MPO_opt(scheme.TA, scheme.TB, trunc, truncentanglement)
-    T = reduced_MPO(dl, ur, ul, dr, trunc)
-
     # Calculate conformal data with spin from -4 to 4. Most error is introduced in the second step of the SVD.
-    conformal_data = spec(T, T, shape)
-    return conformal_data
+    V, f = _action_assignmentor_approximation(LoopTNR(scheme.TA / norm_const, scheme.TB / norm_const), shape, trunc, truncentanglement)
+    return cft_data_solver(V, f, shape)
 end
 
-function cft_data!(scheme::LoopTNR, shape::Array)
+function cft_data(scheme::LoopTNR, shape::Array)
     if !(shape in [[1, 4, 1], [sqrt(2), 2 * sqrt(2), 0]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
 
-    norm_const = area_term(scheme.TA, scheme.TB)
-    scheme.TA = scheme.TA / norm_const^(1 / 4)
-    scheme.TB = scheme.TB / norm_const^(1 / 4)
+    norm_const = area_term(scheme.TA, scheme.TB)^(1 / 4)
     @infov 2 "CFT data calculating"
-    conformal_data = spec(scheme.TA, scheme.TB, shape)
-    return conformal_data
+    V, f = _action_assignmentor_no_approximation(LoopTNR(scheme.TA / norm_const, scheme.TB / norm_const), shape)
+    return cft_data_solver(V, f, shape)
 end
 
-function cft_data!(scheme::KagomeLoopTNR, shape::Array)
+function cft_data(scheme::KagomeLoopTNR, shape::Array)
     if !(shape in [[3 / 2, 2 * sqrt(3), sqrt(3) / 2]])
         throw(ArgumentError("The shape $shape is not correct."))
     end
-    norm_const = area_term(scheme.TA, scheme.TB, scheme.TC)
-    scheme.TA = scheme.TA / norm_const^(1 / 3)
-    scheme.TB = scheme.TB / norm_const^(1 / 3)
-    scheme.TC = scheme.TC / norm_const^(1 / 3)
-    conformal_data = spec(scheme.TA, scheme.TB, scheme.TC, shape)
-    return conformal_data
+    norm_const = area_term(scheme.TA, scheme.TB, scheme.TC)^(1 / 3)
+    V, f = _action_assignmentor_no_approximation(KagomeLoopTNR(scheme.TA / norm_const, scheme.TB / norm_const, scheme.TC / norm_const), shape)
+    return cft_data_solver(V, f, shape; area0 = 3 * sqrt(3) / 2, Imτ0 = sqrt(3) / 2)
 end
 
 """
