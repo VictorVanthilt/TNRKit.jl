@@ -103,7 +103,7 @@ function area_term(A::TensorMap, B::TensorMap, C::TensorMap; is_real = true)
 
     function f0(x)
         fx = B * x
-        @plansor contractcheck = true ffx[-1 -2] := fx[1 2] * A[mid -2; 2 cir] * C[cir -1; 1 mid]
+        @plansor ffx[-1 -2] := fx[1 2] * A[mid -2; 2 cir] * C[cir -1; 1 mid]
         return permute(ffx, ((2, 1), ()))
     end
 
@@ -156,7 +156,7 @@ function reduced_MPO(
     return translate
 end
 
-function MPO_action_1x4(TA::TensorMap, TB::TensorMap, x::TensorMap)
+function MPO_action_1x4(TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1})
     @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] * TA[41 -1; 1 12] *
         TB[12 -2; 2 23] *
         TA[23 -3; 3 34] * TB[34 -4; 4 41]

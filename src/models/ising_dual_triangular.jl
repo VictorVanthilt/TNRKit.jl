@@ -93,11 +93,11 @@ classical_ising_dual_triangular_symmetric() = classical_ising_dual_triangular_sy
 #       |    |        ↓          |
 #
 # C:
-#       |   |          ↓          |
+#       |    |         ↓          |
 #       ↓  ↙           T'         |
 #       C      =    ↙     ↘     ↙
 #    ↓  ↓         |          T
-#   |   |         |          ↓
+#  |    |         |          ↓
 
 function honeycomb_to_kagome(T::AbstractTensorMap{E, S, 1, 2}) where {E, S}
     TA = T' * T
