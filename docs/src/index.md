@@ -23,6 +23,9 @@ Many common TNR schemes have already been implemented:
 **2D triangular tensor networks**
 * [`c6vCTM_triangular`](@ref) (c6v symmetric CTM on the triangular lattice)
 
+**2D kagome tensor networks**
+* [`KagomeLoopTNR`](@ref) (LoopTNR on kagome lattice)
+
 **CTM methods (yet to be documented)**
 * `ctm_TRG` (Corner Transfer Matrix environment + TRG)
 * `ctm_HOTRG` (Corner Transfer Matrix environment + HOTRG)
@@ -83,7 +86,11 @@ TNRKit includes several common models out of the box.
 ## Included Models on the triangular lattice
 TNRKit includes several common models out of the box.
 - Ising model: [`classical_ising_triangular`](@ref) and [`classical_ising_triangular_symmetric`](@ref), which has a Z2 grading on each leg.
-  
+
+## Included Models on the dual triangular lattice
+TNRKit also inputs the Ising model on the dual triangular lattice.
+- Ising model: [`classical_ising_dual_triangular`](@ref) and [`classical_ising_dual_triangular_symmetric`](@ref), which has a Z2 grading on each leg.
+
 If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes.
 
 ## Leg-convention

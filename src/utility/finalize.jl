@@ -53,6 +53,20 @@ function finalize!(scheme::LoopTNR)
     return n^(1 / 4)
 end
 
+function finalize!(scheme::KagomeLoopTNR)
+    TA = scheme.TA
+    TB = scheme.TB
+    TC = scheme.TC
+    n = norm(
+        @tensor opt = true TA[1 2; 9 7] * TB[3 9; 2 8] *
+            TC[4 8; 3 10] * TA[10 12; 5 4] * TB[11 5; 12 6] * TC[7 6; 11 1]
+    )
+    scheme.TA /= n^(1 / 6)
+    scheme.TB /= n^(1 / 6)
+    scheme.TC /= n^(1 / 6)
+    return n^(1 / 6)
+end
+
 function finalize!(scheme::ATRG_3D)
     n = norm(@tensor scheme.T[1 1; 2 3 2 3])
     scheme.T /= n

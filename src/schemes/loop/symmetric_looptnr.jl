@@ -21,7 +21,7 @@ $(TYPEDFIELDS)
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017) (Fig. S6)
 
 """
-mutable struct SLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 4, 0}} <: TNRScheme{E, S}
+mutable struct SLoopTNR{E, S, TT <: AbstractTensorMap{E, S, 4, 0}} <: LoopScheme{E, S}
     "Central tensor"
     T::TT
 

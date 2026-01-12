@@ -34,8 +34,10 @@ include("schemes/impuritytrg.jl")
 include("schemes/impurityhotrg.jl")
 
 # Loop Methods
-include("schemes/looptnr.jl")
-include("schemes/symmetric_looptnr.jl")
+include("schemes/loop/looptnr.jl")
+include("schemes/loop/square_loop.jl")
+include("schemes/loop/kagome_loop.jl")
+include("schemes/loop/symmetric_looptnr.jl")
 export classical_ising_inv # Ising model with all legs in codomain
 
 export TNRScheme
@@ -59,7 +61,9 @@ export c6vCTM_triangular
 export ImpurityTRG
 export ImpurityHOTRG
 
+export LoopScheme, LinearLoopScheme
 export LoopTNR
+export KagomeLoopTNR
 export SLoopTNR
 
 export run!
@@ -67,10 +71,12 @@ export run!
 # models
 include("models/ising.jl")
 include("models/ising_triangular.jl")
+include("models/ising_dual_triangular.jl")
 export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
     ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, classical_ising_impurity,
     classical_ising_triangular, classical_ising_triangular_symmetric,
-    ising_βc_triangular, f_onsager_triangular
+    ising_βc_triangular, f_onsager_triangular, classical_ising_dual_triangular,
+    classical_ising_dual_triangular_symmetric, honeycomb_to_kagome
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
