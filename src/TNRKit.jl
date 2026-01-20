@@ -4,6 +4,11 @@ using LoggingExtras, Printf
 using KrylovKit
 using OptimKit, Zygote
 using DocStringExtensions
+using SpecialFunctions
+using FastGaussQuadrature
+using QuadGK
+using Base.Threads
+using Combinatorics: permutations
 
 # stop criteria
 include("utility/stopping.jl")
@@ -26,6 +31,8 @@ include("schemes/ctm/ctm_trg.jl")
 include("schemes/ctm/ctm_hotrg.jl")
 include("schemes/ctm/onesite_ctm.jl")
 include("schemes/ctm/sublattice_ctm.jl")
+include("schemes/ctm/triangular.jl")
+include("schemes/ctm/ctm_triangular.jl")
 include("schemes/ctm/c6vctm_triangular.jl")
 
 # Impurity methods
@@ -54,6 +61,7 @@ export ctm_TRG
 export ctm_HOTRG
 export lnz
 export c6vCTM_triangular
+export CTM_triangular
 
 export ImpurityTRG
 export ImpurityHOTRG
@@ -83,15 +91,28 @@ export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_im
 include("models/clock.jl")
 export classical_clock, classical_clock_symmetric
 
+include("models/XY.jl")
+export classical_XY_U1_symmetric
+export classical_XY_O2_symmetric
+
+include("models/phi4_real.jl")
+export phi4_real, phi4_real_imp1, phi4_real_imp2
+export phi4_real_symmetric
+
+include("models/phi4_complex.jl")
+export phi4_complex, phi4_complex_impϕ, phi4_complex_impϕdag, phi4_complex_impϕabs, phi4_complex_impϕ2, phi4_complex_all
+export phi4_complex_symmetric
+
 # utility functions
 include("utility/free_energy.jl")
 export free_energy
 
 include("utility/cft.jl")
-export cft_data, central_charge
+export cft_data, central_charge, ground_state_degeneracy, gu_wen_ratio
 
 include("utility/finalize.jl")
-export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!
+export Finalizer, two_by_two_Finalizer, finalize!, finalize_two_by_two!, finalize_cftdata!, finalize_central_charge!,
+    finalize_groundstatedegeneracy!, GSDegeneracy_Finalizer, guwenratio_Finalizer
 
 include("utility/cdl.jl")
 export cdl_tensor

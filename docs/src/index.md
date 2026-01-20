@@ -22,6 +22,7 @@ Many common TNR schemes have already been implemented:
 
 **2D triangular tensor networks**
 * [`c6vCTM_triangular`](@ref) (c6v symmetric CTM on the triangular lattice)
+* [`CTM_triangular`](@ref) (CTM on the triangular lattice)
 
 **CTM methods (yet to be documented)**
 * `ctm_TRG` (Corner Transfer Matrix environment + TRG)
