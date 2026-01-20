@@ -56,7 +56,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Examples
 ```julia
-    phi4_real(10, -1., 1., 0)
+    phi4_real(10, -1.0, 1.0, 0)
 ```
 
 ### References
