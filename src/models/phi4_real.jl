@@ -214,7 +214,7 @@ It is based on Taylor expanding the mixed sites term.
 
 ### Examples
 ```julia
-    phi4_real_symmetric(10, -1., 1.)
+    phi4_real_symmetric(10, -1.0, 1.0)
 ```
 
 ### References
