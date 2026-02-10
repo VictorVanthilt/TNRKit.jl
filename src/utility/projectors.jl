@@ -119,7 +119,7 @@ end
 # Function to find the projector P_L and P_R
 function P_decomp(
         R::TensorMap{E, S, 1, 1}, L::TensorMap{E, S, 1, 1},
-        trunc::TensorKit.TruncationScheme; reversed::Bool = false
+        trunc::MatrixAlgebraKit.TruncationStrategy; reversed::Bool = false
     ) where {E, S}
     U, s, V, _ = if reversed
         svd_reversed(L * R; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
@@ -194,7 +194,7 @@ function MPO_disentangled!(
 end
 
 function SVD12(
-        T::AbstractTensorMap{E, S, 1, 3}, trunc::TensorKit.TruncationScheme;
+        T::AbstractTensorMap{E, S, 1, 3}, trunc::MatrixAlgebraKit.TruncationStrategy;
         reversed::Bool = false
     ) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
@@ -209,7 +209,7 @@ function SVD12(
 end
 
 function SVD12(
-        T::AbstractTensorMap{E, S, 2, 2}, trunc::TensorKit.TruncationScheme;
+        T::AbstractTensorMap{E, S, 2, 2}, trunc::MatrixAlgebraKit.TruncationStrategy;
         reversed::Bool = false
     ) where {E, S}
     U, s, V, e = reversed ? svd_reversed(T; trunc) : svd_trunc(T; trunc)

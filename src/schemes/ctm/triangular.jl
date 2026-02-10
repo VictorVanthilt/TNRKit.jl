@@ -93,7 +93,7 @@ or with a (0,6) tensor (120°, 60°, 0°, 300°, 240°, 180°) where all arrows 
 The keyword argument symmetrize makes the tensor C6v symmetric when set to true. If symmetrize = false, it checks the symmetry explicitly.
 
 ### Running the algorithm
-    run!(::c6vCTM, trunc::TensorKit.TruncationScheme, stop::Stopcrit[, finalize_beginning=true, projectors=:twothirds, conditioning=true, verbosity=1])
+    run!(::c6vCTM, trunc::MatrixAlgebraKit.TruncationStrategy, stop::Stopcrit[, finalize_beginning=true, projectors=:twothirds, conditioning=true, verbosity=1])
 
 `projectors` can either be :twothirds or :full, determining the type of projectors used in the renormalization step. This is based on https://arxiv.org/abs/2510.04907v1.
 `conditioning` determines whether to condition the second projector construction. This is based on https://doi.org/10.1103/PhysRevB.98.235148.

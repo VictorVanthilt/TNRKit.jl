@@ -2,7 +2,7 @@
 # https://arxiv.org/pdf/2510.04907
 
 function run!(
-        scheme::CTM_triangular, trunc::TensorKit.TruncationScheme, criterion::stopcrit;
+        scheme::CTM_triangular, trunc::MatrixAlgebraKit.TruncationStrategy, criterion::stopcrit;
         projectors = :twothirds,
         conditioning = true,
         verbosity = 1
