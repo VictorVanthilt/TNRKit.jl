@@ -72,7 +72,7 @@ function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
-    U, S, V = tsvd(f)
+    U, S, V = svd_full!(f)
 
     # Make tensor for one site
     T_arr = [
@@ -124,7 +124,7 @@ function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
-    U, S, V = tsvd(f)
+    U, S, V = svd_full!(f)
 
     # Make tensor for one site
     T_arr = [
@@ -176,7 +176,7 @@ function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
     f = fmatrix_real(ys, μ0, λ, h)
 
     # SVD fmatrix
-    U, S, V = tsvd(f)
+    U, S, V = svd_full!(f)
 
     # Make tensor for one site
     T_arr = [

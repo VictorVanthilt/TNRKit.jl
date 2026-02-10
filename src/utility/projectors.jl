@@ -2,8 +2,8 @@
 Perform SVD of `t` in the "reversed" direction such that
 `t = u * s * vh` and the arrow direction is `u → s → vh`.
 """
-function tsvd_reversed(t::AbstractTensorMap; kwargs...)
-    vh, s, u, ϵ = tsvd(transpose(t); kwargs...)
+function svd_reversed(t::AbstractTensorMap; kwargs...)
+    vh, s, u, ϵ = svd_trunc(transpose(t); kwargs...)
     u, s, vh = transpose(u), transpose(s), transpose(vh)
     @assert isdual(space(s, 1))
     return u, DiagonalTensorMap(s), vh, ϵ
@@ -122,9 +122,9 @@ function P_decomp(
         trunc::TensorKit.TruncationScheme; reversed::Bool = false
     ) where {E, S}
     U, s, V, _ = if reversed
-        tsvd_reversed(L * R; trunc = trunc, alg = TensorKit.SVD())
+        svd_reversed(L * R; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     else
-        tsvd(L * R; trunc = trunc, alg = TensorKit.SVD())
+        svd_trunc(L * R; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     end
     re_sq = pseudopow(s, -0.5)
     PR = R * V' * re_sq
@@ -199,9 +199,9 @@ function SVD12(
     ) where {E, S}
     T_trans = transpose(T, ((2, 1), (3, 4)); copy = true)
     U, s, V, e = if reversed
-        tsvd_reversed(T_trans; trunc = trunc, alg = TensorKit.SVD())
+        svd_reversed(T_trans; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     else
-        tsvd(T_trans; trunc = trunc, alg = TensorKit.SVD())
+        svd_trunc(T_trans; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
     end
     @plansor S1[-1; -2 -3] := U[-2 -1; 1] * sqrt(s)[1; -3]
     @plansor S2[-1; -2 -3] := sqrt(s)[-1; 1] * V[1; -2 -3]
@@ -212,6 +212,6 @@ function SVD12(
         T::AbstractTensorMap{E, S, 2, 2}, trunc::TensorKit.TruncationScheme;
         reversed::Bool = false
     ) where {E, S}
-    U, s, V, e = reversed ? tsvd_reversed(T; trunc) : tsvd(T; trunc)
+    U, s, V, e = reversed ? svd_reversed(T; trunc) : svd_trunc(T; trunc)
     return U * sqrt(s), sqrt(s) * V
 end
