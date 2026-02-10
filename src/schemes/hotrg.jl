@@ -39,113 +39,6 @@ in order to reuse the y-compression code for x-compression.
 Hence both are written explicitly.
 =#
 
-
-function _step_hotrg_x(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        U::TensorMap{E, S, 2, 1}
-    ) where {E, S}
-    #= compression along the x-direction
-                -3
-                |
-            ┌3--U--4┐
-            |       |
-        -1--A1--5---A2-- -4
-            |       |
-            └1--U†-2┘
-                |
-                -2
-    =#
-
-    @tensor T[-1 -2; -3 -4] :=
-        A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(U[1 2; -2]) * U[3 4; -3]
-    return T
-end
-
-function _step_hotrg_y(
-        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        U::TensorMap{E, S, 2, 1}
-    ) where {E, S}
-    #= compression along the y-direction
-                    -3
-                    |
-            ┌---1---A2---3--┐
-            |       |       |
-        -1--U†      5       U-- -4
-            |       |       |
-            └---2---A1---4--┘
-                    |
-                    -2
-    =#
-
-    @tensor T[-1 -2; -3 -4] :=
-        conj(U[1 2; -1]) * U[3 4; -4] * A2[1 5; -3 3] * A1[2 -2; 5 4]
-    return T
-end
-
-function _get_hotrg_xproj(
-        A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
-    #= join in y-direction, keep x-indices open (A1 below A2)
-    M M†                        M† M
-            ┌---1---┐                   ┌---1---┐
-            ↓       ↑                   ↑       ↓
-    -1 -←--A2-←-2--A2†-←- -3    -1 -←--A2†--2-←-A2-←- -3
-            ↓       ↑                   ↑       ↓
-            5       6                   5       6
-            ↓       ↑                   ↑       ↓
-    -2 -←--A1-←-4--A1†-←- -4    -2 -←--A1†--4-←-A1-←- -4
-            ↓       ↑                   ↑       ↓
-            └---3---┘                   └---3---┘
-    =#
-    # get left unitary
-    @plansor MM[-1 -2; -3 -4] :=
-        A2[-1 5; 1 2] * A1[-2 3; 5 4] *
-        conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
-    U, s, _, ε = tsvd!(MM; trunc)
-    # get right unitary
-    @plansor MM[-1 -2; -3 -4] :=
-        conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
-        A2[2 6; 1 -3] * A1[4 3; 6 -4]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
-    if ε > ε′
-        U, s, ε = adjoint(U′), s′, ε′
-    end
-    return U, s, ε
-end
-
-function _get_hotrg_yproj(
-        A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
-    ) where {E, S}
-    #= join in x-direction, keep y-indices open (A1 on the left of A2)
-    M M†                        M† M
-            -3      -4              -3      -4
-            ↓       ↓               ↓       ↓
-        ┌-→-A1†--6-→A2†-→┐      ┌-←-A1-←-6--A2-←-┐
-        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
-        1   2       4    3      1   2       4    3
-        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
-        └-←-A1-←-5--A2-←-┘      └-→-A1†--5-→A2†-→┘
-            ↓       ↓               ↓       ↓
-            -1      -2              -1      -2
-    =#
-    # get bottom unitary
-    @plansor MM[-1 -2; -3 -4] :=
-        A1[1 -1; 2 5] * A2[5 -2; 4 3] *
-        conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
-    U, s, _, ε = tsvd!(MM; trunc)
-    # get top unitary
-    @plansor MM[-1 -2; -3 -4] :=
-        conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
-        A1[1 2; -3 6] * A2[6 4; -4 3]
-    _, s′, U′, ε′ = tsvd!(MM; trunc)
-    if ε > ε′
-        U, s, ε = adjoint(U′), s′, ε′
-    end
-    return U, s, ε
-end
-
 function _step_hotrg_y(
         A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
         Ux::AbstractTensorMap{E, S, 2, 1}
@@ -184,6 +77,74 @@ function _step_hotrg_x(
     @tensor T[-1 -2; -3 -4] :=
         A1[-1 1; 3 5] * A2[5 2; 4 -4] * conj(Uy[1 2; -2]) * Uy[3 4; -3]
     return T
+end
+
+function _get_hotrg_xproj(
+        A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
+    #= join in y-direction, keep x-indices open (A1 below A2)
+    M M†                        M† M
+            ┌---1---┐                   ┌---1---┐
+            ↓       ↑                   ↑       ↓
+    -1 -←--A2-←-2--A2†-←- -3    -1 -←--A2†--2-←-A2-←- -3
+            ↓       ↑                   ↑       ↓
+            5       6                   5       6
+            ↓       ↑                   ↑       ↓
+    -2 -←--A1-←-4--A1†-←- -4    -2 -←--A1†--4-←-A1-←- -4
+            ↓       ↑                   ↑       ↓
+            └---3---┘                   └---3---┘
+    =#
+    # get left unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        A2[-1 5; 1 2] * A1[-2 3; 5 4] *
+        conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
+    U, s, _, ε = tsvd!(MM; trunc)
+
+    # get right unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
+        A2[2 6; 1 -3] * A1[4 3; 6 -4]
+    _, s′, U′, ε′ = tsvd!(MM; trunc)
+
+    if ε > ε′
+        U, s, ε = adjoint(U′), s′, ε′
+    end
+    return U, s, ε
+end
+
+function _get_hotrg_yproj(
+        A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
+        trunc::TensorKit.TruncationScheme
+    ) where {E, S}
+    #= join in x-direction, keep y-indices open (A1 on the left of A2)
+    M M†                        M† M
+            -3      -4              -3      -4
+            ↓       ↓               ↓       ↓
+        ┌-→-A1†--6-→A2†-→┐      ┌-←-A1-←-6--A2-←-┐
+        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
+        1   2       4    3      1   2       4    3
+        ↑   ↓       ↓    ↓      ↑   ↓       ↓    ↓
+        └-←-A1-←-5--A2-←-┘      └-→-A1†--5-→A2†-→┘
+            ↓       ↓               ↓       ↓
+            -1      -2              -1      -2
+    =#
+    # get bottom unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        A1[1 -1; 2 5] * A2[5 -2; 4 3] *
+        conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
+    U, s, _, ε = tsvd!(MM; trunc)
+
+    # get top unitary
+    @plansor MM[-1 -2; -3 -4] :=
+        conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
+        A1[1 2; -3 6] * A2[6 4; -4 3]
+    _, s′, U′, ε′ = tsvd!(MM; trunc)
+
+    if ε > ε′
+        U, s, ε = adjoint(U′), s′, ε′
+    end
+    return U, s, ε
 end
 
 function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
