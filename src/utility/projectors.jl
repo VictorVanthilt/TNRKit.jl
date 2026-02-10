@@ -212,6 +212,6 @@ function SVD12(
         T::AbstractTensorMap{E, S, 2, 2}, trunc::MatrixAlgebraKit.TruncationStrategy;
         reversed::Bool = false
     ) where {E, S}
-    U, s, V, e = reversed ? svd_reversed(T; trunc) : svd_trunc(T; trunc)
+    U, s, V, e = reversed ? svd_reversed(T; trunc = trunc) : svd_trunc(T; trunc = trunc)
     return U * sqrt(s), sqrt(s) * V
 end
