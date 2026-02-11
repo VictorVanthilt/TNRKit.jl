@@ -99,13 +99,15 @@ function _get_hotrg_xproj(
     @plansor MM[-1 -2; -3 -4] :=
         A2[-1 5; 1 2] * A1[-2 3; 5 4] *
         conj(A2[-3 6; 1 2]) * conj(A1[-4 3; 6 4])
-    _, U, ε = eigh_trunc!(MM; trunc = trunc)
+    # Project to hermitian because gross_neveu tests would not pass without
+    _, U, ε = eigh_trunc!(project_hermitian!(MM); trunc = trunc)
 
     # get right unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A2[2 5; 1 -1]) * conj(A1[4 3; 5 -2]) *
         A2[2 6; 1 -3] * A1[4 3; 6 -4]
-    _, U′, ε′ = eigh_trunc!(MM; trunc = trunc)
+    # Project to hermitian because gross_neveu tests would not pass without
+    _, U′, ε′ = eigh_trunc!(project_hermitian!(MM); trunc = trunc)
 
     if ε > ε′
         U, ε = U′, ε′
@@ -133,13 +135,15 @@ function _get_hotrg_yproj(
     @plansor MM[-1 -2; -3 -4] :=
         A1[1 -1; 2 5] * A2[5 -2; 4 3] *
         conj(A1[1 -3; 2 6]) * conj(A2[6 -4; 4 3])
-    _, U, ε = eigh_trunc!(MM; trunc = trunc)
+    # Project to hermitian because gross_neveu tests would not pass without
+    _, U, ε = eigh_trunc!(project_hermitian!(MM); trunc = trunc)
 
     # get top unitary
     @plansor MM[-1 -2; -3 -4] :=
         conj(A1[1 2; -1 5]) * conj(A2[5 4; -2 3]) *
         A1[1 2; -3 6] * A2[6 4; -4 3]
-    _, U′, ε′ = eigh_trunc!(MM; trunc = trunc)
+    # Project to hermitian because gross_neveu tests would not pass without
+    _, U′, ε′ = eigh_trunc!(project_hermitian!(MM); trunc = trunc)
 
     if ε > ε′
         U, ε = U′, ε′
