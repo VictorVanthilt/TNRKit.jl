@@ -84,7 +84,7 @@ function calculate_full_projectors(scheme, trunc)
         ρR = build_double_corner_matrix_triangular(scheme, mod1(dir + 1, 6))
         ρ̄ = build_double_corner_matrix_triangular(scheme, mod1(dir + 3, 6))
         ρ̄ /= norm(ρ̄)
-        Ū, S̄, V̄ᴴ = svd_trund(ρ̄; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
+        Ū, S̄, V̄ᴴ = svd_trunc(ρ̄; trunc = trunc, alg = MatrixAlgebraKit.LAPACK_QRIteration())
         ρ̄ᴿ = Ū * sqrt(S̄)
         ρ̄ᴸ = sqrt(S̄) * V̄ᴴ
         @tensor ρρ[-1; -2] := ρ̄ᴸ[-1; 1 2] * flip(ρL, 2; inv = false)[1 2; 3 4] * flip(ρR, 2; inv = false)[3 4; 5 6] * flip(ρ̄ᴿ, 2; inv = false)[5 6; -2]
