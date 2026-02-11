@@ -89,7 +89,7 @@ function phi4_complex(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
     T_arr = zeros(eltype(S), N, N, N, N)
@@ -155,7 +155,7 @@ function phi4_complex_impϕ(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
@@ -222,7 +222,7 @@ function phi4_complex_impϕdag(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
@@ -288,7 +288,7 @@ function phi4_complex_impϕabs(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
@@ -354,7 +354,7 @@ function phi4_complex_impϕ2(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
     T_arr = zeros(ComplexF64, N, N, N, N)
@@ -421,7 +421,7 @@ function phi4_complex_all(K::Integer, μ0::Float64, λ::Float64)
     f = fmatrix_complex(ys, μ0, λ)
 
     # SVD fmatrix
-    U, S, V = svd_full!(f)
+    U, S, V = svd_compact!(f)
 
     N = K^2
 

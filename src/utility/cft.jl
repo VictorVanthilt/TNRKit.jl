@@ -255,7 +255,7 @@ Get the central charge given the current state of a `TNRScheme` and the previous
 """
 function central_charge(scheme::TNRScheme, n::Number)
     @tensor M[-1; -2] := (scheme.T / n)[1 -1; -2 1]
-    _, S, _ = svd_full(M)
+    _, S, _ = svd_compact(M)
     return log(S.data[1]) * 6 / (π)
 end
 
@@ -264,7 +264,7 @@ function central_charge(scheme::BTRG, n::Number)
         (scheme.T)[1 -1; 3 2] * scheme.S1[3; -2] *
             scheme.S2[2; 1]
     ) / n
-    _, S, _ = svd_full(M)
+    _, S, _ = svd_compact(M)
     return log(S.data[1]) * 6 / (π)
 end
 
