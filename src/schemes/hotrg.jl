@@ -81,7 +81,7 @@ end
 
 function _get_hotrg_xproj(
         A1::AbstractTensorMap{E, S, 2, 2}, A2::AbstractTensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
+        trunc::MatrixAlgebraKit.TruncationStrategy
     ) where {E, S}
     #= join in y-direction, keep x-indices open (A1 below A2)
     M M†                        M† M
@@ -115,7 +115,7 @@ end
 
 function _get_hotrg_yproj(
         A1::TensorMap{E, S, 2, 2}, A2::TensorMap{E, S, 2, 2},
-        trunc::TensorKit.TruncationScheme
+        trunc::MatrixAlgebraKit.TruncationStrategy
     ) where {E, S}
     #= join in x-direction, keep y-indices open (A1 on the left of A2)
     M M†                        M† M
@@ -147,7 +147,7 @@ function _get_hotrg_yproj(
     return U, s, ε
 end
 
-function step!(scheme::HOTRG, trunc::TensorKit.TruncationScheme)
+function step!(scheme::HOTRG, trunc::MatrixAlgebraKit.TruncationStrategy)
     Ux, = _get_hotrg_xproj(scheme.T, scheme.T, trunc)
     scheme.T = _step_hotrg_y(scheme.T, scheme.T, Ux)
     Uy, = _get_hotrg_yproj(scheme.T, scheme.T, trunc)
