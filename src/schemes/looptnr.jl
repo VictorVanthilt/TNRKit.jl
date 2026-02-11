@@ -91,8 +91,9 @@ end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
 function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, truncentanglement::TruncationStrategy) where {E, S}
+    @assert trunc isa MatrixAlgebraKit.TruncationByOrder
     NA = length(ΨA)
-    _trunc = truncdim(trunc.dim * 2)
+    _trunc = truncrank(trunc.howmany * 2)
     #= 
             |     |
             2 --- 3
