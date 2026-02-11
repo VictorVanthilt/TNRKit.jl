@@ -62,9 +62,9 @@ end
 function CTM_triangular_init(T::TensorMap{A, S, 0, 6}, vspace) where {A, S}
     S_type = scalartype(T)
     Vp = space(T)[1]'
-    C = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
-    Ea = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
-    Eb = fill(TensorMap(ones, S_type, vspace ⊗ Vp ← vspace), 6)
+    C = fill(ones(S_type, vspace ⊗ Vp ← vspace), 6)
+    Ea = fill(ones(S_type, vspace ⊗ Vp ← vspace), 6)
+    Eb = fill(ones(S_type, vspace ⊗ Vp ← vspace), 6)
     return C, Ea, Eb
 end
 
@@ -159,8 +159,8 @@ end
 function c6vCTM_triangular_init(T::TensorMap{A, S, 0, 6}) where {A, S}
     S_type = scalartype(T)
     Vp = space(T)[1]'
-    C = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    Ea = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
-    Eb = TensorMap(ones, S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    C = ones(S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    Ea = ones(S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
+    Eb = ones(S_type, oneunit(Vp) ⊗ Vp ← oneunit(Vp))
     return C, Ea, Eb
 end

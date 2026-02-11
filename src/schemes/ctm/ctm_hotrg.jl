@@ -36,8 +36,7 @@ function abs_tensor!(T)
     return T
 end
 
-function rCTM_init_OBC(T; χenv_ini = 2)
-    elt = typeof(T.data[1])
+function rCTM_init_OBC(T::AbstractTensorMap{E}; χenv_ini = 2) where {E}
     Vp1 = space(T)[3]'
     Vp2 = space(T)[4]'
     S1 = sectortype(Vp1)
@@ -45,9 +44,9 @@ function rCTM_init_OBC(T; χenv_ini = 2)
     S2 = sectortype(Vp2)
     V2 = Vect[S2](one(S2) => χenv_ini)
 
-    C = TensorMap(randn, elt, V1 ← V2)
-    E1 = TensorMap(randn, elt, V1 ⊗ Vp1 ← V1)
-    E2 = TensorMap(randn, elt, V2 ⊗ Vp2 ← V2)
+    C = randn(E, V1 ← V2)
+    E1 = randn(E, V1 ⊗ Vp1 ← V1)
+    E2 = randn(E, V2 ⊗ Vp2 ← V2)
 
     return abs_tensor!(C), abs_tensor!(E1), abs_tensor!(E2)
 end
