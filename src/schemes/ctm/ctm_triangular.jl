@@ -125,7 +125,7 @@ end
 
 function build_double_corner_matrix_triangular(scheme::CTM_triangular, dir::Int)
     @tensor opt = true mat[-1 -2; -3 -4] := scheme.C[dir][6 5; 1] * scheme.C[mod1(dir + 1, 6)][1 3; 2] *
-        scheme.Ea[mod1(dir - 1, 6)][-1 7; 6] * scheme.Eb[mod1(dir + 2, 6)][2 4; -3] * scheme.T[5 3 4 -4 -2 7]
+        scheme.Ea[mod1(dir - 1, 6)][-1 7; 6] * scheme.Eb[mod1(dir + 1, 6)][2 4; -3] * scheme.T[5 3 4 -4 -2 7]
     return mat
 end
 
