@@ -44,5 +44,5 @@ function classical_clock_symmetric(q::Int, β::Float64)
 
     @tensor Anew[-1 -2;-3 -4] := A[1 2; 3 4] * U[4; -4] * conj(U[1; -1]) * U[3; -3] * conj(U[2; -2])
     V = ZNSpace{q}(i => 1 for i in 0:(q - 1))
-    return real(TensorMap(Anew[], V ⊗ V ← V ⊗ V))
+    return real(TensorMap(convert(Array, Anew), V ⊗ V ← V ⊗ V))
 end
