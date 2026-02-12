@@ -80,6 +80,7 @@ TNRKit includes several common models out of the box.
 - Potts model: [`classical_potts`](@ref) and [`classical_potts_symmetric`](@ref), which has a Zq grading on each leg.
 - Six Vertex model: [`sixvertex`](@ref)
 - Clock model: [`classical_clock`](@ref) and [`classical_clock_symmetric`](@ref) which has a Zq grading on each leg.
+- XY model: [`classical_XY_U1_symmetric`](@ref) and [`classical_XY_O2_symmetric`](@ref).
 
 ## Included Models on the triangular lattice
 TNRKit includes several common models out of the box.
