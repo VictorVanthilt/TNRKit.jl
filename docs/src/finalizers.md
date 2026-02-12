@@ -38,10 +38,39 @@ A `Finalizer` has 1 field `f!` which is the function being called on the scheme 
 We use this type parameter `E` to correctly allocate a `Vector{E}` in which all the data will be stored throughout the simulation.
 
 ## Examples
+
+### Built-in Finalizers
+
 The default [`Finalizer`](@ref) is `default_Finalizer` which normalizes the tensor(s) and stores the norm.
 For the impurity methods ([`ImpurityTRG`](@ref) and [`ImpurityHOTRG`](@ref)) the defaults are `ImpurityTRG_Finalizer` and `ImpurityHOTRG_Finalizer` respectively, as these methods usually require us to store more than just one norm per iteration.
 
 [`TRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref) and [`BTRG`](@ref) can be normalized by calculating the norm of a 2x2 patch of tensors, which is more computationally expensive but should™ be more stable.
-We provide a `two_by_two_Finalizer` to use this.
 
-We plan to provide cft data finalizers as well, as soon as we streamline the cft data generation for all the provided TNR schemes.
+TNRKit exports the following pre-built `Finalizer` instances:
+
+- **`two_by_two_Finalizer`** - Normalizes using a 2×2 patch of tensors (more stable but computationally more expensive). Works with [`TRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref), and [`BTRG`](@ref).
+
+- **`GSDegeneracy_Finalizer`** - Computes the ground state degeneracy at each TNR step. Returns a `Float64` at each iteration.
+
+- **`guwenratio_Finalizer`** - Computes the Gu-Wen ratio. Returns a `Tuple{Float64, Float64}` at each iteration.
+
+### Usage Examples
+
+```julia
+using TNRKit
+
+# Default finalization (simple norm)
+T = classical_ising_symmetric(ising_βc)
+scheme = TRG(T)
+data = run!(scheme, truncrank(16), maxiter(25))
+
+# Use the two-by-two normalizer (more stable)
+T = classical_ising_symmetric(ising_βc)
+scheme = TRG(T)
+data = run!(scheme, truncrank(16), maxiter(25); finalizer=two_by_two_Finalizer)
+
+# Track ground state degeneracy throughout the simulation
+T = classical_ising_symmetric(ising_βc)
+scheme = TRG(T)
+gsd_data = run!(scheme, truncrank(16), maxiter(25); finalizer=GSDegeneracy_Finalizer)
+```
