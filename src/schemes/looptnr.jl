@@ -19,7 +19,7 @@ Loop Optimization for Tensor Network Renormalization
 $(TYPEDFIELDS)
 
 ### References
-* [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yangLoopOptimizationTensor2017)
+* [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yang2017)
 
 """
 mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}

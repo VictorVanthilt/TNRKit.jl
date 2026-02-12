@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of 2
 $(TYPEDFIELDS)
 
 ### References
-* [Adachi et. al. Phys. Rev. B 102 (2020)](@cite adachiAnisotropicTensorRenormalization2020)
+* [Adachi et. al. Phys. Rev. B 102 (2020)](@cite adachi2020)
 """
 mutable struct ATRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{E, S}
     "Central tensor"

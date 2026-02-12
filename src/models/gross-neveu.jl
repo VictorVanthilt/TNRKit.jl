@@ -53,7 +53,7 @@ $(SIGNATURES)
 Constructs the partition function tensor for the Gross-Neveu model with given parameters `μ`, `m`, and `g`.
 
 ### References
-* [Akiyama et. al. J. Phys.: Condens. Matter 36 (2024) 343002](@cite akiyamaTensorRenormalizationGroup2024a)
+* [Akiyama et. al. J. Phys.: Condens. Matter 36 (2024) 343002](@cite akiyama2024)
 """
 function gross_neveu_start(μ::Number, m::Number, g::Number)
     T_unfused = gross_neveu_8_leg_tensor(μ, m, g)

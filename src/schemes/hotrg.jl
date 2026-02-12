@@ -21,7 +21,7 @@ Each step rescales the lattice by a (linear) factor of 2
 $(TYPEDFIELDS)
 
 ### References
-* [Xie et. al. Phys. Rev. B 86 (2012)](@cite xieCoarsegrainingRenormalizationHigherorder2012)
+* [Xie et. al. Phys. Rev. B 86 (2012)](@cite xie2012)
 
 """
 mutable struct HOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
