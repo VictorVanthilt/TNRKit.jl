@@ -6,6 +6,13 @@ Corner Transfer Matrix Renormalization Group (one-site environment)
 ### Constructors
     $(FUNCTIONNAME)(T[, bc=ones, bc_free=false])
 
+### Running the algorithm
+    run!(::CTM, trunc::TruncationStrategy, criterion::maxiter[, conv_criterion=1.0e-8, verbosity=1])
+
+### Fields
+
+$(TYPEDFIELDS)
+
 ```
     ┌───┐ ┌──┐ ┌───┐
     │Ctl├─┤Et├─┤Ctr│
@@ -17,13 +24,6 @@ Corner Transfer Matrix Renormalization Group (one-site environment)
     │Cbl├─┤Eb├─┤Cbr│
     └───┘ └──┘ └───┘
 ```
-
-### Running the algorithm
-    run!(::CTM, trunc::TruncationStrategy, criterion::maxiter[, conv_criterion=1.0e-8, verbosity=1])
-
-### Fields
-
-$(TYPEDFIELDS)
 
 ### References
 * [Baxter Physica A 106(1) (1981)](@cite baxter1981)
