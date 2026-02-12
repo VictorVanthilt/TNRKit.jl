@@ -23,18 +23,31 @@ It is built upon
 [TensorKit.jl](https://github.com/jutho/TensorKit.jl), which provides functionality for symmetric tensors.
 The following schemes are currently implemented:
 
-- TRG (Levin and Nave's original formulation of a TNR scheme) 
+**2D square tensor networks**
+- TRG (Levin and Nave's Tensor Renormalization Group)
 - BTRG (bond-weighted TRG)
-- ATRG (anisotropic TRG)
-- ATRG_3D (3D ATRG)
-- HOTRG (higher order TRG)
-- HOTRG_3D (3D HOTRG)
 - LoopTNR (entanglement filtering + loop optimization)
 - SLoopTNR (C4 & inversion symmetric LoopTNR)
-- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
+- HOTRG (higher order TRG)
+- ATRG (anisotropic TRG)
+
+**2D square CTM methods**
 - ctm_TRG (Corner Transfer Matrix environment + TRG)
+- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
 - c4vCTM (c4v symmetric CTM)
 - rCTM (reflection symmetric CTM)
+
+**2D triangular CTM methods**
+- c6vCTM_triangular (c6v symmetric CTM on the triangular lattice)
+- CTM_triangular (CTM on the triangular lattice)
+
+**Impurity Methods**
+- ImpurityTRG
+- ImpurityHOTRG
+
+**3D cubic tensor networks**
+- ATRG_3D (anisotropic TRG)
+- HOTRG_3D (higher order TRG)
 
 This project is under active development. The interface is subject to changes. Any feedback about the user interface or the internals is much appreciated. The github discussions page is a great place to talk!
 
@@ -80,27 +93,14 @@ There are 3 levels of verbosity implemented in TNRKit:
 
 To choose the verbosity level, simply use `run!(...; verbosity=n)`. The default is `verbosity=1`.
 
-## Included Models
+## Included Models on the square lattice
 TNRKit includes several common models out of the box.
-- 2D Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $ℤ_2$ grading on each leg.
-- 3D Ising model: `classical_ising_3D(β; J=1)` and `classical_ising_symmetric_3D(β)`, which has a $ℤ_2$ grading on each leg.
+- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $ℤ_2$ grading on each leg.
 - Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $ℤ_q$ grading on each leg.
 - Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
-- Clock model: `classical_clock`
+- Clock model: `classical_clock` and `classical_clock_symmetric`
+- XY model: `classical_XY_U1_symmetric` and `classical_XY_O2_symmetric`
 
-## Leg-convention
-
-If you want to implement your own model you must respect the leg-convention assumed by all TNRKit schemes. The 2D schemes assume that the input tensor lives in the space $V_1 \otimes V_2 \leftarrow V_3 \otimes V_4$ and that the legs are ordered in the following way:
-```
-     3
-     |
-     v
-     |
-1-<--┼--<-4
-     |
-     v
-     |
-     2
-```
-
-The 3D scheme(s) assume that the input tensor lives in the space $V_{\text{D}} \otimes V_{\text{U}} \prime \leftarrow V_{\text{N}} \otimes V_{\text{E}} \otimes V_{\text{S}} \prime \otimes V_{\text{W}} \prime$, where D, U, N, E, S, W stand for Down, Up, North, East, South and West.
+## Included Models on the triangular lattice
+TNRKit includes several common models out of the box.
+- Ising model: `classical_ising_triangular` and `classical_ising_triangular_symmetric`, which has a $ℤ_2$ grading on each leg.
