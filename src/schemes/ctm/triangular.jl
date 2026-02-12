@@ -7,6 +7,7 @@ Corner Transfer Matrix Renormalization Group for the triangular lattice
     $(FUNCTIONNAME)(T)
     $(FUNCTIONNAME)(T, [, symmetrize=false])
 
+```
      (120°)     (60°)
         ╲       ╱
          ╲     ╱
@@ -16,6 +17,7 @@ Corner Transfer Matrix Renormalization Group for the triangular lattice
           ╱   ╲
          ╱     ╲
       (240°) (300°)
+```
 
 CTM can be called with a (3, 3) tensor, where the directions are (180°, 240°, 300°, 120°, 60°, 0°) clockwise with respect to the positive x-axis.
 In the flipped arrow convention, the arrows point from (120°, 60°, 0°) to (180°, 240°, 300°).
@@ -80,6 +82,7 @@ C6v symmetric Corner Transfer Matrix Renormalization Group
     $(FUNCTIONNAME)(T)
     $(FUNCTIONNAME)(T, [, symmetrize=false])
 
+```
      (120°)     (60°)
         ╲       ╱
          ╲     ╱
@@ -89,6 +92,7 @@ C6v symmetric Corner Transfer Matrix Renormalization Group
           ╱   ╲
          ╱     ╲
       (240°) (300°)
+```
 
 c6vCTM can be called with a (3, 3) tensor, where the directions are (180°, 240°, 300°, 120°, 60°, 0°) clockwise with respect to the positive x-axis.
 In the flipped arrow convention, the arrows point from (120°, 60°, 0°) to (180°, 240°, 300°).
