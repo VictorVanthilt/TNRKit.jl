@@ -11,6 +11,20 @@ function algebraic_initialization(m::TensorMap, bond::TensorMap)
     return T
 end
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a symmetric 2D square lattice
+for the classical XY model with U(1) symmetry, using inverse temperature `beta`
+and charge truncation `charge_trunc`.
+
+### Examples
+```julia
+    classical_XY_U1_symmetric(0.9, 6)
+```
+
+See also: [`classical_XY_O2_symmetric`](@ref).
+"""
 function classical_XY_U1_symmetric(beta::Float64, charge_trunc::Int)
     FunU1 = U1Space(map(x -> (x => 1), (-charge_trunc):charge_trunc))
 
@@ -26,6 +40,20 @@ function classical_XY_U1_symmetric(beta::Float64, charge_trunc::Int)
     return algebraic_initialization(m, bond)
 end
 
+"""
+$(SIGNATURES)
+
+Constructs the partition function tensor for a symmetric 2D square lattice
+for the classical XY model with O(2) symmetry, using inverse temperature `beta`
+and charge truncation `charge_trunc`.
+
+### Examples
+```julia
+    classical_XY_O2_symmetric(0.9, 6)
+```
+
+See also: [`classical_XY_U1_symmetric`](@ref).
+"""
 function classical_XY_O2_symmetric(beta::Float64, charge_trunc::Int)
     FunU1_0 = CU1Space((0, 0) => 1)
     FunU1_1 = CU1Space(((i, 2) => 1 for i in 1:charge_trunc))
