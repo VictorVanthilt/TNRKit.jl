@@ -272,8 +272,8 @@ end
 """
     $(SIGNATURES)
 
-    Calculates the Ground State Degeneracy (GSD) from the fixed-point tensor of a TNRScheme,
-    using the eigenvalues of the transfer matrix. The GSD is the exponential of the Shannon entropy.
+Calculates the Ground State Degeneracy (GSD) from the fixed-point tensor of a TNRScheme,
+using the eigenvalues of the transfer matrix. The GSD is the exponential of the Shannon entropy.
 """
 function ground_state_degeneracy(scheme::TNRScheme{E}, unitcell::Int = 1) where {E}
     # Construct contraction indices
