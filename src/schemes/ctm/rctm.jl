@@ -1,20 +1,34 @@
-#=
-CTM with spatial reflection symmetry along x and y axis. This allows the different edge tensors for the vertical and horizontal edges.
-The corner tensors are related by its mirror images.
+#     ┌──┐    ┌────┐
+#     │  │    │    │
+# ───►│E1│───►│ C2 │
+#     └──┘    └──┬─┘
+#       ▲        │
+#       │        ▼
+#              ┌──┐
+#              │  │
+#           ──►│E2│
+#              └─┬┘
+#                │
+#                ▼
 
-    ┌──┐    ┌────┐
-    │  │    │    │
-───►│E1│───►│ C2 │
-    └──┘    └──┬─┘
-      ▲        │  
-      │        ▼  
-             ┌──┐ 
-             │  │ 
-          ──►│E2│ 
-             └─┬┘ 
-               │  
-               ▼  
-=#
+"""
+$(TYPEDEF)
+
+Reflection-symmetric Corner Transfer Matrix
+
+### Constructors
+    $(FUNCTIONNAME)(T)
+
+CTM with spatial reflection symmetry along x and y axis. This allows different edge tensors for the vertical and horizontal edges.
+The corner tensors are related by their mirror images.
+
+### Running the algorithm
+    run!(::rCTM, trunc::TruncationStrategy, criterion::TNRKit.stopcrit[, verbosity=1])
+
+### Fields
+
+$(TYPEDFIELDS)
+"""
 mutable struct rCTM{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTensorMap{E, S, 1, 1}, TE <: AbstractTensorMap{E, S, 2, 1}} <: TNRScheme{E, S}
     T::TT
     C2::TC

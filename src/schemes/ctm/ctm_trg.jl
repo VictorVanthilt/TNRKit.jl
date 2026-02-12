@@ -1,3 +1,21 @@
+"""
+$(TYPEDEF)
+
+Corner Transfer Matrix environment + Tensor Renormalization Group
+
+### Constructors
+    $(FUNCTIONNAME)(T, χenv[, ctm_iter=2.0e4, ctm_tol=1.0e-9])
+
+### Running the algorithm
+    run!(::ctm_TRG, trunc::TruncationStrategy, criterion::maxiter[, sweep=30, enlarge=true, return_cft=false, inv=false, conv_criterion=1.0e-12, modified=true])
+
+### Fields
+
+$(TYPEDFIELDS)
+
+### References
+* [Morita & Kawashima Phys. Rev. B 103(4) (2021)](@cite morita2021)
+"""
 mutable struct ctm_TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTensorMap{E, S, 1, 1}, TE <: AbstractTensorMap{E, S, 2, 1}} <: TNRScheme{E, S}
     T::TT
     C2::TC

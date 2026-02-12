@@ -20,15 +20,15 @@ Many common TNR schemes have already been implemented:
 * [`HOTRG`](@ref) (higher order TRG)
 * [`ATRG`](@ref) (anisotropic TRG)
 
-**2D triangular tensor networks**
+**2D square CTM methods**
+* [`ctm_TRG`](@ref) (Corner Transfer Matrix environment + TRG)
+* [`ctm_HOTRG`](@ref) (Corner Transfer Matrix environment + HOTRG)
+* [`c4vCTM`](@ref) (c4v symmetric CTM)
+* [`rCTM`](@ref) (reflection symmetric CTM)
+
+**2D triangular CTM methods**
 * [`c6vCTM_triangular`](@ref) (c6v symmetric CTM on the triangular lattice)
 * [`CTM_triangular`](@ref) (CTM on the triangular lattice)
-
-**CTM methods (yet to be documented)**
-* `ctm_TRG` (Corner Transfer Matrix environment + TRG)
-* `ctm_HOTRG` (Corner Transfer Matrix environment + HOTRG)
-* `c4vCTM` (c4v symmetric CTM)
-* `rCTM` (reflection symmetric CTM)
 
 **Impurity Methods**
 * [`ImpurityTRG`](@ref)
