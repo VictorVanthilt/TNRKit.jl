@@ -32,10 +32,11 @@ The following schemes are currently implemented:
 - ATRG (anisotropic TRG)
 
 **2D square CTM methods**
-- ctm_TRG (Corner Transfer Matrix environment + TRG)
-- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
+- CTM (Corner Transfer Matrix)
 - c4vCTM (c4v symmetric CTM)
 - rCTM (reflection symmetric CTM)
+- ctm_TRG (Corner Transfer Matrix environment + TRG)
+- ctm_HOTRG (Corner Transfer Matrix environment + HOTRG)
 
 **2D triangular CTM methods**
 - c6vCTM_triangular (c6v symmetric CTM on the triangular lattice)
@@ -95,10 +96,10 @@ To choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 
 ## Included Models on the square lattice
 TNRKit includes several common models out of the box.
-- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $ℤ_2$ grading on each leg.
-- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $ℤ_q$ grading on each leg.
+- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $\mathbb{Z}_2$ grading on each leg.
+- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $\mathbb{Z}_q$ grading on each leg.
 - Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
-- Clock model: `classical_clock` and `classical_clock_symmetric`
+- Clock model: `classical_clock` and `classical_clock_symmetric`, which has a $\mathbb{Z}_q$ grading on each leg.
 - XY model: `classical_XY_U1_symmetric` and `classical_XY_O2_symmetric`
 
 ## Included Models on the triangular lattice
