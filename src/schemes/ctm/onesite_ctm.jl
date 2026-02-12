@@ -41,8 +41,6 @@ mutable struct CTM{E, S, TT <: AbstractTensorMap{E, S, 2, 2}, TC <: AbstractTens
     Er::TE
 end
 
-#TODO: type everything
-
 CTM(T; bc = ones, bc_free = false) = CTM(T, CTM_init(T; bc, bc_free)...)
 
 function lnz(ctm::CTM)
