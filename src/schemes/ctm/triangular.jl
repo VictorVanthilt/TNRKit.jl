@@ -33,6 +33,9 @@ The keyword argument symmetrize makes the tensor C6v symmetric when set to true.
 ### Fields
 
 $(TYPEDFIELDS)
+
+### References
+* [Naumann et al. Phys. Rev. B 113(4) (2026)](@cite naumann2026)
 """
 mutable struct CTM_triangular{A, S}
     T::TensorMap{A, S, 0, 6}
@@ -106,6 +109,10 @@ The keyword argument symmetrize makes the tensor C6v symmetric when set to true.
 ### Fields
 
 $(TYPEDFIELDS)
+
+### References
+* [Naumann et al. Phys. Rev. B 113(4) (2026)](@cite naumann2026)
+* c6v implementation provided by Sander De Meyer
 """
 mutable struct c6vCTM_triangular{A, S}
     T::TensorMap{A, S, 0, 6}

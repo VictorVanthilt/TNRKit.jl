@@ -1,6 +1,3 @@
-# Based on
-# https://arxiv.org/pdf/2510.04907
-
 function run!(
         scheme::c6vCTM_triangular, trunc::TruncationStrategy, criterion::stopcrit;
         projectors = :twothirds,
