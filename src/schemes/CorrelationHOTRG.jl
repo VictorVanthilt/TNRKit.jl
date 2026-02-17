@@ -132,7 +132,7 @@ function step!(
 end
 
 
-function run!(scheme::CorrelationHOTRG, trgscheme::TruncationStrategy, niter::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
+function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
     # First check: assert realistic calculation
     @assert niter > dist "niter must be larger than dist"
 
@@ -150,7 +150,7 @@ function run!(scheme::CorrelationHOTRG, trgscheme::TruncationStrategy, niter::st
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trgscheme)
+            step!(scheme, tnrscheme)
             push!(data, finalizer.f!(scheme))
             steps += 1
             crit = niter(steps, data)
