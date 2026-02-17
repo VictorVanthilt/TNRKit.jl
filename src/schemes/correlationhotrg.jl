@@ -132,7 +132,7 @@ function step!(
 end
 
 
-function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
+function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::stopcrit; verbosity = 1) where {E}
     # First check: assert realistic calculation
     @assert niter > dist "niter must be larger than dist"
 
@@ -141,9 +141,6 @@ function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::st
     LoggingExtras.withlevel(; verbosity) do
 
         @infov 1 "Starting simulation\n $(scheme)\n"
-        if finalize_beginning
-            push!(data, finalizer.f!(scheme))
-        end
 
         steps = 0
         crit = true
