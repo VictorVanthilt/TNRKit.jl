@@ -93,7 +93,7 @@ After each phase, tensors are finalized and the iteration counter is incremented
 """
 function step!(
         scheme::CorrelationHOTRG,
-        trunc::TensorKit.TruncationStrategy
+        trunc::TruncationStrategy
     )
 
     phase = _phase(scheme)
@@ -177,7 +177,7 @@ function _phase(scheme::CorrelationHOTRG)
 end
 
 
-function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
+function phase1!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
@@ -201,7 +201,7 @@ function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
     return scheme
 end
 
-function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
+function phase2!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
@@ -221,7 +221,7 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
     return scheme
 end
 
-function phase3!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
+function phase3!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
