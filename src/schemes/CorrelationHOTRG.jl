@@ -31,13 +31,13 @@ mutable struct CorrelationHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
     Tpure::TT
 
     "First type first order impurity tensor (Phase I)"
-    T_imp1::Union{TT,Nothing}
+    T_imp1::Union{TT, Nothing}
 
     "Second type first order impurity tensor (Phase I)"
-    T_imp2::Union{TT,Nothing}
+    T_imp2::Union{TT, Nothing}
 
     "The final impurity (Phase II & III)"
-    T_imp_final::Union{TT,Nothing}
+    T_imp_final::Union{TT, Nothing}
 
     "Correlation distance (2^dist)"
     dist::Int
@@ -46,20 +46,20 @@ mutable struct CorrelationHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
     iter::Int
 
     function CorrelationHOTRG(
-        Tpure::TT,
-        Timp1::TT,
-        Timp2::TT,
-        dist::Int
-    ) where {E,S,TT<:AbstractTensorMap{E,S,2,2}}
+            Tpure::TT,
+            Timp1::TT,
+            Timp2::TT,
+            dist::Int
+        ) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
 
         @assert dist ≥ 0 "Distance must be non-negative"
 
-        @assert space(Tpure,1) == space(Timp1,1) == space(Timp2,1)
-        @assert space(Tpure,2) == space(Timp1,2) == space(Timp2,2)
-        @assert space(Tpure,3) == space(Timp1,3) == space(Timp2,3)
-        @assert space(Tpure,4) == space(Timp1,4) == space(Timp2,4)
+        @assert space(Tpure, 1) == space(Timp1, 1) == space(Timp2, 1)
+        @assert space(Tpure, 2) == space(Timp1, 2) == space(Timp2, 2)
+        @assert space(Tpure, 3) == space(Timp1, 3) == space(Timp2, 3)
+        @assert space(Tpure, 4) == space(Timp1, 4) == space(Timp2, 4)
 
-        return CorrelationHOTRG{E,S,TT}(
+        return CorrelationHOTRG{E, S, TT}(
             Tpure,
             Timp1,
             Timp2,
@@ -92,9 +92,9 @@ After each phase, tensors are finalized and the iteration counter is incremented
 - `scheme::CorrelationHOTRG`: The updated scheme with evolved tensors and incremented iteration count.
 """
 function step!(
-    scheme::CorrelationHOTRG,
-    trunc::TensorKit.TruncationScheme
-)
+        scheme::CorrelationHOTRG,
+        trunc::TensorKit.TruncationScheme
+    )
 
     phase = _phase(scheme)
 
