@@ -102,19 +102,19 @@ end
 
 # Finalizers for CorrelationHOTRG
 function finalize_phase1!(scheme::CorrelationHOTRG)
-    n = norm(@tensor Tpure[1 2; 2 1])
+    n = norm(@tensor scheme.Tpure[1 2; 2 1])
     n_1 = norm(@tensor scheme.T_imp1[1 2; 2 1])
     n_2 = norm(@tensor scheme.T_imp2[1 2; 2 1])
 
     scheme.Tpure /= n
-    scheme.Timp1 /= n
-    scheme.Timp2 /= n
+    scheme.scheme /= n
+    scheme.scheme /= n
 
     return n, n_1, n_2
 end
 
 function finalize_phase23!(scheme::CorrelationHOTRG)
-    n = norm(@tensor Tpure[1 2; 2 1])
+    n = norm(@tensor scheme.Tpure[1 2; 2 1])
     n_imp = norm(@tensor scheme.T_imp_final[1 2; 2 1])
 
     scheme.Tpure /= n
