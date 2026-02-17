@@ -59,7 +59,7 @@ mutable struct CorrelationHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
         @assert space(Tpure, 3) == space(Timp1, 3) == space(Timp2, 3)
         @assert space(Tpure, 4) == space(Timp1, 4) == space(Timp2, 4)
 
-        return CorrelationHOTRG{E, S, TT}(
+        return new{E, S, TT}(
             Tpure,
             Timp1,
             Timp2,
@@ -184,7 +184,7 @@ function phase1!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp1, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp1, Uy))
     T_imp2 = 0.5 * (_step_hotrg_x(scheme.T_imp2, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp2, Uy))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp1 = T_imp1
     scheme.T_imp2 = T_imp2
 
@@ -194,7 +194,7 @@ function phase1!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     T_imp1 = 0.5 * (_step_hotrg_y(scheme.T_imp1, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp1, Ux))
     T_imp2 = 0.5 * (_step_hotrg_y(scheme.T_imp2, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp2, Ux))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp1 = T_imp1
     scheme.T_imp2 = T_imp2
 
@@ -205,9 +205,9 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
-    T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp1, scheme.T_imp2, Uy) + _step_hotrg_x(scheme.T_imp2, scheme.T_imp1, Uy))
+    T_imp = 0.5 * (_step_hotrg_x(scheme.T_imp1, scheme.T_imp2, Uy) + _step_hotrg_x(scheme.T_imp2, scheme.T_imp1, Uy))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp_final = T_imp
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
@@ -215,7 +215,7 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
     T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp_final = T_imp
 
     return scheme
@@ -225,9 +225,9 @@ function phase3!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
-    T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp_final, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp_final, Uy))
+    T_imp = 0.5 * (_step_hotrg_x(scheme.T_imp_final, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp_final, Uy))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp_final = T_imp
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
@@ -235,7 +235,7 @@ function phase3!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
     T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
 
-    scheme.T = T
+    scheme.Tpure = T
     scheme.T_imp_final = T_imp
 
     return scheme
