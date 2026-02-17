@@ -134,7 +134,7 @@ end
 
 function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::stopcrit; verbosity = 1) where {E}
     # First check: assert realistic calculation
-    @assert niter > scheme.dist "niter must be larger than dist"
+    @assert niter.n > scheme.dist "niter must be larger than dist"
 
     data = Vector{E}()
 
