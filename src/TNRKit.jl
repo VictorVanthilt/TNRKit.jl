@@ -41,6 +41,9 @@ include("schemes/ctm/c6vctm_triangular.jl")
 include("schemes/impuritytrg.jl")
 include("schemes/impurityhotrg.jl")
 
+# Correlation methods
+include("schemes/correlationhotrg.jl")
+
 # Loop Methods
 include("schemes/looptnr.jl")
 include("schemes/symmetric_looptnr.jl")
@@ -67,6 +70,8 @@ export CTM_triangular
 
 export ImpurityTRG
 export ImpurityHOTRG
+
+export CorrelationHOTRG
 
 export LoopTNR
 export SLoopTNR
