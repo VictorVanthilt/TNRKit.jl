@@ -72,7 +72,7 @@ end
 
 
 """
-    step!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+    step!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
 
 Perform a single iteration step of the Correlation HOTRG algorithm.
 
@@ -86,14 +86,14 @@ After each phase, tensors are finalized and the iteration counter is incremented
 
 # Arguments
 - `scheme::CorrelationHOTRG`: The HOTRG scheme containing the tensors and state.
-- `trunc::TensorKit.TruncationScheme`: The truncation scheme to apply during tensor operations.
+- `trunc::TensorKit.TruncationStrategy`: The truncation scheme to apply during tensor operations.
 
 # Returns
 - `scheme::CorrelationHOTRG`: The updated scheme with evolved tensors and incremented iteration count.
 """
 function step!(
         scheme::CorrelationHOTRG,
-        trunc::TensorKit.TruncationScheme
+        trunc::TensorKit.TruncationStrategy
     )
 
     phase = _phase(scheme)
@@ -132,7 +132,7 @@ function step!(
 end
 
 
-function run!(scheme::CorrelationHOTRG, trscheme::TruncationStrategy, niter::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
+function run!(scheme::CorrelationHOTRG, trgscheme::TruncationStrategy, niter::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
     # First check: assert realistic calculation
     @assert niter > dist "niter must be larger than dist"
 
@@ -150,7 +150,7 @@ function run!(scheme::CorrelationHOTRG, trscheme::TruncationStrategy, niter::sto
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme)
+            step!(scheme, trgscheme)
             push!(data, finalizer.f!(scheme))
             steps += 1
             crit = niter(steps, data)
@@ -177,7 +177,7 @@ function _phase(scheme::CorrelationHOTRG)
 end
 
 
-function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
@@ -201,7 +201,7 @@ function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
@@ -221,7 +221,7 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
     return scheme
 end
 
-function phase3!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+function phase3!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
