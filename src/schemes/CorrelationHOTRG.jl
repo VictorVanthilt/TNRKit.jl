@@ -103,34 +103,16 @@ function step!(
         # PHASE 1 — TWO IMPURITIES
         # -----------------------------
 
-        scheme.Tpure, scheme.Timp1 =
-            phase1(scheme.Tpure, scheme.Timp1, trunc)
-
-        scheme.Tpure, scheme.Timp2 =
-            phase1(scheme.Tpure, scheme.Timp2, trunc)
-
-        scheme.Tpure, scheme.Timp1, scheme.Timp2 =
-            finalize_phase1(
-                scheme.Tpure,
-                scheme.Timp1,
-                scheme.Timp2
-            )
+        phase1!(scheme, trunc)
+        finalize_phase1!(scheme)
 
     elseif phase == 2
         # -----------------------------
         # PHASE 2 — MERGE IMPURITIES
         # -----------------------------
 
-        Tpure_new, Timp_new =
-            phase2(
-                scheme.Tpure,
-                scheme.Timp1,
-                scheme.Timp2,
-                trunc
-            )
-
-        scheme.Tpure, scheme.Timp =
-            finalize_phase23(Tpure_new, Timp_new)
+        phase2!(scheme, trunc)
+        finalize_phase23!(scheme)
 
         # Explicitly deactivate two-impurity tensors
         scheme.Timp1 = nothing
@@ -141,18 +123,8 @@ function step!(
         # PHASE 3 — SINGLE IMPURITY
         # -----------------------------
 
-        scheme.Tpure, scheme.Timp =
-            phase3(
-                scheme.Tpure,
-                scheme.Timp,
-                trunc
-            )
-
-        scheme.Tpure, scheme.Timp =
-            finalize_phase23(
-                scheme.Tpure,
-                scheme.Timp
-            )
+        phase3!(scheme, trunc)
+        finalize_phase23!(scheme)
     end
 
     scheme.iter += 1
@@ -204,128 +176,67 @@ function _phase(scheme::CorrelationHOTRG)
     end
 end
 
-"""
-    phase1(Tpure, Timp, trunc)
 
-Performs one HOTRG step for phase 1, updating pure and impurity tensors.
+function phase1!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+    Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
-Arguments:
-- `Tpure`: Pure tensor.
-- `Timp`: Impurity tensor.
-- `trunc`: Truncation scheme.
+    T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
+    T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp1, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp1, Uy))
+    T_imp2 = 0.5 * (_step_hotrg_x(scheme.T_imp2, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp2, Uy))
 
-Returns: Updated pure and impurity tensors.
-"""
-function phase1(Tpure, Timp, trunc::TensorKit.TruncationScheme)
-    Uy, _ = _get_hotrg_yproj(Tpure, Tpure, trunc)
+    scheme.T = T
+    scheme.T_imp1 = T_imp1
+    scheme.T_imp2 = T_imp2
 
-    Tpure_temp = _step_hotrg_x(Tpure, Tpure, Uy)
-    Timp = 0.5 * (_step_hotrg_x(Timp, Tpure, Uy) + _step_hotrg_x(Tpure, Timp, Uy))
-    Tpure = Tpure_temp
+    Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
-    Ux, _ = _get_hotrg_xproj(Tpure, Tpure, trunc)
+    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Ux)
+    T_imp1 = 0.5 * (_step_hotrg_y(scheme.T_imp1, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp1, Ux))
+    T_imp2 = 0.5 * (_step_hotrg_y(scheme.T_imp2, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp2, Ux))
 
-    Tpure_temp = _step_hotrg_y(Tpure, Tpure, Ux)
-    Timp = 0.5 * (_step_hotrg_y(Timp, Tpure, Ux) + _step_hotrg_y(Tpure, Timp, Ux))
-    Tpure = Tpure_temp
+    scheme.T = T
+    scheme.T_imp1 = T_imp1
+    scheme.T_imp2 = T_imp2
 
-    return Tpure, Timp
+    return scheme
 end
 
-"""
-    phase2(Tpure, Timp1, Timp2, trunc)
+function phase2!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+    Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
-Performs one HOTRG step for phase 2, combining two impurity tensors.
+    T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
+    T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp1, scheme.T_imp2, Uy) + _step_hotrg_x(scheme.T_imp2, scheme.T_imp1, Uy))
 
-Arguments:
-- `Tpure`: Pure tensor.
-- `Timp1`, `Timp2`: Impurity tensors.
-- `trunc`: Truncation scheme.
+    scheme.T = T
+    scheme.T_imp_final = T_imp
 
-Returns: Updated pure and impurity tensors.
-"""
-function phase2(Tpure, Timp1, Timp2, trunc::TensorKit.TruncationScheme)
-    Uy, _ = _get_hotrg_yproj(Tpure, Tpure, trunc)
+    Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
-    Tpure_temp = _step_hotrg_x(Tpure, Tpure, Uy)
-    Timp = 0.5 * (_step_hotrg_x(Timp1, Timp2, Uy) + _step_hotrg_x(Timp2, Timp1, Uy))
-    Tpure = Tpure_temp
+    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
+    T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
 
-    Ux, _ = _get_hotrg_xproj(Tpure, Tpure, trunc)
+    scheme.T = T
+    scheme.T_imp_final = T_imp
 
-    Tpure_temp = _step_hotrg_y(Tpure, Tpure, Ux)
-    Timp = 0.5 * (_step_hotrg_y(Timp, Tpure, Ux) + _step_hotrg_y(Tpure, Timp, Ux))
-    Tpure = Tpure_temp
-
-    return Tpure, Timp
+    return scheme
 end
 
-"""
-    phase3(Tpure, Timp, trunc)
+function phase3!(scheme::CorrelationHOTRG, trunc::TensorKit.TruncationScheme)
+    Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
-Performs one HOTRG step for phase 3, updating pure and impurity tensors.
+    T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
+    T_imp1 = 0.5 * (_step_hotrg_x(scheme.T_imp_final, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp_final, Uy))
 
-Arguments:
-- `Tpure`: Pure tensor.
-- `Timp`: Impurity tensor.
-- `trunc`: Truncation scheme.
+    scheme.T = T
+    scheme.T_imp_final = T_imp
 
-Returns: Updated pure and impurity tensors.
-"""
-function phase3(Tpure, Timp, trunc::TensorKit.TruncationScheme)
-    Uy, _ = _get_hotrg_yproj(Tpure, Tpure, trunc)
+    Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
-    Tpure_temp = _step_hotrg_x(Tpure, Tpure, Uy)
-    Timp = 0.5 * (_step_hotrg_x(Timp, Tpure, Uy) + _step_hotrg_x(Tpure, Timp, Uy))
-    Tpure = Tpure_temp
+    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
+    T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
 
-    Ux, _ = _get_hotrg_xproj(Tpure, Tpure, trunc)
+    scheme.T = T
+    scheme.T_imp_final = T_imp
 
-    Tpure_temp = _step_hotrg_y(Tpure, Tpure, Ux)
-    Timp = 0.5 * (_step_hotrg_y(Timp, Tpure, Ux) + _step_hotrg_y(Tpure, Timp, Ux))
-    Tpure = Tpure_temp
-
-    return Tpure, Timp
-end
-
-
-"""
-    finalize_phase1(Tpure, Timp1, Timp2)
-
-Normalizes pure and impurity tensors after phase 1.
-
-Arguments:
-- `Tpure`: Pure tensor.
-- `Timp1`, `Timp2`: Impurity tensors.
-
-Returns: Normalized pure tensor (twice) and impurity tensors.
-"""
-function finalize_phase1(Tpure, Timp1, Timp2)
-    npure = norm(@tensor Tpure[1 2; 2 1])
-    
-    Tpure /= npure
-    Timp1 /= npure
-    Timp2 /= npure
-
-    return Tpure, Tpure, Timp1, Timp2
-end
-
-"""
-    finalize_phase23(Tpure, Timp)
-
-Normalizes pure and impurity tensors after phases 2 and 3.
-
-Arguments:
-- `Tpure`: Pure tensor.
-- `Timp`: Impurity tensor.
-
-Returns: Normalized pure and impurity tensors.
-"""
-function finalize_phase23(Tpure, Timp)
-    npure = norm(@tensor Tpure[1 2; 2 1])
-    
-    Tpure /= npure
-    Timp /= npure
-
-    return Tpure, Timp
+    return scheme
 end
