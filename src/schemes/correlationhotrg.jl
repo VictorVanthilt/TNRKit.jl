@@ -132,7 +132,7 @@ function step!(
 end
 
 
-function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::stopcrit; verbosity = 1)
+function run!(scheme::CorrelationHOTRG, tnscheme::TruncationStrategy, niter::stopcrit; verbosity = 1)
     # First check: assert realistic calculation
     @assert niter.n > scheme.dist "niter must be larger than dist"
 
@@ -147,7 +147,7 @@ function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::st
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            val = step!(scheme, tnrscheme)
+            val = step!(scheme, tnscheme)
             push!(data, val)
             steps += 1
             crit = niter(steps, data)
