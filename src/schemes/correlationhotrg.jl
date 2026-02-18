@@ -163,7 +163,7 @@ function Base.show(io::IO, scheme::CorrelationHOTRG)
     println(io, "  * Tpure: $(summary(scheme.Tpure))")
     println(io, "  * Timp1: $(summary(scheme.Timp1))")
     println(io, "  * Timp2: $(summary(scheme.Timp2))")
-    println(io, " * dist: $(scheme.dist)  → distance = $(2^scheme.dist)")
+    println(io, "  * dist: $(scheme.dist)  → distance = $(2^scheme.dist)")
     return nothing
 end
 
@@ -217,7 +217,7 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
-    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
+    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Ux)
     T_imp = 0.5 * (_step_hotrg_y(scheme.Timp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.Timp_final, Ux))
 
     scheme.Tpure = T
@@ -237,7 +237,7 @@ function phase3!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
-    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
+    T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Ux)
     T_imp = 0.5 * (_step_hotrg_y(scheme.Timp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.Timp_final, Ux))
 
     scheme.Tpure = T
