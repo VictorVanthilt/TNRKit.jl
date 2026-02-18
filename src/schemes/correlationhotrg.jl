@@ -147,8 +147,8 @@ function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::st
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, tnrscheme)
-            push!(data, finalizer.f!(scheme))
+            val = step!(scheme, tnrscheme)
+            push!(data, val)
             steps += 1
             crit = niter(steps, data)
         end
@@ -158,10 +158,18 @@ function run!(scheme::CorrelationHOTRG, tnrscheme::TruncationStrategy, niter::st
     return data
 end
 
+function Base.show(io::IO, scheme::CorrelationHOTRG)
+    println(io, "CorrelationHOTRG - Correlation Higher Order TRG")
+    println(io, "  * Tpure: $(summary(scheme.Tpure))")
+    println(io, "  * T_imp1: $(summary(scheme.T_imp1))")
+    println(io, "  * T_imp2: $(summary(scheme.T_imp2))")
+    println(io, "  * Dist: $(summary(scheme.dist))")
+    return nothing
+end
+
 ############################################################################
 #                          HELPER FUNCTIONS                                #
 ############################################################################
-
 
 function _phase(scheme::CorrelationHOTRG)
     if scheme.iter < scheme.dist
