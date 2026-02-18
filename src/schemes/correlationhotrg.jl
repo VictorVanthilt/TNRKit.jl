@@ -132,7 +132,7 @@ function step!(
 end
 
 
-function run!(scheme::CorrelationHOTRG, tnscheme::TruncationStrategy, niter::stopcrit; verbosity = 1)
+function run!(scheme::CorrelationHOTRG, trunc::TruncationStrategy, niter::stopcrit; verbosity = 1)
     # First check: assert realistic calculation
     @assert niter.n > scheme.dist "niter must be larger than dist"
 
