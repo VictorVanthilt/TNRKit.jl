@@ -10,7 +10,7 @@ Simple two-point correlation function for Higher-Order Tensor Renormalization Gr
     $(FUNCTIONNAME)(T, Timp1, Timp2, dist)
 
 ### Running the algorithm
-    run!(::CorrelationHOTRG, trunc::TruncationStrategy, niter::Stopcrit[, finalizer=ImpurityHOTRG_Finalizer, finalize_beginning=true, verbosity=1])
+    run!(scheme::CorrelationHOTRG, trunc::TruncationStrategy, niter::stopcrit[, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of 2
 
