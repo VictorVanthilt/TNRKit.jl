@@ -1,4 +1,3 @@
-#=
 # This tests every scheme in the library on the Z2 symmetric Ising model.
 
 println("---------------------")
@@ -388,7 +387,7 @@ end
     m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 1.0 rtol = 1.0e-4
 end
-=#
+
 # CorrelationHOTRG
 @testset "Correlation HOTRG - Ising Model" begin
 
