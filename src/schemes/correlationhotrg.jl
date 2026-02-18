@@ -37,7 +37,7 @@ mutable struct CorrelationHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
     Timp2::Union{TT, Nothing}
 
     "The final impurity (Phase II & III)"
-    T_imp_final::Union{TT, Nothing}
+    Timp_final::Union{TT, Nothing}
 
     "Correlation distance (2^dist)"
     dist::Int
@@ -213,15 +213,15 @@ function phase2!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     T_imp = 0.5 * (_step_hotrg_x(scheme.Timp1, scheme.Timp2, Uy) + _step_hotrg_x(scheme.Timp2, scheme.Timp1, Uy))
 
     scheme.Tpure = T
-    scheme.T_imp_final = T_imp
+    scheme.Timp_final = T_imp
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
-    T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
+    T_imp = 0.5 * (_step_hotrg_y(scheme.Timp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.Timp_final, Ux))
 
     scheme.Tpure = T
-    scheme.T_imp_final = T_imp
+    scheme.Timp_final = T_imp
 
     return scheme
 end
@@ -230,18 +230,18 @@ function phase3!(scheme::CorrelationHOTRG, trunc::TruncationStrategy)
     Uy, _ = _get_hotrg_yproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_x(scheme.Tpure, scheme.Tpure, Uy)
-    T_imp = 0.5 * (_step_hotrg_x(scheme.T_imp_final, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.T_imp_final, Uy))
+    T_imp = 0.5 * (_step_hotrg_x(scheme.Timp_final, scheme.Tpure, Uy) + _step_hotrg_x(scheme.Tpure, scheme.Timp_final, Uy))
 
     scheme.Tpure = T
-    scheme.T_imp_final = T_imp
+    scheme.Timp_final = T_imp
 
     Ux, _ = _get_hotrg_xproj(scheme.Tpure, scheme.Tpure, trunc)
 
     T = _step_hotrg_y(scheme.Tpure, scheme.Tpure, Uy)
-    T_imp = 0.5 * (_step_hotrg_y(scheme.T_imp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.T_imp_final, Ux))
+    T_imp = 0.5 * (_step_hotrg_y(scheme.Timp_final, scheme.Tpure, Ux) + _step_hotrg_y(scheme.Tpure, scheme.Timp_final, Ux))
 
     scheme.Tpure = T
-    scheme.T_imp_final = T_imp
+    scheme.Timp_final = T_imp
 
     return scheme
 end
