@@ -63,9 +63,9 @@ mutable struct CorrelationHOTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
             Tpure,
             Timp1,
             Timp2,
-            nothing,   # no single impurity yet
+            nothing,    # no single impurity yet
             dist,
-            0
+            0           # iteration starts at 0
         )
     end
 end
@@ -101,6 +101,7 @@ function step!(
     if phase == 1
         # -----------------------------
         # PHASE 1 — TWO IMPURITIES
+        # dist steps
         # -----------------------------
 
         phase1!(scheme, trunc)
@@ -109,6 +110,7 @@ function step!(
     elseif phase == 2
         # -----------------------------
         # PHASE 2 — MERGE IMPURITIES
+        # 1 step
         # -----------------------------
 
         phase2!(scheme, trunc)
@@ -121,6 +123,7 @@ function step!(
     else
         # -----------------------------
         # PHASE 3 — SINGLE IMPURITY
+        # (niter-dist-1) steps
         # -----------------------------
 
         phase3!(scheme, trunc)
@@ -172,12 +175,12 @@ end
 ############################################################################
 
 function _phase(scheme::CorrelationHOTRG)
-    if scheme.iter < scheme.dist
+    if scheme.iter < scheme.dist        # dist steps
         return 1
-    elseif scheme.iter == scheme.dist
+    elseif scheme.iter == scheme.dist   # 1 step
         return 2
     else
-        return 3
+        return 3                        # (niter-dist-1) steps
     end
 end
 
