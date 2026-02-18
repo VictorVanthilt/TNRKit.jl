@@ -147,7 +147,7 @@ function run!(scheme::CorrelationHOTRG, trunc::TruncationStrategy, niter::stopcr
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            val = step!(scheme, tnscheme)
+            val = step!(scheme, trunc)
             push!(data, val)
             steps += 1
             crit = niter(steps, data)
