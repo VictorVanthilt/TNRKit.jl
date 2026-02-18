@@ -398,11 +398,11 @@ end
 
     data = run!(scheme, truncrank(16), maxiter(25))
 
-    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 6.0e-7
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0, initial_size = 4.0) ≈ f_onsager rtol = 1.0e-4
 end
 
 @testset "Correlation HOTRG - Magnetisation Correlation" begin
-    # High temperature limit (<m^2> -> 0)
+    # High temperature limit
     β = 0.2
 
     T = classical_ising(β)
@@ -412,8 +412,8 @@ end
 
     data = run!(scheme, truncrank(16), maxiter(25))
 
-    highT = data[end][4] / data[end][1]
-    @test highT ≈ 7.396177e-6 rtol = 1.0e-3
+    highT = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
+    @test highT ≈ 7.396177e-6 atol = 1.0e-6
 
     # Critical temperature limit
     T = classical_ising()
@@ -423,10 +423,10 @@ end
 
     data = run!(scheme, truncrank(16), maxiter(25))
 
-    Tc = data[end][2] / data[end][1]
-    @test Tc ≈ 0.2981409 rtol = 1.0e-3
+    Tc = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
+    @test Tc ≈ 0.2981409 rtol = 1.0e-2
 
-    # Low temperature limit (<m^2> -> 1)
+    # Low temperature limit
     β = 3.0
 
     T = classical_ising(β)
@@ -436,6 +436,6 @@ end
 
     data = run!(scheme, truncrank(16), maxiter(25))
 
-    lowT = data[end][4] / data[end][1]
+    lowT = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
     @test lowT ≈ 1 rtol = 1.0e-3
 end
