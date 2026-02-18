@@ -107,8 +107,8 @@ function finalize_phase1!(scheme::CorrelationHOTRG)
     n_2 = norm(@tensor scheme.T_imp2[1 2; 2 1])
 
     scheme.Tpure /= n
-    scheme.scheme /= n
-    scheme.scheme /= n
+    scheme.T_imp1 /= n
+    scheme.T_imp2 /= n
 
     return n, n_1, n_2
 end
