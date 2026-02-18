@@ -4,7 +4,7 @@ $(TYPEDEF)
 Simple two-point correlation function for Higher-Order Tensor Renormalization Group
 
 !!! info "Distance"
-    Distance is `dist` in 2^{dist} sites apart. E.g. dist=3 means distance 2^3=8 sites apart.
+    Distance of `dist` is 2^{dist} sites apart. E.g. dist=3 means distance 2^3=8 sites apart.
 
 ### Constructors
     $(FUNCTIONNAME)(T, Timp1, Timp2, dist)
@@ -163,7 +163,7 @@ function Base.show(io::IO, scheme::CorrelationHOTRG)
     println(io, "  * Tpure: $(summary(scheme.Tpure))")
     println(io, "  * Timp1: $(summary(scheme.Timp1))")
     println(io, "  * Timp2: $(summary(scheme.Timp2))")
-    println(io, "  * Dist: $(summary(scheme.dist))")
+    println(io, " * dist: $(scheme.dist)  → distance = $(2^scheme.dist)")
     return nothing
 end
 
