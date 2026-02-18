@@ -120,7 +120,7 @@ function finalize_phase23!(scheme::CorrelationHOTRG)
     scheme.Tpure /= n
     scheme.Timp_final /= n
 
-    return n, n_imp
+    return n, n_imp, n_imp
 end
 
 # cft data finalize

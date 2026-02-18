@@ -104,7 +104,7 @@ function step!(
         # -----------------------------
 
         phase1!(scheme, trunc)
-        finalize_phase1!(scheme)
+        val = finalize_phase1!(scheme)
 
     elseif phase == 2
         # -----------------------------
@@ -112,7 +112,7 @@ function step!(
         # -----------------------------
 
         phase2!(scheme, trunc)
-        finalize_phase23!(scheme)
+        val = finalize_phase23!(scheme)
 
         # Explicitly deactivate two-impurity tensors
         scheme.Timp1 = nothing
@@ -124,11 +124,11 @@ function step!(
         # -----------------------------
 
         phase3!(scheme, trunc)
-        finalize_phase23!(scheme)
+        val = finalize_phase23!(scheme)
     end
 
     scheme.iter += 1
-    return scheme
+    return val
 end
 
 
