@@ -1,4 +1,3 @@
-#=
 println("--------------------")
 println(" Testing all models ")
 println("--------------------")
@@ -27,4 +26,3 @@ model_temp_answer = [
         @test free_energy(data, temp) ≈ answer rtol = 1.0e-3
     end
 end
-=#
