@@ -99,11 +99,11 @@ export classical_XY_O2_symmetric
 
 include("models/phi4_real.jl")
 export phi4_real, phi4_real_imp1, phi4_real_imp2
-export phi4_real_symmetric
+export phi4_real_Z2
 
 include("models/phi4_complex.jl")
 export phi4_complex, phi4_complex_impϕ, phi4_complex_impϕdag, phi4_complex_impϕabs, phi4_complex_impϕ2, phi4_complex_all
-export phi4_complex_symmetric
+export phi4_complex_U1, phi4_complex_Z2Z2
 
 # utility functions
 include("utility/free_energy.jl")
