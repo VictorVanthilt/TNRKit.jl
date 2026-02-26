@@ -16,7 +16,9 @@ model_temp_answer = [
     (phi4_real(10, -1.0, 1.0), -1.0, 0.4241912271276211), # This is an approximation!
     (phi4_real_symmetric(10, -1.0, 1.0), -1.0, 0.4232381701937374), # This is an approximation!
     (phi4_complex(6, -1.0, 1.0), -1.0, 0.7583605364656325), # This is an approximation!
-    (phi4_complex_symmetric(6, -1.0, 1.0), -1.0, 4.91362301061858), # This is an approximation!
+    (phi4_complex_U1(6, -1.0, 1.0), -1.0, 0.7673189874157453), # This is an approximation!
+    (phi4_complex_Z2Z2(6, -1.0, 1.0), -1.0, 0.7665677554973079), # This is an approximation!
+
 ]
 
 @testset "2D Models" begin
