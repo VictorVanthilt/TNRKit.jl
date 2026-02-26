@@ -44,7 +44,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
@@ -94,7 +94,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ operator on this site.
 
@@ -146,7 +146,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ^2 operator on this site.
 
@@ -198,7 +198,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
 
 This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
