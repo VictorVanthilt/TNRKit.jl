@@ -44,13 +44,13 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 - `h::Float64`: External field (default is 0).
 
@@ -94,7 +94,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ operator on this site.
 
@@ -102,7 +102,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 - `h::Float64`: External field (default is 0).
 
@@ -146,7 +146,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ^2 operator on this site.
 
@@ -154,7 +154,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 - `h::Float64`: External field (default is 0).
 
@@ -198,7 +198,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 This tensor has explicit ℤ₂ symmetry on each of its spaces.
 
@@ -206,7 +206,7 @@ It is based on Taylor expanding the mixed sites term.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration. K has to be even!
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 !!! info
@@ -214,7 +214,7 @@ It is based on Taylor expanding the mixed sites term.
 
 ### Examples
 ```julia
-    phi4_real_symmetric(10, -1.0, 1.0)
+    phi4_real_Z2(10, -1.0, 1.0)
 ```
 
 ### References
@@ -222,7 +222,7 @@ It is based on Taylor expanding the mixed sites term.
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref), [`phi4_real_symmetric`](@ref).
 """
-function phi4_real_symmetric(K::Integer, μ0::Float64, λ::Float64)
+function phi4_real_Z2(K::Integer, μ0::Float64, λ::Float64)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
