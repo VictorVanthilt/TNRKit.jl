@@ -41,30 +41,53 @@ end
 
 # For phi4_complex_U1
 function precompute_moments_complex(K, μ0, λ)
-    a = 2 + μ0/2
-    b = λ/4     # convention, yeah, convention
-    nmax = 8*(K-1) + 1
-    M = zeros(Float64, nmax+1)
+    a = 2 + μ0 / 2
+    b = λ / 4     # convention, yeah, convention
+    nmax = 8 * (K - 1) + 1
+    M = zeros(Float64, nmax + 1)
 
     for n in 0:nmax
         f(r) = begin
-            logval = n * log(r) - a*r^2 - b*r^4
+            logval = n * log(r) - a * r^2 - b * r^4
             return exp(logval)        # safe everywhere, never NaN
         end
 
-        val, _ = quadgk(f, 0.0, Inf; rtol=1e-8, maxevals=10^7)
-        M[n+1] = val
+        val, _ = quadgk(f, 0.0, Inf; rtol = 1.0e-8, maxevals = 10^7)
+        M[n + 1] = val
     end
     return M
 end
 
 # For phi4_complex_Z2Z2
-function moment_matrix(N, μ0, λ; rtol=1e-8)
+function precompute_radial_integrals(N, μ0, λ; rtol = 1.0e-8)
 
-    M = zeros(Float64, N+1, N+1)
+    a = 2 + μ0 / 2
+    b = λ / 4
+
+    b > 0 || error("Integral diverges for λ ≤ 0")
+
+    I = Dict{Int, Float64}()
+
+    # Only even n up to 2N are needed
+    for n in 0:2:2N
+
+        f(r) = r^(n + 1) * exp(-a * r^2 - b * r^4)
+
+        val, _ = quadgk(f, 0, Inf; rtol = rtol)
+
+        I[n] = val
+    end
+
+    return I
+end
+
+# For phi4_complex_Z2Z2
+function moment_matrix(N, μ0, λ; rtol = 1.0e-8)
+
+    M = zeros(Float64, N + 1, N + 1)
 
     # Precompute radial integrals
-    I = precompute_radial_integrals(N, μ0, λ; rtol=rtol)
+    I = precompute_radial_integrals(N, μ0, λ; rtol = rtol)
 
     for α in 0:N
         for β in α:N   # upper triangle only
@@ -73,12 +96,12 @@ function moment_matrix(N, μ0, λ; rtol=1e-8)
 
                 n = α + β
 
-                C = 2 * beta((α+1)/2, (β+1)/2)
+                C = 2 * beta((α + 1) / 2, (β + 1) / 2)
 
                 val = C * I[n]
 
-                M[α+1, β+1] = val
-                M[β+1, α+1] = val  # symmetry
+                M[α + 1, β + 1] = val
+                M[β + 1, α + 1] = val  # symmetry
             end
         end
     end
@@ -95,13 +118,13 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -162,7 +185,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ operator on this site.
     
@@ -170,7 +193,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -232,7 +255,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕ† operator on this site.
 
@@ -240,7 +263,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -301,7 +324,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a √(ϕϕ†) operator on this site.
     
@@ -309,7 +332,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -370,7 +393,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 The impurity is a ϕϕ† operator on this site.
     
@@ -378,7 +401,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -440,7 +463,7 @@ end
 $(SIGNATURES)
 
 Constructs all the tensors: the partition function tensor and all the impurity tensors for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
 
 It is faster to compute them all at once then one for one individually.
 
@@ -448,7 +471,7 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
     
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -534,7 +557,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ`.
 
 This tensor has explicit U(1) symmetry on each of its spaces.
 
@@ -542,7 +565,7 @@ It is based on Taylor expanding the mixed sites term.
     
 ### Arguments
 - `K::Integer`: Number of terms in the Taylor expansion.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -551,7 +574,7 @@ It is based on Taylor expanding the mixed sites term.
 ```
 
 ### References
-Adwait Naravane, Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadoh2019)
+Adwait Naravane and Piceu Jarid, but based on [Delcamp et. al. Phys. Rev. Research 2, 033278 (2020)](@cite delcamp2020)
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
@@ -563,22 +586,22 @@ function phi4_complex_U1(K, μ0, λ)
     # precompute
     moments = precompute_moments_complex(K, μ0, λ)
     # log factorials 0..K-1
-    logfact = log.(factorial.(0:K-1))
-    
+    logfact = log.(factorial.(0:(K - 1)))
+
     T_arr = zeros(Float64, K, K, K, K, K, K, K, K)
 
-    @threads for a in 0:K-1
-        for b in 0:K-1
-            for c in 0:K-1
-                for d in 0:K-1
-                    for e in 0:K-1
-                        for f in 0:K-1
-                            for g in 0:K-1
+    @threads for a in 0:(K - 1)
+        for b in 0:(K - 1)
+            for c in 0:(K - 1)
+                for d in 0:(K - 1)
+                    for e in 0:(K - 1)
+                        for f in 0:(K - 1)
+                            for g in 0:(K - 1)
                                 # solve delta for l4:
                                 # b + d + e + g = a + c + f + h
                                 h = e + g + b + d - a - c - f
 
-                                if h < 0 || h > K-1
+                                if h < 0 || h > K - 1
                                     continue
                                 end
 
@@ -586,20 +609,22 @@ function phi4_complex_U1(K, μ0, λ)
                                 sum_power = a + b + c + d + e + f + g + h
                                 n = 1 + sum_power
                                 # quick skip if moment is zero
-                                M = moments[n+1]
+                                M = moments[n + 1]
                                 if M == 0.0
                                     continue
                                 end
 
                                 # denomenator via logfacts
-                                logdenom = 0.5 * (log(2) * sum_power +
-                                    logfact[a+1] + logfact[b+1] + logfact[c+1] + logfact[d+1] + logfact[e+1] + logfact[f+1] + logfact[g+1] + logfact[h+1])
+                                logdenom = 0.5 * (
+                                    log(2) * sum_power +
+                                        logfact[a + 1] + logfact[b + 1] + logfact[c + 1] + logfact[d + 1] + logfact[e + 1] + logfact[f + 1] + logfact[g + 1] + logfact[h + 1]
+                                )
                                 denom = exp(logdenom)
 
                                 val = 2π * M / denom
 
                                 # store into array (indices +1)
-                                T_arr[a+1, b+1, c+1, d+1, e+1, f+1, g+1, h+1] = val
+                                T_arr[a + 1, b + 1, c + 1, d + 1, e + 1, f + 1, g + 1, h + 1] = val
                             end
                         end
                     end
@@ -609,8 +634,8 @@ function phi4_complex_U1(K, μ0, λ)
     end
 
     # Build U1 spaces
-    V1 = U1Space([U1Irrep(q) => 1 for q in 0:K-1]...)
-    V2 = U1Space([U1Irrep(q) => 1 for q in 0:-1:-K+1]...)
+    V1 = U1Space([U1Irrep(q) => 1 for q in 0:(K - 1)]...)
+    V2 = U1Space([U1Irrep(q) => 1 for q in 0:-1:(-K + 1)]...)
     T_unfused = TensorMap(T_arr, V1 ⊗ V2 ⊗ V1 ⊗ V2 ← V1 ⊗ V2 ⊗ V1 ⊗ V2)
 
     U = isometry(fuse(V1, V2), V1 ⊗ V2)
@@ -625,15 +650,15 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass µ_0^2 `μ0`, interaction constant `λ`.
+for the complex ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ`.
 
-This tensor has explicit Z2xZ2 symmetry on each of its spaces.
+This tensor has explicit ℤ₂xℤ₂ symmetry on each of its spaces.
 
 It is based on Taylor expanding the mixed sites term.
     
 ### Arguments
 - `K::Integer`: Number of terms in the Taylor expansion.
-- `μ0::Float64`: Bare mass. Note that in the calculation actually µ_0^2 is used, but for readibility we write the µ_0^2 as μ0
+- `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
 
 ### Examples
@@ -642,7 +667,7 @@ It is based on Taylor expanding the mixed sites term.
 ```
 
 ### References
-Adwait Naravane, Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadoh2019)
+Piceu Jarid and Adwait Naravane, but based on [Delcamp et. al. Phys. Rev. Research 2, 033278 (2020)](@cite delcamp2020)
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
@@ -652,44 +677,44 @@ function phi4_complex_Z2Z2(K, μ0, λ)
     end
 
     # precompute moment
-    moments = moment_matrix(4*K, μ0, λ)
+    moments = moment_matrix(4 * K, μ0, λ)
     # log factorials 0..K-1
-    logfact = log.(factorial.(0:K-1))
-    
+    logfact = log.(factorial.(0:(K - 1)))
+
 
     T_arr = zeros(Float64, K, K, K, K, K, K, K, K)
 
-    @threads for a in 0:K-1
-        for c in 0:K-1
-            for f in 0:K-1
-                for h in 0:K-1
+    @threads for a in 0:(K - 1)
+        for c in 0:(K - 1)
+            for f in 0:(K - 1)
+                for h in 0:(K - 1)
                     # Answer is zero if a+c+f+h is odd
-                    if isodd(a+c+f+h)
+                    if isodd(a + c + f + h)
                         continue
                     end
 
-                    for b in 0:K-1
-                        for d in 0:K-1
-                            for e in 0:K-1
-                                for g in 0:K-1
+                    for b in 0:(K - 1)
+                        for d in 0:(K - 1)
+                            for e in 0:(K - 1)
+                                for g in 0:(K - 1)
                                     # Answer is zero if b+d+e+g is odd
-                                    if isodd(b+d+e+g)
+                                    if isodd(b + d + e + g)
                                         continue
                                     end
 
-                                # Calculate moment
-                                α = a + c + f + h
-                                β = b + d + e + g
-                                M = moments[α+1, β+1]
+                                    # Calculate moment
+                                    α = a + c + f + h
+                                    β = b + d + e + g
+                                    M = moments[α + 1, β + 1]
 
-                                # denomenator via logfacts
-                                logdenom = 0.5 * (logfact[a+1] + logfact[b+1] + logfact[c+1] + logfact[d+1] + logfact[e+1] + logfact[f+1] +logfact[g+1] + logfact[h+1])
-                                denom = exp(logdenom)
+                                    # denomenator via logfacts
+                                    logdenom = 0.5 * (logfact[a + 1] + logfact[b + 1] + logfact[c + 1] + logfact[d + 1] + logfact[e + 1] + logfact[f + 1] + logfact[g + 1] + logfact[h + 1])
+                                    denom = exp(logdenom)
 
-                                val = M / denom
+                                    val = M / denom
 
-                                # store into array (indices +1)
-                                T_arr[a+1, b+1, c+1, d+1, e+1, f+1, g+1, h+1] = val
+                                    # store into array (indices +1)
+                                    T_arr[a + 1, b + 1, c + 1, d + 1, e + 1, f + 1, g + 1, h + 1] = val
                                 end
                             end
                         end
@@ -707,7 +732,7 @@ function phi4_complex_Z2Z2(K, μ0, λ)
 
 
     # Build Z2 spaces
-    V = Z2Space([Z2Irrep(0) => K//2, Z2Irrep(1) => K//2])
+    V = Z2Space([Z2Irrep(0) => K // 2, Z2Irrep(1) => K // 2])
     T_unfused = TensorMap(T_block, V ⊗ V ⊗ V ⊗ V ← V ⊗ V ⊗ V ⊗ V)
 
     U = isometry(fuse(V, V), V ⊗ V)
