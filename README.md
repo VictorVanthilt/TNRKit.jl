@@ -46,6 +46,9 @@ The following schemes are currently implemented:
 - ImpurityTRG
 - ImpurityHOTRG
 
+**Correlation Methods**
+- CorrelationHOTRG
+
 **3D cubic tensor networks**
 - ATRG_3D (anisotropic TRG)
 - HOTRG_3D (higher order TRG)
