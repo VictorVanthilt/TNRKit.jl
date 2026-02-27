@@ -42,12 +42,12 @@ The following schemes are currently implemented:
 - c6vCTM_triangular (c6v symmetric CTM on the triangular lattice)
 - CTM_triangular (CTM on the triangular lattice)
 
-**Impurity Methods**
-- ImpurityTRG
-- ImpurityHOTRG
+**2D Impurity Methods**
+- ImpurityTRG (Expectation value calculation via TRG)
+- ImpurityHOTRG (Expectation value calculation via HOTRG)
 
-**Correlation Methods**
-- CorrelationHOTRG
+**2D Correlation Methods**
+- CorrelationHOTRG (Correlation function calculation via HOTRG)
 
 **3D cubic tensor networks**
 - ATRG_3D (anisotropic TRG)
