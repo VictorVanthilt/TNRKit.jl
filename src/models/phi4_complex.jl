@@ -64,7 +64,7 @@ function precompute_radial_integrals(N, μ0, λ; rtol = 1.0e-8)
     a = 2 + μ0 / 2
     b = λ / 4
 
-    b > 0 || error("Integral diverges for λ ≤ 0")
+    b >= 0 || error("Integral diverges for λ < 0")
 
     I = Dict{Int, Float64}()
 
