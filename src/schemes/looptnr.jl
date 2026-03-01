@@ -201,7 +201,7 @@ end
 
 # Function to compute the half of the matrix N by inputting the left and right SS transfer matrices
 function tN(SS_left::AbstractTensorMap{E, S, 2, 2}, SS_right::AbstractTensorMap{E, S, 2, 2}) where {E, S}
-    return SS_right * SS_left
+    return transpose(SS_right * SS_left, ((3, 1), (4, 2)))
 end
 
 # Function to compute the vector W for a given position in the loop
@@ -238,31 +238,86 @@ function tW(
         @plansor W[-1; -3 -2] := conj(ΨB[-2; 4 2]) * ΨA[3; -3 4 1] * tmp[2 1; -1 3]
     end
 
-    return W
+    return transpose(W, ((1, 3), (2,)))
 end
 
-# Function to optimize the tensor T for a given position in the loop by the Krylov method
-function opt_T(
-        N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 1, 2},
-        psi::AbstractTensorMap{E, S, 1, 2}
-    ) where {E, S}
-    function apply_f(x::TensorMap)
-        #-----1'--   --2'------------1'--
-        #          |            |
-        #          3'           |
-        #          |            N
-        #          |            |
-        #          |            |
-        #---1------x-------2---------1---
-        @plansor b[-1; -3 -2] := N[-2 2; -1 1] * x[1; -3 2]
-        return b
+function right_orth_endo(M::TensorMap)
+    if isdual(codomain(M)[1])
+        Qt, Lt = left_orth(transpose(M); positive = true)
+        return transpose(Lt), transpose(Qt)
+    else
+        return right_orth(M; positive = true)
     end
-    new_T, info = linsolve(
-        apply_f, W, psi; krylovdim = 20, maxiter = 20, tol = 1.0e-12,
+end
+
+function precond(F::TensorMap{E, S, 2, 1}; maxiter = 5, tol = 1e-14) where {E, S}
+    L = id(E, codomain(F)[1])
+    R = id(E, codomain(F)[2])
+    shift = Inf
+    δL = Inf
+    δR = Inf
+    i = 0
+
+    while shift > tol && i < maxiter
+        Fr = transpose(F, ((1,), (3, 2)))
+        ΔL, QL = right_orth_endo(Fr)
+        norm_ΔL = norm(ΔL, Inf)
+        ΔL /= norm_ΔL
+        QL *= norm_ΔL
+
+        Fl = transpose(QL, ((3,), (1, 2)))
+        ΔR, QR = right_orth_endo(Fl)
+        norm_ΔR = norm(ΔR, Inf)
+        ΔR /= norm_ΔR
+        QR *= norm_ΔR
+
+        new_L = L * ΔL
+        new_R = R * ΔR
+
+        domain(ΔL) == domain(L) && (δL = norm(L - new_L))
+        domain(ΔR) == domain(R) && (δR = norm(R - new_R))
+
+        i += 1
+
+        L = new_L
+        R = new_R
+        
+        F = transpose(QR, ((2, 1), (3,)))
+    end
+
+    return F, L, R
+end
+
+# # Function to optimize the tensor T for a given position in the loop by the Krylov method
+function opt_T_linsolve(
+        N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
+        psi::AbstractTensorMap{E, S, 2, 1}; krylovdim = 50, maxiter = 150, tol = 1e-14
+    ) where {E, S}
+    new_T, info = linsolve(x ->
+        N * x, W, psi; krylovdim = krylovdim, maxiter = maxiter, tol = tol,
         verbosity = 0
     )
     res = norm(info.residual)
-    return new_T, res
+    relative_shift = norm(new_T - psi) / norm(psi)
+    return new_T, res, relative_shift
+end
+
+
+
+function opt_T(N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
+        psi::AbstractTensorMap{E, S, 2, 1}; rtol = 1e-14) where {E, S}
+    U, Σ, V = svd_trunc(N; trunc = trunctol(rtol = 1e-14))
+    
+    ΔW = W - N * psi
+    UΔW = U' * ΔW
+    ΣinvUΔW = Σ \ UΔW
+    Δpsi = V' * ΣinvUΔW
+
+    new_psi = psi + Δpsi
+
+    res = norm(N * Δpsi - ΔW)
+    relative_shift = norm(Δpsi) / norm(psi)
+    return new_psi, res, relative_shift
 end
 
 # Function to compute the right cache for the transfer matrices. Here we sweep from left to right. At the end we add the identity transfer matrix to the cache.
@@ -301,6 +356,9 @@ function loop_opt(
     psiApsiA = ΨAΨA(psiA)
     C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
     cost = Float64[Inf]
+
+    entanglement_spec = DiagonalTensorMap{Float64, GradedSpace{Z2Irrep, Tuple{Int64, Int64}}, Vector{Float64}}[]
+
     sweep = 0
     crit = true
     while crit
@@ -322,24 +380,34 @@ function loop_opt(
             push!(cost, cost_this)
         end
 
+        crit = loop_criterion(sweep, cost)
+
+        !crit && break
+
         for pos_psiB in 1:NB
             pos_psiA = (pos_psiB - 1) ÷ 2 + 1 # Position in the MPS Ψ_A
 
             N = tN(left_BB, right_cache_BB[pos_psiB]) # Compute the half of the matrix N for the current position in the loop, right cache is used to minimize the number of multiplications
             W = tW(pos_psiB, psiA, psiB, left_BA, right_cache_BA[pos_psiA]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
-            new_psiB, residual = opt_T(N, W, psiB[pos_psiB]) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
+            psi = transpose(psiB[pos_psiB], ((1, 3), (2,)))
 
-            transfer = psiBpsiB[pos_psiB] * N
-            if verbosity > 3
-                S_cir = VN_entropy(transfer)
-                S_rad = VN_entropy(transpose(transfer, ((2, 4), (1, 3))))
-                relative_shift = norm(new_psiB - psiB[pos_psiB]) / norm(psiB[pos_psiB])
-                @infov 4 "Link: ($(mod(pos_psiB - 2, NB) + 1), $(pos_psiB)), S_cir = $S_cir, S_rad = $S_rad, ΔΨB[$pos_psiB] = $relative_shift, residual = $residual"
-            end
+            new_psi, residual, relative_shift = opt_T(N, W, psi) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
 
-            psiB[pos_psiB] = new_psiB # Update a single local tensor in the MPS Ψ_B
+            # @show residual, relative_shift, norm(new_psi, Inf)
 
-            @plansor BB_temp[-1 -2; -3 -4] := new_psiB[-2; 1 -4] * conj(new_psiB[-1; 1 -3])
+            # S_rad, entanglement_spec_this = VN_entropy(transpose(N, ((2, 4), (1, 3))))
+            # push!(entanglement_spec, entanglement_spec_this)
+
+            # transfer = psiBpsiB[pos_psiB] * N
+            # if verbosity > 3
+            #     S_cir, _ = VN_entropy(transfer)
+            #     S_rad, _ = VN_entropy(transpose(transfer, ((2, 4), (1, 3))))
+            #     @infov 4 "Link: ($(mod(pos_psiB - 2, NB) + 1), $(pos_psiB)), S_cir = $S_cir, S_rad = $S_rad, ΔΨB[$pos_psiB] = $relative_shift, residual = $residual"
+            # end
+
+            psiB[pos_psiB] = transpose(new_psi, ((1,), (3, 2)))
+
+            @plansor BB_temp[-1 -2; -3 -4] := psiB[pos_psiB][-2; 1 -4] * conj(psiB[pos_psiB][-1; 1 -3])
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
             left_BB = left_BB * BB_temp # Update the left transfer matrix for ΨBΨB
 
@@ -365,7 +433,7 @@ function loop_opt(
         end
     end
 
-    return psiB
+    return psiB, entanglement_spec
 end
 
 """
@@ -397,9 +465,9 @@ function loop_opt!(
         verbosity::Int
     )
     psiA = Ψ_A(scheme)
-    psiB = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
+    psiB, entanglement_spec = loop_opt(psiA, loop_criterion, trunc, truncentanglement, verbosity)
     scheme.TA, scheme.TB = ΨB_to_TATB(psiB)
-    return scheme
+    return scheme, entanglement_spec
 end
 
 function step!(
@@ -411,8 +479,8 @@ function step!(
         verbosity::Int
     )
     entanglement_filtering!(scheme, truncentanglement, entanglement_criterion)
-    loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
-    return scheme
+    scheme, entanglement_spec = loop_opt!(scheme, loop_criterion, trunc, truncentanglement, verbosity::Int)
+    return scheme, entanglement_spec
 end
 
 function run!(
@@ -423,6 +491,7 @@ function run!(
         verbosity = 1
     ) where {E}
     data = Vector{E}()
+    entanglement_spec_RG = DiagonalTensorMap{Float64, GradedSpace{Z2Irrep, Tuple{Int64, Int64}}, Vector{Float64}}[]
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
@@ -435,15 +504,18 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, truncentanglement, entanglement_criterion, loop_criterion, verbosity)
+            _, entanglement_spec = step!(scheme, trscheme, truncentanglement, entanglement_criterion, loop_criterion, verbosity)
             push!(data, finalizer.f!(scheme))
+
+            append!(entanglement_spec_RG, entanglement_spec)
+
             steps += 1
             crit = criterion(steps, data)
         end
 
         @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
     end
-    return data
+    return data, entanglement_spec_RG
 end
 
 function run!(scheme, trscheme, truncentanglement, criterion, entanglement_criterion, loop_criterion; kwargs...)
