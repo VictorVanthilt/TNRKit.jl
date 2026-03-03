@@ -355,9 +355,9 @@ function loop_opt(
 
             if loop_condition.nuclear_norm_regularization
                 if iseven(pos_psiB)
-                    M[pos_psiB], rank, _, nuclear_norm1 = svt(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
+                    M[pos_psiB], rank, nuclear_norm1 = svt(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
                 else
-                    new_M_transp, rank, _, nuclear_norm1 = svt(transpose(psiB[pos_psiB], ((2, 1), (3,))) + (-transpose(Λ[pos_psiB], ((2, 1), (3,))) / ξ), ξ)
+                    new_M_transp, rank, nuclear_norm1 = svt(transpose(psiB[pos_psiB], ((2, 1), (3,))) + (-transpose(Λ[pos_psiB], ((2, 1), (3,))) / ξ), ξ)
                     M[pos_psiB] = transpose(new_M_transp, ((2,), (1, 3)))
                 end
                 Λ[pos_psiB] += ξ * (M[pos_psiB] - psiB[pos_psiB])
