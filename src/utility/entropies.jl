@@ -1,4 +1,4 @@
-function VN_entropy(M::TensorMap; rtol = 1e-14, power = 1.0)
+function VN_entropy(M::TensorMap; rtol = 1.0e-14, power = 1.0)
     _, S, _ = svd_trunc(M; trunc = trunctol(rtol = rtol))
     S_vec_norm = S.data / sum(S.data)
     plogp = map(x -> x > rtol ? x^power * power * log(x) : 0.0, S_vec_norm)

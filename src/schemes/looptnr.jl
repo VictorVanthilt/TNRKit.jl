@@ -69,11 +69,10 @@ struct LoopParameters
     ξ_init::Float64
     ξ_min::Float64
 
-    function LoopParameters(;sweeping = maxiter(20) & convcrit(1e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(rtol = 1e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1e-5, ξ_min = 1e-7)
+    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
         return new(sweeping, truncentanglement, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
     end
 end
-
 
 
 function _check_dual(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
@@ -256,8 +255,10 @@ function tW(
     return transpose(W, ((1, 3), (2,)))
 end
 
-function opt_T(N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
-        psi::AbstractTensorMap{E, S, 2, 1}) where {E, S}
+function opt_T(
+        N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
+        psi::AbstractTensorMap{E, S, 2, 1}
+    ) where {E, S}
     ΔW = W - N * psi
     Δpsi = N \ ΔW
     new_psi = psi + Δpsi
@@ -350,7 +351,7 @@ function loop_opt(
                 N_eff = N
                 W_eff = W
             end
-            
+
             new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
             psiB[pos_psiB] = transpose(new_psi, ((1,), (3, 2)))
 
