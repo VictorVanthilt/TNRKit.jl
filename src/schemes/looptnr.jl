@@ -37,12 +37,25 @@ mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E
     end
 end
 
+# Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
+struct LoopParameters
+    sweeping::stopcrit
+    truncentanglement::TruncationStrategy
+    nuclear_norm_regularization::Bool
+    ρ::Float64
+    ξ_init::Float64
+    ξ_min::Float64
+
+    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
+        return new(sweeping, truncentanglement, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
+    end
+end
+
 """
     LoopTNR(
         unitcell_2x2::Matrix{T},
-        loop_criterion::stopcrit,
         trunc::TruncationStrategy,
-        truncentanglement::TruncationStrategy
+        loop_condition::LoopParameters
     ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
 
 Initialize LoopTNR using a network with 2 x 2 unit cell, 
@@ -59,21 +72,6 @@ function LoopTNR(
     TA, TB = ΨB_to_TATB(ψB)
     return LoopTNR(TA, TB)
 end
-
-# Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
-struct LoopParameters
-    sweeping::stopcrit
-    truncentanglement::TruncationStrategy
-    nuclear_norm_regularization::Bool
-    ρ::Float64
-    ξ_init::Float64
-    ξ_min::Float64
-
-    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
-        return new(sweeping, truncentanglement, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
-    end
-end
-
 
 function _check_dual(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
     return [isdual(space(T, ax)) for ax in 1:4] == [0, 0, 1, 1]
