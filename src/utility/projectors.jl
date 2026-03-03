@@ -215,3 +215,13 @@ function SVD12(
     U, s, V, e = reversed ? svd_reversed(T; trunc = trunc) : svd_trunc(T; trunc = trunc)
     return U * sqrt(s), sqrt(s) * V
 end
+
+function svt(T::TensorMap, tau::Float64)
+    U, S, V = svd_compact(T)
+
+    thresholded_S = map(s -> max(s - tau, 0), S.data)
+    rank_reduced = count(s -> s > 0, thresholded_S)
+    nuclear_norm = sum(thresholded_S)
+    new_S = DiagonalTensorMap(thresholded_S, domain(S, 1))
+    return U * new_S * V, rank_reduced, tau, nuclear_norm
+end
