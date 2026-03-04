@@ -217,7 +217,7 @@ function SVD12(
 end
 
 function svt(T::TensorMap, tau::Float64)
-    U, S, V = svd_trunc(T; trunctol(atol = tau))
+    U, S, V = svd_trunc(T; trunctol(; atol = tau))
 
     thresholded_S = map(s -> max(s - tau, 0), S.data)
     rank_reduced = count(s -> s > 0, thresholded_S)
