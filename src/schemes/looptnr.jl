@@ -41,13 +41,17 @@ end
 struct LoopParameters
     sweeping::stopcrit
     truncentanglement::TruncationStrategy
+    solving_method::String
+    krylovdim::Int
+    kryloviter::Int
+    krylovtol::Float64
     nuclear_norm_regularization::Bool
     ρ::Float64
     ξ_init::Float64
     ξ_min::Float64
 
-    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
-        return new(sweeping, truncentanglement, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
+    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), solving_method = "division", krylovdim = 50, kryloviter = 150, krylovtol = 1e-14, nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
+        return new(sweeping, truncentanglement, solving_method, krylovdim, kryloviter, krylovtol, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
     end
 end
 
@@ -255,15 +259,26 @@ end
 
 function opt_T(
         N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
-        psi::AbstractTensorMap{E, S, 2, 1}
+        psi::AbstractTensorMap{E, S, 2, 1}, loop_condition::LoopParameters
     ) where {E, S}
-    ΔW = W - N * psi
-    Δpsi = N \ ΔW
-    new_psi = psi + Δpsi
-
-    res = norm(N * Δpsi - ΔW)
-    relative_shift = norm(Δpsi) / norm(psi)
-    return new_psi, res, relative_shift
+    if loop_condition.solving_method == "division"
+        ΔW = W - N * psi
+        Δpsi = N \ ΔW
+        new_psi = psi + Δpsi
+        res = norm(N * Δpsi - ΔW)
+        relative_shift = norm(Δpsi) / norm(psi)
+        return new_psi, res, relative_shift
+    elseif loop_condition.solving_method == "krylov"
+        new_psi, info = linsolve(
+        x -> N * x, W, psi; krylovdim = loop_condition.krylovdim, maxiter = loop_condition.kryloviter, tol = loop_condition.krylovtol,
+        verbosity = 0)
+        if info.converged == 0
+            @warn "The linsolve did not converge after $(info.numiter) iterations."
+        end
+        res = info.normres
+        relative_shift = norm(new_psi - psi) / norm(psi)
+        return new_psi, res, relative_shift
+    end
 end
 
 # Function to compute the right cache for the transfer matrices. Here we sweep from left to right. At the end we add the identity transfer matrix to the cache.
@@ -350,7 +365,7 @@ function loop_opt(
                 W_eff = W
             end
 
-            new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
+            new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi, loop_condition) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
             psiB[pos_psiB] = transpose(new_psi, ((1,), (3, 2)))
 
             if loop_condition.nuclear_norm_regularization
