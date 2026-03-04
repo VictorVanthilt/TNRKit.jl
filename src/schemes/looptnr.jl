@@ -50,7 +50,7 @@ struct LoopParameters
     ξ_init::Float64
     ξ_min::Float64
 
-    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), solving_method = "division", krylovdim = 50, kryloviter = 150, krylovtol = 1e-14, nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
+    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), solving_method = "division", krylovdim = 50, kryloviter = 150, krylovtol = 1.0e-14, nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
         return new(sweeping, truncentanglement, solving_method, krylovdim, kryloviter, krylovtol, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
     end
 end
@@ -270,8 +270,9 @@ function opt_T(
         return new_psi, res, relative_shift
     elseif loop_condition.solving_method == "krylov"
         new_psi, info = linsolve(
-        x -> N * x, W, psi; krylovdim = loop_condition.krylovdim, maxiter = loop_condition.kryloviter, tol = loop_condition.krylovtol,
-        verbosity = 0)
+            x -> N * x, W, psi; krylovdim = loop_condition.krylovdim, maxiter = loop_condition.kryloviter, tol = loop_condition.krylovtol,
+            verbosity = 0
+        )
         if info.converged == 0
             @warn "The linsolve did not converge after $(info.numiter) iterations."
         end
