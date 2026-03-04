@@ -46,7 +46,7 @@ struct LoopParameters
     ξ_init::Float64
     ξ_min::Float64
 
-    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
+    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
         return new(sweeping, truncentanglement, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
     end
 end
