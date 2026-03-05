@@ -38,21 +38,17 @@ mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E
 end
 
 # Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
-struct LoopParameters
-    sweeping::stopcrit
-    truncentanglement::TruncationStrategy
-    solving_method::String
-    krylovdim::Int
-    kryloviter::Int
-    krylovtol::Float64
-    nuclear_norm_regularization::Bool
-    ρ::Float64
-    ξ_init::Float64
-    ξ_min::Float64
-
-    function LoopParameters(; sweeping = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])), truncentanglement = trunctol(; rtol = 1.0e-14), solving_method = "division", krylovdim = 50, kryloviter = 150, krylovtol = 1.0e-14, nuclear_norm_regularization = true, ρ = 0.8, ξ_init = 1.0e-5, ξ_min = 1.0e-7)
-        return new(sweeping, truncentanglement, solving_method, krylovdim, kryloviter, krylovtol, nuclear_norm_regularization, ρ, ξ_init, ξ_min)
-    end
+@kwdef struct LoopParameters
+    sweeping::stopcrit = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end]))
+    truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
+    solving_method::String = "division"
+    krylovdim::Int = 50
+    kryloviter::Int = 200
+    krylovtol::Float64 = 1e-14
+    nuclear_norm_regularization::Bool = true
+    ρ::Float64 = 0.8
+    ξ_init::Float64 = 1e-5
+    ξ_min::Float64 = 1e-7
 end
 
 """
