@@ -127,14 +127,21 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
     ]
 
     if loop_condition.one_loop_init
-        ΨB_function(steps, data) = abs(data[end])
-        criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
+        diff = Inf
+        while diff > 1e-12
+            ΨB_last = copy(ΨB)
+            ΨB_function(steps, data) = abs(data[end])
+            criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
 
-        in_inds = ones(Int, 2 * NA)
-        out_inds = 2 * ones(Int, 2 * NA)
+            in_inds = ones(Int, 2 * NA)
+            out_inds = 2 * ones(Int, 2 * NA)
 
-        PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
-        MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
+            PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
+            MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
+            if map(space, ΨB) == map(space, ΨB_last)
+                 diff = maximum(map((x, y) -> norm(x - y), ΨB, ΨB_last))
+            end
+        end
         return ΨB
     else
         return ΨB
@@ -491,7 +498,12 @@ function run!(
         crit = true
 
         t = @elapsed while crit
-            @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
+            @infov 2 "Step $(steps + 1), data[end]:"
+                if !isempty(data)
+                    display(data[end])
+                else
+                    @infov 3 "  Empty"
+                end
             step!(scheme, trscheme, entanglement_criterion, loop_condition, verbosity)
             push!(data, finalizer.f!(scheme))
 
