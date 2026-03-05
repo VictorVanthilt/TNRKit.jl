@@ -75,7 +75,7 @@ export ImpurityHOTRG
 
 export CorrelationHOTRG
 
-export LoopTNR
+export LoopTNR, LoopParameters
 export SLoopTNR
 
 export run!
@@ -130,6 +130,8 @@ include("utility/cdl.jl")
 export cdl_tensor
 
 include("utility/projectors.jl")
+include("utility/entropies.jl")
+export VN_entropy, loop_entropy
 
 include("utility/blocking.jl")
 export block_tensors
