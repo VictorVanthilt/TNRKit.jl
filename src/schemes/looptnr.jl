@@ -139,7 +139,7 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
             PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
             MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
             if map(space, ΨB) == map(space, ΨB_last)
-                 diff = maximum(map((x, y) -> norm(x - y), ΨB, ΨB_last))
+                 diff = maximum(map((x, y) -> norm(x - y, Inf), ΨB, ΨB_last))
             end
         end
         return ΨB
