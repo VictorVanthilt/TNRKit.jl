@@ -40,6 +40,7 @@ end
 # Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
 @kwdef struct LoopParameters
     sweeping::stopcrit = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end]))
+    one_loop_init::Bool = true
     truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
     solving_method::String = "division"
     krylovdim::Int = 50
@@ -102,10 +103,11 @@ function Ψ_A(scheme::LoopTNR)
 end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, truncentanglement::TruncationStrategy) where {E, S}
+function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, loop_condition::LoopParameters) where {E, S}
     @assert trunc isa MatrixAlgebraKit.TruncationByOrder
     NA = length(ΨA)
-    _trunc = truncrank(trunc.howmany * 2)
+
+    loop_condition.one_loop_init ? _trunc = truncrank(trunc.howmany * 2) : _trunc = trunc
     #= 
             |     |
             2 --- 3
@@ -124,15 +126,19 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
         collect(SVD12(ΨA[4], _trunc));
     ]
 
-    ΨB_function(steps, data) = abs(data[end])
-    criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
+    if loop_condition.one_loop_init
+        ΨB_function(steps, data) = abs(data[end])
+        criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
 
-    in_inds = ones(Int, 2 * NA)
-    out_inds = 2 * ones(Int, 2 * NA)
+        in_inds = ones(Int, 2 * NA)
+        out_inds = 2 * ones(Int, 2 * NA)
 
-    PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & truncentanglement)
-    MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
-    return ΨB
+        PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
+        MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
+        return ΨB
+    else
+        return ΨB
+    end
 end
 
 # Construct the list of transfer matrices for ΨAΨA
@@ -308,7 +314,7 @@ function loop_opt(
         loop_condition::LoopParameters,
         verbosity::Int
     ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
-    psiB = Ψ_B(psiA, trunc, loop_condition.truncentanglement)
+    psiB = Ψ_B(psiA, trunc, loop_condition)
     if loop_condition.nuclear_norm_regularization
         M = map(x -> zeros(E, space(x)), psiB)
         Λ = copy(M)
