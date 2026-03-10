@@ -353,6 +353,11 @@ function loop_opt(
             if verbosity > 1
                 @infov 3 "Initial cost: $cost_this"
             end
+            if verbosity > 4
+                Φ_costs = Φ_cost(psiB, psiA)
+                @infov 5 "          Initial Φ_costs: $(Φ_costs)"
+            end
+
             push!(cost, cost_this)
         end
 
@@ -419,6 +424,11 @@ function loop_opt(
 
         if loop_condition.nuclear_norm_regularization
             ξ = max(loop_condition.ρ * ξ, loop_condition.ξ_min)
+        end
+
+        if verbosity > 4
+            Φ_costs = Φ_cost(psiB, psiA)
+            @infov 5 "          Φ_costs: $(Φ_costs)"
         end
     end
 

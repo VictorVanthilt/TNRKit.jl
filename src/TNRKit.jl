@@ -128,6 +128,9 @@ include("utility/projectors.jl")
 include("utility/entropies.jl")
 export VN_entropy, loop_entropy
 
+include("utility/phi_costs.jl")
+export Φ_cost
+
 include("utility/blocking.jl")
 export block_tensors
 
