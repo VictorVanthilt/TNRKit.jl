@@ -45,11 +45,11 @@ end
     solving_method::String = "division"
     krylovdim::Int = 50
     kryloviter::Int = 200
-    krylovtol::Float64 = 1e-14
+    krylovtol::Float64 = 1.0e-14
     nuclear_norm_regularization::Bool = true
     ρ::Float64 = 0.8
-    ξ_init::Float64 = 1e-5
-    ξ_min::Float64 = 1e-7
+    ξ_init::Float64 = 1.0e-5
+    ξ_min::Float64 = 1.0e-7
 end
 
 """
@@ -128,7 +128,7 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
 
     if loop_condition.one_loop_init
         diff = Inf
-        while diff > 1e-12
+        while diff > 1.0e-12
             ΨB_last = copy(ΨB)
             ΨB_function(steps, data) = abs(data[end])
             criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
@@ -139,7 +139,7 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
             PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
             MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
             if map(space, ΨB) == map(space, ΨB_last)
-                 diff = maximum(map((x, y) -> norm(x - y, Inf), ΨB, ΨB_last))
+                diff = maximum(map((x, y) -> norm(x - y, Inf), ΨB, ΨB_last))
             end
         end
         return ΨB
@@ -425,11 +425,6 @@ function loop_opt(
         if loop_condition.nuclear_norm_regularization
             ξ = max(loop_condition.ρ * ξ, loop_condition.ξ_min)
         end
-
-        if verbosity > 4
-            Φ_costs = Φ_cost(psiB, psiA)
-            @infov 5 "          Φ_costs: $(Φ_costs)"
-        end
     end
 
     return psiB
@@ -509,11 +504,11 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]:"
-                if !isempty(data)
-                    display(data[end])
-                else
-                    @infov 3 "  Empty"
-                end
+            if !isempty(data)
+                display(data[end])
+            else
+                @infov 3 "  Empty"
+            end
             step!(scheme, trscheme, entanglement_criterion, loop_condition, verbosity)
             push!(data, finalizer.f!(scheme))
 
