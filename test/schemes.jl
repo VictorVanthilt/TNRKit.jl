@@ -221,14 +221,15 @@ end
 end
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
-    loop_criterion = maxiter(5)
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-12, (steps, cost) -> abs(cost[end]))
+    )
     trunc = truncrank(8)
     truncentanglement = trunctol(atol = 1.0e-12)
     entanglement_criterion = maxiter(100)
-    scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
+    scheme = LoopTNR(fill(T, (2, 2)); trunc, loop_condition)
     data = run!(
-        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
-        loop_criterion
+        scheme, truncrank(8), maxiter(25), loop_condition
     )
     @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
 end
