@@ -169,12 +169,13 @@ end
     @info "LoopTNR ising free energy"
     scheme = LoopTNR(T)
 
-    entanglement_criterion = maxiter(100)
-    loop_criterion = maxiter(5)
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])),
+        truncentanglement = trunctol(atol = 1.0e-12)
+    )
 
     data = run!(
-        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
-        loop_criterion
+        scheme, truncrank(8), maxiter(25), loop_condition
     )
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
