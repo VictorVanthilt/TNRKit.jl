@@ -17,7 +17,7 @@ end
 @testset "loop entropy" begin
     T = classical_ising()
     scheme = LoopTNR(T)
-    data = run!(scheme, truncrank(8), maxiter(8), LoopParameters(); verbosity=1)
+    data = run!(scheme, truncrank(8), maxiter(8), LoopParameters(); verbosity = 1)
     entropies_circ, specs_circ, entropies_rad, specs_rad = loop_entropy(scheme)
 
     @test true # Just check that the function runs without errors
