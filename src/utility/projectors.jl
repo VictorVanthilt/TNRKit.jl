@@ -216,7 +216,11 @@ function SVD12(
     return U * sqrt(s), sqrt(s) * V
 end
 
-function svt(T::TensorMap, tau::Float64)
+"""
+Given a tensormap `T`, the function computes its singular value decomposition (SVD) and applies soft-thresholding to the singular values σ ↦ max(σ - τ, 0). 
+The resulting tensor is reconstructed using the thresholded singular values, and the function also returns the reduced rank (number of non-zero singular values after thresholding) and the nuclear norm (sum of the thresholded singular values).
+"""
+function singular_value_thresholding(T::TensorMap, tau::Float64)
     U, S, V = svd_trunc(T; trunc = trunctol(; atol = tau))
 
     thresholded_S = map(s -> max(s - tau, 0), S.data)

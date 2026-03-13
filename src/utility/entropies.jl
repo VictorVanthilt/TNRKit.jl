@@ -1,9 +1,9 @@
 function VN_entropy(M::TensorMap; rtol = 1.0e-14, power = 1.0)
-    _, S, _ = svd_trunc(M; trunc = trunctol(; rtol))
-    S_vec_norm = S.data / sum(S.data)
-    plogp = map(x -> x > rtol ? x^power * power * log(x) : 0.0, S_vec_norm)
+    Λ, U = eigen(M)
+    Λ_vec_norm = Λ.data / sum(Λ.data)
+    plogp = map(x -> norm(x) > rtol ? x^power * power * log(x) : 0.0, Λ_vec_norm)
     S_von = - sum(plogp)
-    return S_von, S / S.data[1]
+    return S_von, Λ / Λ.data[1]
 end
 
 function loop_entropy(scheme::LoopTNR)
@@ -12,10 +12,10 @@ function loop_entropy(scheme::LoopTNR)
     N = length(psi_A)
     psi_Apsi_A_cache = right_cache(psi_Apsi_A_vector)
 
-    entropies_circ = Float64[]
-    specs_circ = DiagonalTensorMap{Float64}[]
-    entropies_rad = Float64[]
-    specs_rad = DiagonalTensorMap{Float64}[]
+    entropies_circ = ComplexF64[]
+    specs_circ = DiagonalTensorMap{ComplexF64}[]
+    entropies_rad = ComplexF64[]
+    specs_rad = DiagonalTensorMap{ComplexF64}[]
 
     psi_Apsi_A = psi_Apsi_A_cache[end]
 

@@ -135,10 +135,9 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
 
         PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
         MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
-        return ΨB
-    else
-        return ΨB
     end
+
+    return ΨB
 end
 
 # Construct the list of transfer matrices for ΨAΨA
@@ -343,13 +342,8 @@ function loop_opt(
             tdw = tr(psiBpsiA[1] * right_cache_BA[1])
             wdt = conj(tdw)
             cost_this = real((C + tNt - wdt - tdw) / C)
-            if verbosity > 1
-                @infov 3 "Initial cost: $cost_this"
-            end
-            if verbosity > 4
-                Φ_costs = Φ_cost(psiB, psiA)
-                @infov 5 "          Initial Φ_costs: $(Φ_costs)"
-            end
+
+            @infov 3 "Initial cost: $cost_this"
 
             push!(cost, cost_this)
         end
@@ -378,17 +372,15 @@ function loop_opt(
 
             if loop_condition.nuclear_norm_regularization
                 if iseven(pos_psiB)
-                    M[pos_psiB], rank, nuclear_norm1 = svt(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
+                    M[pos_psiB], rank, nuclear_norm1 = singular_value_thresholding(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
                 else
-                    new_M_transp, rank, nuclear_norm1 = svt(transpose(psiB[pos_psiB], ((2, 1), (3,))) + (-transpose(Λ[pos_psiB], ((2, 1), (3,))) / ξ), ξ)
+                    new_M_transp, rank, nuclear_norm1 = singular_value_thresholding(transpose(psiB[pos_psiB], ((2, 1), (3,))) + (-transpose(Λ[pos_psiB], ((2, 1), (3,))) / ξ), ξ)
                     M[pos_psiB] = transpose(new_M_transp, ((2,), (1, 3)))
                 end
                 Λ[pos_psiB] += ξ * (M[pos_psiB] - psiB[pos_psiB])
             end
 
-            if verbosity > 3
-                @infov 4 "      ΔΨB[$pos_psiB] = $relative_shift, residual = $residual"
-            end
+            @infov 4 "      ΔΨB[$pos_psiB] = $relative_shift, residual = $residual"
 
             @plansor BB_temp[-1 -2; -3 -4] := psiB[pos_psiB][-2; 1 -4] * conj(psiB[pos_psiB][-1; 1 -3])
             psiBpsiB[pos_psiB] = BB_temp # Update the transfer matrix for ΨBΨB
@@ -411,9 +403,8 @@ function loop_opt(
         cost_this = real((C + tNt - wdt - tdw) / C)
         push!(cost, cost_this)
         crit = loop_condition.sweeping(sweep, cost)
-        if verbosity > 1
-            @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
-        end
+
+        @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
 
         if loop_condition.nuclear_norm_regularization
             ξ = max(loop_condition.ρ * ξ, loop_condition.ξ_min)
