@@ -3,7 +3,7 @@ function VN_entropy(M::TensorMap; rtol = 1.0e-14, power = 1.0)
     Λ_vec_norm = Λ.data / sum(Λ.data)
     plogp = map(x -> norm(x) > rtol ? x^power * power * log(x) : 0.0, Λ_vec_norm)
     S_von = - sum(plogp)
-    return S_von, Λ / Λ.data[1]
+    return S_von, Λ / maximum(abs.(Λ.data))
 end
 
 function loop_entropy(scheme::LoopTNR)
