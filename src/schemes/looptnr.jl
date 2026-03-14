@@ -38,15 +38,17 @@ mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E
 end
 
 # Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
-@kwdef struct LoopParameters
+@kwdef struct LoopParameters{A}
     sweeping::stopcrit = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end]))
     one_loop_init::Bool = true
     truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
-    solving_method::String = "division"
-    krylovdim::Int = 50
-    kryloviter::Int = 200
-    krylovtol::Float64 = 1.0e-14
-    nuclear_norm_regularization::Bool = true
+
+    # Krylov parameters
+    krylov::Bool = false
+    krylovalg::A = GMRES(; verbosity = 0)
+
+    # NNR parameters
+    nuclear_norm::Bool = true
     ρ::Float64 = 0.8
     ξ_init::Float64 = 1.0e-5
     ξ_min::Float64 = 1.0e-7
@@ -257,17 +259,16 @@ function opt_T(
         N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
         psi::AbstractTensorMap{E, S, 2, 1}, loop_condition::LoopParameters
     ) where {E, S}
-    if loop_condition.solving_method == "division"
+    if loop_condition.krylov == false
         ΔW = W - N * psi
         Δpsi = N \ ΔW
         new_psi = psi + Δpsi
         res = norm(N * Δpsi - ΔW)
         relative_shift = norm(Δpsi) / norm(psi)
         return new_psi, res, relative_shift
-    elseif loop_condition.solving_method == "krylov"
+    elseif loop_condition.krylov == true
         new_psi, info = linsolve(
-            x -> N * x, W, psi; krylovdim = loop_condition.krylovdim, maxiter = loop_condition.kryloviter, tol = loop_condition.krylovtol,
-            verbosity = 0
+            x -> N * x, W, psi, loop_condition.krylovalg
         )
         if info.converged == 0
             @warn "The linsolve did not converge after $(info.numiter) iterations."
@@ -309,7 +310,7 @@ function loop_opt(
         verbosity::Int
     ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
     psiB = Ψ_B(psiA, trunc, loop_condition)
-    if loop_condition.nuclear_norm_regularization
+    if loop_condition.nuclear_norm
         M = map(x -> zeros(E, space(x)), psiB)
         Λ = copy(M)
         ξ = loop_condition.ξ_init
@@ -354,7 +355,7 @@ function loop_opt(
             W = tW(pos_psiB, psiA, psiB, left_BA, right_cache_BA[pos_psiA]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
             psi = transpose(psiB[pos_psiB], ((1, 3), (2,)))
 
-            if loop_condition.nuclear_norm_regularization
+            if loop_condition.nuclear_norm
                 N_eff = N + ξ * id(domain(N))
                 W_eff = W + ξ * transpose(M[pos_psiB], ((1, 3), (2,))) + transpose(Λ[pos_psiB], ((1, 3), (2,)))
             else
@@ -365,7 +366,7 @@ function loop_opt(
             new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi, loop_condition) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
             psiB[pos_psiB] = transpose(new_psi, ((1,), (3, 2)))
 
-            if loop_condition.nuclear_norm_regularization
+            if loop_condition.nuclear_norm
                 if iseven(pos_psiB)
                     M[pos_psiB], rank, nuclear_norm1 = singular_value_thresholding(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
                 else
@@ -401,7 +402,7 @@ function loop_opt(
 
         @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
 
-        if loop_condition.nuclear_norm_regularization
+        if loop_condition.nuclear_norm
             ξ = max(loop_condition.ρ * ξ, loop_condition.ξ_min)
         end
     end
@@ -448,7 +449,9 @@ function step!(
         loop_condition::LoopParameters,
         verbosity::Int
     )
-    entanglement_filtering!(scheme, loop_condition.truncentanglement, entanglement_criterion)
+    if !loop_condition.nuclear_norm
+        entanglement_filtering!(scheme, loop_condition.truncentanglement, entanglement_criterion)
+    end
     scheme = loop_opt!(scheme, trunc, loop_condition, verbosity)
     return scheme
 end
