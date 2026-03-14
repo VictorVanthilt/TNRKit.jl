@@ -178,11 +178,6 @@ function ΨBΨA(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}, ΨA::Vector{<:Abst
     end
 end
 
-# Function to compute the trace of a list of transfer matrices
-function to_number(tensors::Vector{<:AbstractTensorMap})
-    return tr(reduce(*, tensors))
-end
-
 #Entanglement Filtering
 entanglement_function(steps, data) = abs(data[end])
 default_entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
@@ -324,7 +319,7 @@ function loop_opt(
     psiBpsiB = ΨBΨB(psiB)
     psiBpsiA = ΨBΨA(psiB, psiA)
     psiApsiA = ΨAΨA(psiA)
-    C = to_number(psiApsiA) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
+    C = tr(reduce(*, psiApsiA)) # Since C is not changed during the optimization, we can compute it once and use it in the cost function.
     cost = Float64[Inf]
 
     sweep = 0
