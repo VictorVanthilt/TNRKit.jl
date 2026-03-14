@@ -44,7 +44,7 @@ end
     truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
 
     # Krylov parameters
-    krylov::Bool = false
+    krylov::Bool = false # if false, we use \ to solve the linear system
     krylovalg::A = GMRES(; verbosity = 0)
 
     # NNR parameters
