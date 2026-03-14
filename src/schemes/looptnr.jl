@@ -9,10 +9,18 @@ Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
-    run!(::LoopTNR, trunc::TruncationStrategy, truncentanglement::TruncationStrategy, criterion::stopcrit,
-              entanglement_criterion::stopcrit, loop_criterion::stopcrit[, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, paramerers::LoopParameters, finalizer::Finalizer[,
+              entanglement_criterion::stopcrit, finalize_beginnin=true, verbosity=1])
+    
+    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters; kwargs...)
 
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[finalize_beginning=true, verbosity=1])
+
+### LoopParameters
+    See also: [`LoopParameters`](@ref)
+    This stuct is used to set all internal parameters in LoopTNR.
+    It can also be used to control wether Krylov methods are used (default: false)
+    And wether nuclear norm regularization is used (default: false)
 
 ### Fields
 
@@ -37,7 +45,13 @@ mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E
     end
 end
 
-# Define a structure to isolate all internal parameters in LoopTNR optimization, which can be used for better readability and easier maintenance.
+"""
+    $(TYPEDEF)
+
+    ### Fields
+
+    $(TYPEDFIELDS)
+"""
 @kwdef struct LoopParameters{A}
     sweeping::stopcrit = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end]))
     one_loop_init::Bool = true
