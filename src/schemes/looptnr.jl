@@ -48,7 +48,7 @@ end
     krylovalg::A = GMRES(; verbosity = 0)
 
     # NNR parameters
-    nuclear_norm::Bool = true
+    nuclear_norm::Bool = false
     ρ::Float64 = 0.8
     ξ_init::Float64 = 1.0e-5
     ξ_min::Float64 = 1.0e-7
