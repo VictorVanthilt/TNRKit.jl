@@ -2,9 +2,9 @@
 ![TNRKit Logo](https://github.com/VictorVanthilt/TNRKit.jl/blob/master/docs/src/assets/logo.svg#gh-light-mode-only)
 
 # TNRKit.jl
-| **Documentation** | **Build Status** | **Digital Object Identifyer** |
-|:-----------------:|:----------------:|:----------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![CI][ci-img]][ci-url] | [![DOI][doi-img]][doi-url] |
+| **Documentation** | **Build Status** | **Digital Object Identifyer** | **Coverage** |
+|:-----------------:|:----------------:|:-----------------------------:|:------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![CI][ci-img]][ci-url] | [![DOI][doi-img]][doi-url] | [![Codecov][codecov-img]][codecov-url] |
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://VictorVanthilt.github.io/TNRKit.jl/stable
@@ -17,6 +17,10 @@
 
 [doi-img]: https://zenodo.org/badge/DOI/10.5281/zenodo.16836269.svg
 [doi-url]: https://doi.org/10.5281/zenodo.16836269
+
+[codecov-img]: https://codecov.io/gh/VictorVanthilt/TNRKit.jl/graph/badge.svg?token=XEOJODNBF3
+[codecov-url]: https://codecov.io/gh/VictorVanthilt/TNRKit.jl
+
 
 TNRKit.jl is a Julia package that aims to implement as many tensor network renormalization (TNR) schemes as possible.
 It is built upon
