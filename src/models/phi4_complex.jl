@@ -66,7 +66,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
@@ -92,7 +92,7 @@ function phi4_complex(K::Integer, μ0::Float64, λ::Float64)
     U, S, V = svd_compact!(f)
 
     N = K^2
-    T_arr = zeros(eltype(S), N, N, N, N)
+    T_arr = zeros(ComplexF64, N, N, N, N)
 
     weights = [ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
@@ -130,7 +130,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 The impurity is a ϕ operator on this site.
     
@@ -197,7 +197,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 The impurity is a ϕ† operator on this site.
 
@@ -263,7 +263,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 The impurity is a √(ϕϕ†) operator on this site.
     
@@ -329,7 +329,7 @@ end
 $(SIGNATURES)
 
 Constructs the impurity tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 The impurity is a ϕϕ† operator on this site.
     
@@ -396,7 +396,7 @@ end
 $(SIGNATURES)
 
 Constructs all the tensors: the partition function tensor and all the impurity tensors for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 It is faster to compute them all at once then one for one individually.
 
@@ -487,7 +487,7 @@ end
 $(SIGNATURES)
 
 Constructs the partition function tensor for a 2D square lattice
-for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0`, interaction constant `λ` and external field `h`.
+for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
 This tensor has explicit U(1) symmetry on each of its spaces.
 
