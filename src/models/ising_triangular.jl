@@ -2,21 +2,28 @@ const ising_βc_triangular = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(1.0)
 const f_onsager_triangular::BigFloat = -3.20253248660790791834355252025862951439
 
 """
-$(SIGNATURES)
+    classical_ising_triangular(::Type{Trivial}, β::Float64; T = Float64)
+    classical_ising_triangular(::Type{Z2Irrep}, β::Float64; T = Float64)
 
 Constructs the partition function tensor for a 2D triangular lattice
 for the classical Ising model with a given inverse temperature `β`.
+Compatible with no symmetry or with explicit ℤ₂ symmetry on each of its spaces.
+Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_triangular` if the symmetry type and inverse temperature are not provided.
 
 ### Examples
 ```julia
-    classical_ising_triangular() # Default inverse temperature is `ising_βc_triangular`
-    classical_ising_triangular(0.5; h = 1.0) # Custom inverse temperature.
+    classical_ising_triangular() # Default ℤ₂ symmetry, inverse temperature is `ising_βc_triangular`
+    classical_ising_triangular(Trivial, 0.5) # Custom inverse temperature wihout symmetry.
+    classical_ising_triangular(0.5) # Custom inverse temperature with ℤ₂ symmetry.
 ```
-
-See also: [`classical_ising_triangular_symmetric`](@ref).
 """
-function classical_ising_triangular(β)
-    t = Float64[exp(β) exp(-β); exp(-β) exp(β)]
+function classical_ising_triangular(β::Float64; T::Type{<:Number} = Float64)
+    return classical_ising_triangular(Z2Irrep, β; T = T)
+end
+classical_ising_triangular() = classical_ising_triangular(ising_βc_triangular)
+classical_ising_triangular(::Type{Trivial}) = classical_ising_triangular(Trivial, ising_βc_triangular)
+function classical_ising_triangular(::Type{Trivial}, β::Float64; T::Type{<:Number} = Float64)
+    t = T[exp(β) exp(-β); exp(-β) exp(β)]
 
     r = eigen(t)
     nt = r.vectors * sqrt(LinearAlgebra.Diagonal(r.values)) * r.vectors
@@ -32,33 +39,16 @@ function classical_ising_triangular(β)
 
     return TensorMap(o2, ℂ^2 * ℂ^2 * ℂ^2, ℂ^2 * ℂ^2 * ℂ^2)
 end
-classical_ising_triangular() = classical_ising_triangular(ising_βc_triangular)
-
-"""
-$(SIGNATURES)
-
-Constructs the partition function tensor for a symmetric 2D triangular lattice
-for the classical Ising model with a given inverse temperature `β`.
-
-This tensor has explicit ℤ₂ symmetry on each of it spaces.
-
-### Examples
-```julia
-    classical_ising_triangular_symmetric() # Default inverse temperature is `ising_βc_triangular`
-    classical_ising_triangular_symmetric(0.5) # Custom inverse temperature.
-```
-
-See also: [`classical_ising_triangular`](@ref).
-"""
-function classical_ising_triangular_symmetric(β)
+function classical_ising_triangular(::Type{Z2Irrep}, β::Float64; T::Type{<:Number} = Float64)
     x = cosh(β)
     y = sinh(β)
 
     S = ℤ₂Space(0 => 1, 1 => 1)
-    T = zeros(Float64, S ⊗ S ⊗ S ← S ⊗ S ⊗ S)
+    t = zeros(T, S ⊗ S ⊗ S ← S ⊗ S ⊗ S)
 
-    block(T, Irrep[ℤ₂](0)) .= [2 * x^3 2 * x^2 * y 2 * x^2 * y 2 * x^2 * y; 2 * x^2 * y 2 * x * y^2 2 * x * y^2 2 * x * y^2; 2 * x^2 * y 2 * x * y^2 2 * x * y^2 2 * x * y^2; 2 * x^2 * y 2 * x * y^2 2 * x * y^2 2 * x * y^2]
-    block(T, Irrep[ℤ₂](1)) .= [2 * x^2 * y 2 * x^2 * y 2 * x^2 * y 2 * x * y^2; 2 * x^2 * y 2 * x^2 * y 2 * x^2 * y 2 * x * y^2; 2 * x^2 * y 2 * x^2 * y 2 * x^2 * y 2 * x * y^2; 2 * x * y^2 2 * x * y^2 2 * x * y^2 2 * y^3]
-    return T
+    A = 2 * x^2 * y
+    B = 2 * x * y^2
+    block(t, Irrep[ℤ₂](0)) .= [2 * x^3 A A A; A B B B; A B B B; A B B B]
+    block(t, Irrep[ℤ₂](1)) .= [A A A B; A A A B; A A A B; B B B 2 * y^3]
+    return t
 end
-classical_ising_triangular_symmetric() = classical_ising_triangular_symmetric(ising_βc_triangular)
