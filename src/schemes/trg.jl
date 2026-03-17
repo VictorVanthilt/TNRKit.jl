@@ -7,7 +7,7 @@ Tensor Renormalization Group
     $(FUNCTIONNAME)(T)
 
 ### Running the algorithm
-    run!(::TRG, trunc::TruncationStrategy, stop::Stopcrit[, finalizer=default_Finalizer, finalize_beginning=true, verbosity=1])
+    run!(::TRG, trunc::TruncationStrategy, stop::Stopcrit[, finalizer=default_Finalizer, verbosity=1])
 
 Each step rescales the lattice by a (linear) factor of √2
 

@@ -12,9 +12,8 @@ trunc = truncrank(16) & trunctol(atol = 1.0e-40)
 # initialize the TRG scheme
 scheme = TRG(classical_ising(1.0))
 
-# run the TRG scheme (and normalize and store the norm in the beginning (finalize_beginning=true))
-data = run!(scheme, trunc, stopping_criterion; finalize_beginning = true)
-# or: data = run!(scheme, truncrank(16)), this will default to maxiter(100)
+# run the TRG scheme
+data = run!(scheme, trunc, stopping_criterion)
 
 # initialize the BTRG scheme
 scheme = BTRG(classical_ising(1.0), -0.5)

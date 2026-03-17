@@ -10,11 +10,11 @@ Loop Optimization for Tensor Network Renormalization
 
 ### Running the algorithm
     run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters, finalizer::Finalizer[,
-              entanglement_criterion::stopcrit, finalize_beginning=true, verbosity=1])
+              entanglement_criterion::stopcrit, verbosity=1])
     
     run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters; kwargs...)
 
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[, verbosity=1])
 
 ### LoopParameters
 See also: [`LoopParameters`](@ref)
@@ -491,16 +491,15 @@ function run!(
         criterion::stopcrit, loop_condition::LoopParameters,
         finalizer::Finalizer{E};
         entanglement_criterion = default_entanglement_criterion,
-        finalize_beginning = true,
         verbosity = 1
     ) where {E}
     data = Vector{E}()
 
     LoggingExtras.withlevel(; verbosity) do
         @infov 1 "Starting simulation\n $(scheme)\n"
-        if finalize_beginning
-            push!(data, finalizer.f!(scheme))
-        end
+
+        # Finalize the initial state
+        push!(data, finalizer.f!(scheme))
 
         steps = 0
         crit = true
@@ -523,14 +522,10 @@ function run!(scheme, trscheme, criterion, loop_condition; kwargs...)
     return run!(scheme, trscheme, criterion, loop_condition, default_Finalizer; kwargs...)
 end
 
-function run!(
-        scheme::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit;
-        finalize_beginning = true, verbosity = 1
-    )
+function run!(scheme::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit; verbosity = 1)
     loop_condition = LoopParameters()
     return run!(
         scheme, trscheme, criterion, loop_condition;
-        finalize_beginning = finalize_beginning,
         verbosity = verbosity
     )
 end
