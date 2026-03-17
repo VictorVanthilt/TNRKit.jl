@@ -48,14 +48,18 @@ end
 
 
 """
-$(SIGNATURES)
+    gross_neveu_start(::Type{FermionParity}, μ::Number, m::Number, g::Number)
 
 Constructs the partition function tensor for the Gross-Neveu model with given parameters `μ`, `m`, and `g`.
+Compatible with explicit fermion parity symmetry on each of its spaces.
 
 ### References
 * [Akiyama et. al. J. Phys.: Condens. Matter 36 (2024) 343002](@cite akiyama2024)
 """
 function gross_neveu_start(μ::Number, m::Number, g::Number)
+    return gross_neveu_start(FermionParity, μ, m, g)
+end
+function gross_neveu_start(::Type{FermionParity}, μ::Number, m::Number, g::Number)
     T_unfused = gross_neveu_8_leg_tensor(μ, m, g)
     V = Vect[FermionParity](0 => 1, 1 => 1)
     U = isometry(fuse(V, V), V ⊗ V)
