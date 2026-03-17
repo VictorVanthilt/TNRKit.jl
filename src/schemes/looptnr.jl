@@ -49,6 +49,10 @@ end
 """
     $(TYPEDEF)
 
+Parameters used during LoopTNR.
+This struct allows the user to control how the linear problem is solved.
+It also allows the user to turn on nuclear norm regularization.
+
 ### Fields
 
     $(TYPEDFIELDS)
