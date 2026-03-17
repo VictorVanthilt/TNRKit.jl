@@ -315,9 +315,10 @@ end
         Aspace = (Vphy ⊗ Vphy' ← Vvir ⊗ Vvir ⊗ Vvir' ⊗ Vvir')
         A1 = randn(ComplexF64, Aspace)
         A2 = randn(ComplexF64, Aspace)
-        U, ϵ = TNRKit._get_hotrg3d_xproj(A1, A2, notrunc(); _check_twist = true)
+        for MM in [TNRKit._get_MMdag_3d(A1, A2), TNRKit._get_MdagM_3d(A1, A2)]
+            @test isposdef(MM)
+        end
     end
-    @test true # just check the test can run through
 end
 
 # ImpurityHOTRG
