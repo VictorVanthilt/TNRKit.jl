@@ -47,7 +47,7 @@ end
 
 function _get_hotrg3d_xproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
-        trunc::TruncationStrategy
+        trunc::TruncationStrategy; _check_twist::Bool = false
     ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
     # left unitary
@@ -57,7 +57,11 @@ function _get_hotrg3d_xproj(
         A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
-    _, U, ε = eigh_trunc!(project_hermitian!(MM); trunc)
+    d, U, ε = eigh_trunc!(project_hermitian!(MM); trunc)
+    # check if twists are applied correctly
+    if _check_twist
+        @assert minimum(d.data) >= 0
+    end
     # right unitary
     A2′ = twistdual(A2, [2, 3, 5, 6])
     A1′ = twistdual(A1, [1, 3, 5, 6])
@@ -65,19 +69,19 @@ function _get_hotrg3d_xproj(
         conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
     @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
         conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
-    _, U′, ε′ = eigh_trunc!(project_hermitian!(MM); trunc)
-    if ε > ε′
-        U, ε = U′, ε′
+    d′, U′, ε′ = eigh_trunc!(project_hermitian!(MM); trunc)
+    if _check_twist
+        @assert minimum(d′.data) >= 0
     end
-    return U, ε
+    return (ε > ε′) ? (U′, ε′) : (U, ε)
 end
 
 function _get_hotrg3d_yproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
-        trunc::TruncationStrategy
+        trunc::TruncationStrategy; _check_twist::Bool = false
     ) where {E, S}
     perm = ((1, 2), (4, 3, 6, 5))
-    return _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc)
+    return _get_hotrg3d_xproj(permute(A1, perm), permute(A2, perm), trunc; _check_twist)
 end
 
 function _step_hotrg3d(
