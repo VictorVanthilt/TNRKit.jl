@@ -9,8 +9,8 @@ Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 ### Running the algorithm
-    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, paramerers::LoopParameters, finalizer::Finalizer[,
-              entanglement_criterion::stopcrit, finalize_beginnin=true, verbosity=1])
+    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters, finalizer::Finalizer[,
+              entanglement_criterion::stopcrit, finalize_beginning=true, verbosity=1])
     
     run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters; kwargs...)
 
