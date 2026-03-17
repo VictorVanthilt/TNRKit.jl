@@ -3,10 +3,10 @@ println(" spaces ")
 println("--------")
 
 # stuff different kinds of spaces into the schemes (and do 25 steps)
-A = ("Normal Ising", classical_ising())
-B = ("Ising Symmetric", classical_ising_symmetric())
+A = ("Normal Ising", classical_ising(Trivial))
+B = ("Ising Symmetric", classical_ising())
 C = ("Gross Neveu", gross_neveu_start(0, 1, 0))
-D = ("Sixvertex U1", sixvertex(ComplexF64, U1Irrep))
+D = ("Sixvertex U1", sixvertex(U1Irrep, ComplexF64))
 
 models = [A, B, C, D]
 schemes = [TRG, BTRG, HOTRG, ATRG]
