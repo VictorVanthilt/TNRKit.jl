@@ -31,6 +31,9 @@ Many common TNR schemes have already been implemented:
 * [`c6vCTM_triangular`](@ref) (c6v symmetric CTM on the triangular lattice)
 * [`CTM_triangular`](@ref) (CTM on the triangular lattice)
 
+**2D honeycomb CTM methods**
+* [`c3vCTM_honeycomb`](@ref) (c3v symmetric CTM on the honeycomb lattice)
+
 **Impurity Methods**
 * [`ImpurityTRG`](@ref)
 * [`ImpurityHOTRG`](@ref)

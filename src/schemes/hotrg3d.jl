@@ -33,16 +33,55 @@ mutable struct HOTRG_3D{E, S, TT <: AbstractTensorMap{E, S, 2, 4}} <: TNRScheme{
     end
 end
 
-# Twist the i-th leg of a tensor `t` if it represents a dual space.
-function twistdual!(t::AbstractTensorMap, i::Int)
-    isdual(space(t, i)) || return t
-    return twist!(t, i)
-end
-function twistdual!(t::AbstractTensorMap, is)
+"Twist the i-th leg of a tensor `t` if it represents a dual space."
+function twistdual(t::AbstractTensorMap, is)
     is′ = filter(i -> isdual(space(t, i)), is)
-    return twist!(t, is′)
+    return twist(t, is′)
 end
-twistdual(t::AbstractTensorMap, is) = twistdual!(copy(t), is)
+
+"Twist the i-th leg of a tensor `t` if it represents a non-dual space."
+function twistnondual(t::AbstractTensorMap, is)
+    is′ = filter(i -> !isdual(space(t, i)), is)
+    return twist(t, is′)
+end
+
+function _get_MMdag_3d(
+        A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4}
+    ) where {E, S}
+    A2′ = twistnondual(A2, [2, 3, 4, 5])
+    A1′ = twistnondual(A1, [1, 3, 4, 5])
+    @tensoropt MM[x2 z z′ x2′] :=
+        A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
+    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
+        A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
+    for ax in 1:numout(MM)
+        @assert !isdual(codomain(MM, ax))
+    end
+    for ax in 1:numin(MM)
+        @assert !isdual(domain(MM, ax))
+    end
+    project_hermitian!(MM)
+    return MM
+end
+
+function _get_MdagM_3d(
+        A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4}
+    ) where {E, S}
+    A2′ = twistdual(A2, [2, 3, 5, 6])
+    A1′ = twistdual(A1, [1, 3, 5, 6])
+    @tensoropt MM[x2 z z′ x2′] :=
+        conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
+    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
+        conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
+    for ax in 1:numout(MM)
+        @assert !isdual(codomain(MM, ax))
+    end
+    for ax in 1:numin(MM)
+        @assert !isdual(domain(MM, ax))
+    end
+    project_hermitian!(MM)
+    return MM
+end
 
 function _get_hotrg3d_xproj(
         A1::AbstractTensorMap{E, S, 2, 4}, A2::AbstractTensorMap{E, S, 2, 4},
@@ -50,25 +89,12 @@ function _get_hotrg3d_xproj(
     ) where {E, S}
     # join in z-direction, keep x-indices open (A1 below A2)
     # left unitary
-    A2′ = twistdual(A2, [2, 3, 4, 5])
-    A1′ = twistdual(A1, [1, 3, 4, 5])
-    @tensoropt MM[x2 z z′ x2′] :=
-        A2[z z2; Y2 X2 y2 x2] * conj(A2′[z′ z2; Y2 X2 y2 x2′])
-    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
-        A1[z1 z; Y1 X1 y1 x1] * conj(A1′[z1 z′; Y1 X1 y1 x1′])
-    U, s, _, ε = svd_trunc!(MM; trunc = trunc)
+    MM = _get_MMdag_3d(A1, A2)
+    _, U, ε = eigh_trunc!(MM; trunc)
     # right unitary
-    A2′ = twistdual(A2, [2, 3, 5, 6])
-    A1′ = twistdual(A1, [1, 3, 5, 6])
-    @tensoropt MM[x2 z z′ x2′] :=
-        conj(A2[z z2; Y2 x2 y2 X2]) * A2′[z′ z2; Y2 x2′ y2 X2]
-    @tensoropt MM[x1 x2; x1′ x2′] := MM[x2 z z′ x2′] *
-        conj(A1[z1 z; Y1 x1 y1 X1]) * A1′[z1 z′; Y1 x1′ y1 X1]
-    _, s′, U′, ε′ = svd_trunc!(MM; trunc = trunc)
-    if ε > ε′
-        U, s, ε = adjoint(U′), s′, ε′
-    end
-    return U, s, ε
+    MM = _get_MdagM_3d(A1, A2)
+    _, U′, ε′ = eigh_trunc!(MM; trunc)
+    return (ε > ε′) ? (U′, ε′) : (U, ε)
 end
 
 function _get_hotrg3d_yproj(

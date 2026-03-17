@@ -169,12 +169,13 @@ end
     @info "LoopTNR ising free energy"
     scheme = LoopTNR(T)
 
-    entanglement_criterion = maxiter(100)
-    loop_criterion = maxiter(5)
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])),
+        truncentanglement = trunctol(atol = 1.0e-12)
+    )
 
     data = run!(
-        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
-        loop_criterion
+        scheme, truncrank(8), maxiter(25), loop_condition
     )
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
@@ -220,14 +221,15 @@ end
 end
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
-    loop_criterion = maxiter(5)
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-12, (steps, cost) -> abs(cost[end]))
+    )
     trunc = truncrank(8)
     truncentanglement = trunctol(atol = 1.0e-12)
     entanglement_criterion = maxiter(100)
-    scheme = LoopTNR(fill(T, (2, 2)); loop_criterion, trunc, truncentanglement)
+    scheme = LoopTNR(fill(T, (2, 2)); trunc, loop_condition)
     data = run!(
-        scheme, truncrank(8), trunctol(atol = 1.0e-12), maxiter(25), entanglement_criterion,
-        loop_criterion
+        scheme, truncrank(8), maxiter(25), loop_condition
     )
     @test free_energy(data, ising_βc; initial_size = 2) ≈ f_onsager rtol = 1.0e-6
 end
@@ -303,6 +305,20 @@ end
     fs = free_energy(data, ising_βc_3D; scalefactor = 8.0)
     @info "Calculated f = $(fs)."
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
+end
+
+@testset "HOTRG_3D - Projector for fermions" begin
+    @info "HOTRG_3D projectors for fermions"
+    Vphy = Vect[FermionParity](0 => 2, 1 => 2)
+    Vvir = Vect[FermionParity](0 => 2, 1 => 2)
+    for _ in 1:4 # multiple trials
+        Aspace = (Vphy ⊗ Vphy' ← Vvir ⊗ Vvir ⊗ Vvir' ⊗ Vvir')
+        A1 = randn(ComplexF64, Aspace)
+        A2 = randn(ComplexF64, Aspace)
+        for MM in [TNRKit._get_MMdag_3d(A1, A2), TNRKit._get_MdagM_3d(A1, A2)]
+            @test isposdef(MM)
+        end
+    end
 end
 
 # ImpurityHOTRG
@@ -386,4 +402,56 @@ end
 
     m_expection = data[end][2] / data[end][1]
     @test m_expection ≈ 1.0 rtol = 1.0e-4
+end
+
+# CorrelationHOTRG
+@testset "Correlation HOTRG - Ising Model" begin
+
+    T = classical_ising()
+    T_imp = classical_ising_impurity()
+
+    scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0, initial_size = 4.0) ≈ f_onsager rtol = 1.0e-4
+end
+
+@testset "Correlation HOTRG - Magnetisation Correlation" begin
+    # High temperature limit
+    β = 0.2
+
+    T = classical_ising(β)
+    T_imp = classical_ising_impurity(β)
+
+    scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    highT = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
+    @test highT ≈ 7.396177e-6 rtol = 1.0e-5
+
+    # Critical temperature limit
+    T = classical_ising()
+    T_imp = classical_ising_impurity()
+
+    scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    Tc = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
+    @test Tc ≈ 0.2981409 rtol = 1.0e-5
+
+    # Low temperature limit
+    β = 3.0
+
+    T = classical_ising(β)
+    T_imp = classical_ising_impurity(β)
+
+    scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    lowT = norm(@tensor scheme.Timp_final[1 2; 2 1]) / norm(@tensor scheme.Tpure[1 2; 2 1])
+    @test lowT ≈ 1 rtol = 1.0e-4
 end
