@@ -105,6 +105,39 @@ function moment_matrix(N, μ0, λ; rtol = 1.0e-8)
     return M
 end
 
+function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{Float64}) where {TT, SS, NN} # for Trivial symmetry
+    K = size(weights, 1)
+    N = K^2
+    perms = collect(permutations(1:4))  # 24 total
+
+    U, S, V = svd_compact!(f)
+    T_arr = zeros(Float64, N, N, N, N)
+
+    @threads for i in 1:N
+        for j in i:N, k in j:N, l in k:N
+            s = 0.0
+            factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
+            for α in 1:K, β in 1:K
+                s += factor *
+                    weights[α, β] *
+                    U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
+                    V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
+            end
+
+            # Fill all 24 symmetric permutations
+            idxs = (i, j, k, l)
+            for p in perms
+                ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
+                T_arr[ii, jj, kk, ll] = s
+            end
+        end
+    end
+
+    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    return T
+end
+
+
 
 #####################################
 #       TENSOR FUNCTIONS            #
@@ -149,41 +182,11 @@ function phi4_complex(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
     # Determine fmatrix
     f = fmatrix_complex(ys, μ0, λ)
 
-    # SVD fmatrix
-    U, S, V = svd_compact!(f)
-
-    N = K^2
-    T_arr = zeros(eltype(S), N, N, N, N)
-
+    # Determine weights
     weights = [ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
-    perms = collect(permutations(1:4))  # 24 total
-
-    @threads for i in 1:N
-        for j in i:N
-            for k in j:N
-                for l in k:N
-                    s = 0.0
-                    factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
-                    for α in 1:K, β in 1:K
-                        s += factor *
-                            weights[α, β] *
-                            U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
-                            V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
-                    end
-
-                    # Fill all 24 symmetric permutations
-                    idxs = (i, j, k, l)
-                    for p in perms
-                        ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                        T_arr[ii, jj, kk, ll] = s
-                    end
-                end
-            end
-        end
-    end
-
-    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    # Build tensor
+    T = phi4_complex_tensor(f, weights)
     return T
 end
 function phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ::Float64)
@@ -339,36 +342,10 @@ function phi4_complex_impϕ(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float
     # Determine fmatrix
     f = fmatrix_complex(ys, μ0, λ)
 
-    # SVD fmatrix
-    U, S, V = svd_compact!(f)
-
-    N = K^2
-    T_arr = zeros(ComplexF64, N, N, N, N)
-
+    # Determine weights
     weights = [(ys[α] + ys[β]im) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
-    perms = collect(permutations(1:4))  # 24 total
-
-    @threads for i in 1:N
-        for j in i:N, k in j:N, l in k:N
-            s = 0.0
-            factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
-            for α in 1:K, β in 1:K
-                s += factor *
-                    weights[α, β] *
-                    U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
-                    V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
-            end
-
-            # Fill all 24 symmetric permutations
-            idxs = (i, j, k, l)
-            for p in perms
-                ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                T_arr[ii, jj, kk, ll] = s
-            end
-        end
-    end
-
+    # Build tensor
     T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
     return T
 end
@@ -410,37 +387,11 @@ function phi4_complex_impϕdag(::Type{Trivial}, K::Integer, μ0::Float64, λ::Fl
     # Determine fmatrix
     f = fmatrix_complex(ys, μ0, λ)
 
-    # SVD fmatrix
-    U, S, V = svd_compact!(f)
-
-    N = K^2
-    T_arr = zeros(ComplexF64, N, N, N, N)
-
+    # Determine weights
     weights = [(ys[α] - ys[β]im) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
-    perms = collect(permutations(1:4))  # 24 total
-
-    @threads for i in 1:N
-        for j in i:N, k in j:N, l in k:N
-            s = 0.0
-            factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
-            for α in 1:K, β in 1:K
-                s += factor *
-                    weights[α, β] *
-                    U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
-                    V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
-            end
-
-            # Fill all 24 symmetric permutations
-            idxs = (i, j, k, l)
-            for p in perms
-                ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                T_arr[ii, jj, kk, ll] = s
-            end
-        end
-    end
-
-    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    # Build tensor
+    T = phi4_complex_tensor(f, weights)
     return T
 end
 
@@ -480,37 +431,11 @@ function phi4_complex_impϕabs(::Type{Trivial}, K::Integer, μ0::Float64, λ::Fl
     # Determine fmatrix
     f = fmatrix_complex(ys, μ0, λ)
 
-    # SVD fmatrix
-    U, S, V = svd_compact!(f)
-
-    N = K^2
-    T_arr = zeros(ComplexF64, N, N, N, N)
-
+    # Determine weights
     weights = [sqrt(ys[α]^2 + ys[β]^2) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
-    perms = collect(permutations(1:4))  # 24 total
-
-    @threads for i in 1:N
-        for j in i:N, k in j:N, l in k:N
-            s = 0.0
-            factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
-            for α in 1:K, β in 1:K
-                s += factor *
-                    weights[α, β] *
-                    U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
-                    V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
-            end
-
-            # Fill all 24 symmetric permutations
-            idxs = (i, j, k, l)
-            for p in perms
-                ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                T_arr[ii, jj, kk, ll] = s
-            end
-        end
-    end
-
-    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    # Build tensor
+    T = phi4_complex_tensor(f, weights)
     return T
 end
 
@@ -550,37 +475,11 @@ function phi4_complex_impϕ2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Floa
     # Determine fmatrix
     f = fmatrix_complex(ys, μ0, λ)
 
-    # SVD fmatrix
-    U, S, V = svd_compact!(f)
-
-    N = K^2
-    T_arr = zeros(ComplexF64, N, N, N, N)
-
+    # Determine weights
     weights = [sqrt(ys[α]^2 + ys[β]^2) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
-    perms = collect(permutations(1:4))  # 24 total
-
-    @threads for i in 1:N
-        for j in i:N, k in j:N, l in k:N
-            s = 0.0
-            factor = √(S[i, i] * S[j, j] * S[k, k] * S[l, l])
-            for α in 1:K, β in 1:K
-                s += factor *
-                    weights[α, β] *
-                    U[(α - 1) * K + β, i] * U[(α - 1) * K + β, j] *
-                    V[k, (α - 1) * K + β] * V[l, (α - 1) * K + β]
-            end
-
-            # Fill all 24 symmetric permutations
-            idxs = (i, j, k, l)
-            for p in perms
-                ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-                T_arr[ii, jj, kk, ll] = s
-            end
-        end
-    end
-
-    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    # Build tensor
+    T = phi4_complex_tensor(f, weights)
     return T
 end
 
