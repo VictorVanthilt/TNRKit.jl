@@ -17,10 +17,10 @@ Loop Optimization for Tensor Network Renormalization
     run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[finalize_beginning=true, verbosity=1])
 
 ### LoopParameters
-    See also: [`LoopParameters`](@ref)
-    This stuct is used to set all internal parameters in LoopTNR.
-    It can also be used to control wether Krylov methods are used (default: false)
-    And wether nuclear norm regularization is used (default: false)
+See also: [`LoopParameters`](@ref)
+This stuct is used to set all internal parameters in LoopTNR.
+It can also be used to control wether Krylov methods are used (default: false)
+And wether nuclear norm regularization is used (default: false)
 
 ### Fields
 
@@ -28,6 +28,7 @@ $(TYPEDFIELDS)
 
 ### References
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yang2017)
+* [Homma et. al. Phys. Rev. Res. 6 (2024)](@cite homma2024a)
 
 """
 mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
@@ -48,7 +49,7 @@ end
 """
     $(TYPEDEF)
 
-    ### Fields
+### Fields
 
     $(TYPEDFIELDS)
 """
@@ -58,10 +59,12 @@ end
     truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
 
     # Krylov parameters
-    krylov::Bool = false # if false, we use \ to solve the linear system
+    "Use Krylov methods to solve the linear system in loop optimization. Default = false, which uses the backslash operator."
+    krylov::Bool = false
     krylovalg::A = GMRES(; verbosity = 0)
 
     # NNR parameters
+    "Use Nuclear Norm Regularisation. Default = false"
     nuclear_norm::Bool = false
     ρ::Float64 = 0.8
     ξ_init::Float64 = 1.0e-5
