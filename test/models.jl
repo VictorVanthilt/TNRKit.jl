@@ -2,29 +2,43 @@ println("--------------------")
 println(" Testing all models ")
 println("--------------------")
 
-model_temp_answer = [
-    (classical_ising(), ising_βc, f_onsager),
-    (classical_ising_symmetric(), ising_βc, f_onsager),
-    (gross_neveu_start(0, 0, 0), 1.0, -1.4515448845652446),
-    (classical_clock(3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635), # This is an approximation!
-    (classical_clock_symmetric(3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635), # This is an approximation!
-    (classical_potts(3), potts_βc(3), -4.119552029995684), # This is an approximation!
-    (classical_potts_symmetric(3), potts_βc(3), -4.119552029995684), # This is an approximation!
-    (sixvertex(Float64, Trivial), 1.0, 3 / 2 * log(3 / 4)),
-    (sixvertex(Float64, U1Irrep), 1.0, 3 / 2 * log(3 / 4)),
-    (sixvertex(Float64, CU1Irrep), 1.0, 3 / 2 * log(3 / 4)),
-    (phi4_real(10, -1.0, 1.0), -1.0, 0.4241912271276211), # This is an approximation!
-    (phi4_real_Z2(10, -1.0, 1.0), -1.0, 0.4232381701937374), # This is an approximation!
-    (phi4_complex(6, -1.0, 1.0), -1.0, 0.7583605364656325), # This is an approximation!
-    (phi4_complex_U1(6, -1.0, 1.0), -1.0, 0.7673189874157453), # This is an approximation!
-    (phi4_complex_Z2Z2(6, -1.0, 1.0), -1.0, 0.7665677554973079), # This is an approximation!
-
+model_temp_answer_string_2d = [
+    (classical_ising(Trivial), ising_βc, f_onsager, "2D Ising model with no symmetry"),
+    (classical_ising(), ising_βc, f_onsager, "2D Ising model with ℤ₂ symmetry"),
+    (gross_neveu_start(0, 0, 0), 1.0, -1.4515448845652446, "Gross-Neveu model"),
+    (classical_clock(Trivial, 3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635, "Clock model with no symmetry"), # This is an approximation!
+    (classical_clock(Z3Irrep, 3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635, "Clock model with ℤ₃ symmetry"), # This is an approximation!
+    (classical_potts(Trivial, 3), potts_βc(3), -4.119552029995684, "Potts model with no symmetry"), # This is an approximation!
+    (classical_potts(3), potts_βc(3), -4.119552029995684, "Potts model with ℤ₃ symmetry"), # This is an approximation!
+    (sixvertex(Trivial), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with no symmetry"),
+    (sixvertex(U1Irrep), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with U(1) symmetry"),
+    (sixvertex(), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with CU(1) symmetry"),
+    (classical_XY(U1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with U(1) symmetry"), # This is an approximation!
+    (classical_XY(CU1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with CU(1) symmetry"), # This is an approximation!
+    (phi4_real(Trivial, 10, -1.0, 1.0), -1.0, 0.4241912271276211, "Real φ⁴ model with no symmetry"), # This is an approximation!
+    (phi4_real(10, -1.0, 1.0), -1.0, 0.4232381701937374, "Real φ⁴ model with ℤ₂ symmetry"), # This is an approximation!
+    (phi4_complex(Trivial, 6, -1.0, 1.0), -1.0, 0.7583605364656325, "Complex φ⁴ model with no symmetry"), # This is an approximation!
+    (phi4_complex(6, -1.0, 1.0), -1.0, 0.7673189874157453, "Complex φ⁴ model with U(1) symmetry"), # This is an approximation!
+    (phi4_complex(Z2Irrep ⊠ Z2Irrep, 6, -1.0, 1.0), -1.0, 0.7665677554973079, "Complex φ⁴ model with ℤ₂ × ℤ₂ symmetry"), # This is an approximation!
 ]
 
-@testset "2D Models" begin
-    for (model, temp, answer) in model_temp_answer
+model_temp_answer_string_3d = [
+    (classical_ising_3D(Trivial), ising_βc_3D, -3.508, "3D Ising model with no symmetry"), # This is an approximation!
+    (classical_ising_3D(), ising_βc_3D, -3.508, "3D Ising model with ℤ₂ symmetry"), # This is an approximation!
+]
+
+for (model, temp, answer, description) in model_temp_answer_string_2d
+    @testset "$(description)" begin
         scheme = TRG(model)
         data = run!(scheme, truncrank(16), maxiter(25))
         @test free_energy(data, temp) ≈ answer rtol = 1.0e-3
+    end
+end
+
+for (model, temp, answer, description) in model_temp_answer_string_3d
+    @testset "$(description)" begin
+        scheme = HOTRG_3D(model)
+        data = run!(scheme, truncrank(8), maxiter(25))
+        @test free_energy(data, temp; scalefactor = 8.0) ≈ answer rtol = 1.0e-3
     end
 end
