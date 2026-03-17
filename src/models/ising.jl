@@ -8,16 +8,17 @@ const ising_cft_exact = [
 const ising_βc_3D = 1.0 / 4.51152469
 
 function ising_bond_tensor(β::Real)
+    elt = bigfloat_convert(β; warn = false)
     x = cosh(β)
     y = sinh(β)
-    bond_matrix = [sqrt(x) 0; 0 sqrt(y)]
+    bond_matrix = elt[sqrt(x) 0; 0 sqrt(y)]
     return TensorMap(bond_matrix, ℂ^2 ← ℂ^2)
 end
 
-function bigfloat_convert(β::Real)
+function bigfloat_convert(β::Real; warn = true)
     isbigfloat = β isa BigFloat
     elt = isbigfloat ? Float64 : typeof(β)
-    isbigfloat && @warn "β is a BigFloat, but the tensor will be constructed with Float64 precision"
+    isbigfloat && warn && @warn "β is a BigFloat, but the tensor will be constructed with Float64 precision"
     return elt
 end
 
