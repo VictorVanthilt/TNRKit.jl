@@ -84,8 +84,8 @@ function CTM_init(T; bc = ones, bc_free = false)
     if bc_free
         V = Vps[1]
     end
-    C = TensorMap(bc, elt, V ← V)
-    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i in 1:4]
+    C = bc(elt, V ← V)
+    El, Eb, Et, Er = [bc(elt, V ⊗ Vps[i] ← V) for i in 1:4]
     return C, C, C, C, El, Eb, Et, Er
 end
 
