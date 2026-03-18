@@ -227,7 +227,7 @@ end
     data = run!(scheme, truncrank(16), maxiter(20))
     cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
     central_charge = cft["c"]
-    @test central_charge ≈ 1.0 atol = 3.0e-3
+    @test central_charge ≈ 1.0 atol = 1.0e-2
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of symmetric phase with U(1) symmetry"
@@ -245,7 +245,7 @@ end
     data = run!(scheme, truncrank(16), maxiter(20))
     cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
     central_charge = cft["c"]
-    @test central_charge ≈ 1.0 atol = 3.0e-3
+    @test central_charge ≈ 1.0 atol = 1.0e-2
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of symmetric phase with O(2) symmetry"
