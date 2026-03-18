@@ -122,7 +122,7 @@ end
 function rotate_T(T; num = 1)
     Tnew = copy(T)
     for _ in 1:num
-        Tnew = permute(Tnew, (3, 1), (4, 2))
+        Tnew = permute(Tnew, ((3, 1), (4, 2)))
     end
     return Tnew
 end
@@ -178,7 +178,7 @@ function run!(ctm::CTM, trunc::TruncationStrategy, criterion::maxiter; conv_crit
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if space(ES) == space(ES_new)
+            if size(ES) == size(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
