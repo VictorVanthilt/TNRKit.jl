@@ -21,8 +21,8 @@ Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_honeycomb` if the
 function classical_ising_honeycomb(β::Float64; T::Type{<:Number} = Float64)
     return classical_ising_honeycomb(Z2Irrep, β; T = T)
 end
-classical_ising_honeycomb() = classical_ising_honeycomb(ising_βc_honeycomb)
-classical_ising_honeycomb(::Type{Trivial}) = classical_ising_honeycomb(Trivial, ising_βc_honeycomb)
+classical_ising_honeycomb(; kwargs...) = classical_ising_honeycomb(ising_βc_honeycomb; kwargs...)
+classical_ising_honeycomb(::Type{Trivial}; kwargs...) = classical_ising_honeycomb(Trivial, ising_βc_honeycomb; kwargs...)
 function classical_ising_honeycomb(::Type{Trivial}, β::Float64; T::Type{<:Number} = Float64)
     t = T[exp(β) exp(-β); exp(-β) exp(β)]
 

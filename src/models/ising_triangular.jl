@@ -20,8 +20,8 @@ Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_triangular` if th
 function classical_ising_triangular(β::Float64; T::Type{<:Number} = Float64)
     return classical_ising_triangular(Z2Irrep, β; T = T)
 end
-classical_ising_triangular() = classical_ising_triangular(ising_βc_triangular)
-classical_ising_triangular(::Type{Trivial}) = classical_ising_triangular(Trivial, ising_βc_triangular)
+classical_ising_triangular(; kwargs...) = classical_ising_triangular(ising_βc_triangular; kwargs...)
+classical_ising_triangular(::Type{Trivial}; kwargs...) = classical_ising_triangular(Trivial, ising_βc_triangular; kwargs...)
 function classical_ising_triangular(::Type{Trivial}, β::Float64; T::Type{<:Number} = Float64)
     t = T[exp(β) exp(-β); exp(-β) exp(β)]
 

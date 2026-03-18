@@ -45,8 +45,8 @@ See also: [`classical_ising_3D`](@ref).
 function classical_ising(β::Real; h = 0.0)
     return classical_ising(Z2Irrep, β; h = h)
 end
-classical_ising() = classical_ising(ising_βc)
-classical_ising(::Type{Trivial}) = classical_ising(Trivial, ising_βc)
+classical_ising(; kwargs...) = classical_ising(ising_βc; kwargs...)
+classical_ising(::Type{Trivial}; kwargs...) = classical_ising(Trivial, ising_βc; kwargs...)
 function classical_ising(::Type{Trivial}, β::Real; h = 0.0)
     elt = bigfloat_convert(β)
     init = zeros(elt, 2, 2, 2, 2)
@@ -95,7 +95,7 @@ See also: [`classical_ising`](@ref), [`classical_ising_3D`](@ref).
 function classical_ising_impurity(β::Real; h = 0.0)
     return classical_ising_impurity(Trivial, β; h = h)
 end
-classical_ising_impurity() = classical_ising_impurity(ising_βc)
+classical_ising_impurity(; kwargs...) = classical_ising_impurity(ising_βc; kwargs...)
 function classical_ising_impurity(::Type{Trivial}, β::Real; h = 0.0)
     elt = bigfloat_convert(β)
 
@@ -130,11 +130,11 @@ Defaults to ℤ₂ symmetry and coupling constant `J = 1.0` if the symmetry type
 
 See also: [`classical_ising`](@ref).
 """
-function classical_ising_3D(β::Real; J = 1.0)
-    return classical_ising_3D(Z2Irrep, β; J = J)
+function classical_ising_3D(β::Real; kwargs...)
+    return classical_ising_3D(Z2Irrep, β; kwargs...)
 end
-classical_ising_3D() = classical_ising_3D(ising_βc_3D)
-classical_ising_3D(::Type{Trivial}) = classical_ising_3D(Trivial, ising_βc_3D)
+classical_ising_3D(; kwargs...) = classical_ising_3D(ising_βc_3D; kwargs...)
+classical_ising_3D(::Type{Trivial}; kwargs...) = classical_ising_3D(Trivial, ising_βc_3D; kwargs...)
 function classical_ising_3D(::Type{Trivial}, β::Real; J = 1.0)
     elt = bigfloat_convert(β)
     K = β * J
