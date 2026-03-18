@@ -1,4 +1,4 @@
-function algebraic_initialization(m::TensorMap, bond::TensorMap)
+function algebraic_initialization(m::AbstractTensorMap{E, S, 1, 2}, bond::AbstractTensorMap{E, S, 1, 1}) where {E, S}
     @tensor opt = true T[l u; d r] :=
         m[u; Au Bu] *
         bond[Au; Ad] *
@@ -22,6 +22,9 @@ and charge truncation `charge_trunc`.
 ```julia
     classical_XY_U1_symmetric(0.9, 6)
 ```
+
+### References
+* [Yu et. al. 10.1103/PhysRevE.89.013308 (2014)](@cite Yu_2014)
 
 See also: [`classical_XY_O2_symmetric`](@ref).
 """
@@ -51,6 +54,9 @@ and charge truncation `charge_trunc`.
 ```julia
     classical_XY_O2_symmetric(0.9, 6)
 ```
+
+### References
+* [Yu et. al. 10.1103/PhysRevE.89.013308 (2014)](@cite Yu_2014)
 
 See also: [`classical_XY_U1_symmetric`](@ref).
 """
