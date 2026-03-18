@@ -1,3 +1,15 @@
+struct CFTData{E, I}
+    central_charge::E
+    scaling_dimensions::TensorKit.SectorVector{E, I}
+end
+
+function Base.show(io::IO, data::CFTData)
+    println(io, "CFTData")
+    println(io, "  * central charge: $(data.central_charge)")
+    println(io, "  * scaling dimensions: $(data.scaling_dimensions)")
+    return nothing
+end
+
 function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     # make the indices
     indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
