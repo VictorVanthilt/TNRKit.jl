@@ -152,8 +152,6 @@ The impurity is a ϕ operator on this site.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
-Currently only implemented for no symmetry.
-
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
@@ -208,8 +206,6 @@ for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bar
 The impurity is a ϕ^2 operator on this site.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
-
-Currently only implemented for no symmetry.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.

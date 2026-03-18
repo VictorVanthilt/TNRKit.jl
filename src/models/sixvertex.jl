@@ -13,7 +13,6 @@ Compatible with no symmetry, U(1) symmetry, or CU(1) symmetry on each of its spa
     - b: 1.0
     - c: 1.0
 
-
 ### Examples
 ```julia
     sixvertex() # Default symmetry is `CU1Irrep`, coupling constants are `a = 1.0`, `b = 1.0`, `c = 1.0`.

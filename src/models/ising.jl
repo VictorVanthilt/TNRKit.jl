@@ -34,7 +34,7 @@ Defaults to ℤ₂ symmetry and `h = 0` if the symmetry type and magnetic field 
 ### Examples
 ```julia
     classical_ising() # Default symmetry is `Z2Irrep`, default inverse temperature is `ising_βc` and default magnetic field `h = 0`.
-    classical_ising(Trivial, 0.5; h = 1.0) # Custom inverse temperature with explicit ℤ₂ symmetry with custom magnetic field `h`.
+    classical_ising(Trivial, 0.5; h = 1.0) # Custom inverse temperature without symmetry and custom magnetic field `h`.
 ```
 
 See also: [`classical_ising_3D`](@ref).
@@ -87,7 +87,7 @@ Compatible with no symmetry on each of its spaces.
     When calculating the free energy with `free_energy()`, set the `initial_size` keyword argument to `2.0`.
     The initial lattice holds 2 spins.
 
-See also: [`classical_ising_3D`](@ref).
+See also: [`classical_ising`](@ref), [`classical_ising_3D`](@ref).
 """
 function classical_ising_impurity(β::Real; h = 0.0)
     return classical_ising_impurity(Trivial, β; h = h)
@@ -153,7 +153,6 @@ function classical_ising_3D(::Type{Trivial}, β::Real; J = 1.0)
     return TensorMap(o, TMS)
 end
 function classical_ising_3D(::Type{Z2Irrep}, β::Real; J = 1.0)
-    @assert J == 1.0 "Coupling constant must be one for ℤ₂ symmetry" # FIXME: is this true?
     elt = bigfloat_convert(β)
     x = cosh(β)
     y = sinh(β)
