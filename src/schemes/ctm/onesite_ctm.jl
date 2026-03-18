@@ -195,7 +195,7 @@ function run!(ctm::CTM, trunc::TruncationStrategy, criterion::maxiter; conv_crit
             @infov 1 "CTM reached the maximum iteration $(steps)"
         end
     end
-    return hist
+    return lnz(scheme)
 end
 
 function Base.show(io::IO, scheme::CTM)
