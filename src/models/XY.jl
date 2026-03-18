@@ -11,6 +11,8 @@ function algebraic_initialization(m::AbstractTensorMap{E, S, 1, 2}, bond::Abstra
     return T
 end
 
+const XY_βc = 1.1199 # This is an approximation!
+
 """
 $(SIGNATURES)
 
