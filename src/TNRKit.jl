@@ -89,7 +89,7 @@ export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_c
     classical_ising_triangular, classical_ising_triangular_symmetric,
     ising_βc_triangular, f_onsager_triangular,
     classical_ising_honeycomb, classical_ising_honeycomb_symmetric,
-    ising_βc_honeycomb, f_onsager_honeycomb
+    ising_βc_honeycomb, f_onsager_honeycomb, XY_βc
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
