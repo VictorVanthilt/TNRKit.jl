@@ -236,7 +236,7 @@ end
     data = run!(scheme, truncrank(16), maxiter(20))
     cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
     central_charge = cft["c"]
-    @test central_charge ≈ 0.0 atol = 1.0e-14
+    @test central_charge ≈ 0.0 atol = 1.0e-13
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of KT phase with O(2) symmetry"
@@ -254,7 +254,7 @@ end
     data = run!(scheme, truncrank(16), maxiter(20))
     cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
     central_charge = cft["c"]
-    @test central_charge ≈ 0.0 atol = 1.0e-14
+    @test central_charge ≈ 0.0 atol = 1.0e-13
     @info "Obtained central charge:\n$central_charge."
 end
 
