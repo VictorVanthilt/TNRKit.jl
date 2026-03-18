@@ -1,7 +1,3 @@
-function next_τ(τ)
-    return (τ - 1) / (τ + 1)
-end
-
 function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     # make the indices
     indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
