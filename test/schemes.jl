@@ -324,7 +324,7 @@ end
 # ImpurityHOTRG
 @testset "ImpurityHOTRG - Ising Model" begin
 
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp1 = classical_ising_impurity()
 
     scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
@@ -338,9 +338,9 @@ end
     # High temperature limit (<m^2> -> 0)
     β = 0.2
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp_order1_1 = classical_ising_impurity(β)
-    T_imp_order2 = classical_ising(β)
+    T_imp_order2 = classical_ising(Trivial, β)
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
@@ -352,9 +352,9 @@ end
     # Low temperature limit (<m^2> -> 1)
     β = 1.0
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp_order1_1 = classical_ising_impurity(β)
-    T_imp_order2 = classical_ising(β)
+    T_imp_order2 = classical_ising(Trivial, β)
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
@@ -366,7 +366,7 @@ end
 
 # ImpurityTRG
 @testset "ImpurityTRG - Ising Model" begin
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -380,7 +380,7 @@ end
     # High T
     β = 0.1
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -393,7 +393,7 @@ end
     # Low T
     β = 2
 
-    T = classical_ising(β; h = 1.0e-6)
+    T = classical_ising(Trivial, β; h = 1.0e-6)
     T_imp = classical_ising_impurity(β; h = 1.0e-6)
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -407,7 +407,7 @@ end
 # CorrelationHOTRG
 @testset "Correlation HOTRG - Ising Model" begin
 
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -421,7 +421,7 @@ end
     # High temperature limit
     β = 0.2
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -432,7 +432,7 @@ end
     @test highT ≈ 7.396177e-6 rtol = 1.0e-5
 
     # Critical temperature limit
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -445,7 +445,7 @@ end
     # Low temperature limit
     β = 3.0
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)

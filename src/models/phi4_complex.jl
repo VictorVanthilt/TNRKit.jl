@@ -165,6 +165,9 @@ Defaults to U(1) symmetry if the symmetry type is not provided.
     phi4_complex(10, -1., 1.)
 ```
 
+!!! info
+    When studying this model with impurities, the tensor without symmetry should be constructed, as the impurity breaks the symmetry.
+
 ### References
 Piceu Jarid and Adwait Naravane, but based on:
 * [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadoh2019)
@@ -314,8 +317,6 @@ The impurity is a ϕ operator on this site.
     
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
-Currently only implemented for no symmetry.
-
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
@@ -358,8 +359,6 @@ The impurity is a ϕ† operator on this site.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
-Currently only implemented for no symmetry.
-    
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
@@ -400,8 +399,6 @@ Constructs the impurity tensor for a 2D square lattice for the complex ϕ^4 mode
 The impurity is a √(ϕϕ†) operator on this site.
     
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
-
-Currently only implemented for no symmetry.
 
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
@@ -444,8 +441,6 @@ The impurity is a ϕϕ† operator on this site.
     
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
-Currently only implemented for no symmetry.
-
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
@@ -487,8 +482,6 @@ It is faster to compute them all at once than one for one individually.
 
 It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2%80%93Hermite_quadrature).
 
-Currently only implemented for no symmetry.
-    
 ### Arguments
 - `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0

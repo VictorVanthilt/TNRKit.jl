@@ -35,6 +35,9 @@ Defaults to ℤ₂ symmetry and `h = 0` if the symmetry type and magnetic field 
 ```julia
     classical_ising() # Default symmetry is `Z2Irrep`, default inverse temperature is `ising_βc` and default magnetic field `h = 0`.
     classical_ising(Trivial, 0.5; h = 1.0) # Custom inverse temperature without symmetry and custom magnetic field `h`.
+
+!!! info
+    When studying this model with impurities, the tensor without symmetry should be constructed, as the impurity breaks the ℤ₂ symmetry.
 ```
 
 See also: [`classical_ising_3D`](@ref).

@@ -54,6 +54,9 @@ Defaults to ℤq symmetry if the symmetry type is not provided.
     classical_potts(Z3Irrep, 3, 0.5) # Custom inverse temperature with explicit ℤ₃ symmetry.
 ```
 
+!!! info
+    When studying this model with impurities, the tensor without symmetry should be constructed, as the impurity breaks the ℤq symmetry.
+
 See also: [`potts_βc`](@ref).
 """
 function classical_potts(q::Int, β::Real)
@@ -84,7 +87,7 @@ end
 Constructs the partition function tensor for a Potts model with `q` states
 and a given inverse temperature `β` with impurities in sectors `k1` and `k2`.
 
-Currently only implemented without symmetry, but the impurity sectors match the ℤq symmetry sectors of the model.
+The impurity breaks the ℤq symmetry, but the impurity sectors match the symmetry sectors of the model.
 ### Examples
 ```julia
     classical_potts_impurity(3) # Default inverse temperature is `potts_βc(3)`

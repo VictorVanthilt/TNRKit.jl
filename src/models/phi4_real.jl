@@ -65,6 +65,9 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
     phi4_real(Trivial, 10, -1.0, 1.0, 1.0) # no symmetry with magnetic field
 ```
 
+!!! info
+    When studying this model with impurities, the tensor without symmetry should be constructed, as the impurity breaks the ℤ₂ symmetry.
+
 ### References
 * [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadoh2019)
 * [Delcamp et. al. Phys. Rev. Research 2, 033278 (2020)](@cite delcamp2020)
