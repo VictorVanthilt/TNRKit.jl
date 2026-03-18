@@ -307,6 +307,20 @@ end
     @test fs ≈ f_benchmark3D rtol = 1.0e-3
 end
 
+@testset "HOTRG_3D - Projector for fermions" begin
+    @info "HOTRG_3D projectors for fermions"
+    Vphy = Vect[FermionParity](0 => 2, 1 => 2)
+    Vvir = Vect[FermionParity](0 => 2, 1 => 2)
+    for _ in 1:4 # multiple trials
+        Aspace = (Vphy ⊗ Vphy' ← Vvir ⊗ Vvir ⊗ Vvir' ⊗ Vvir')
+        A1 = randn(ComplexF64, Aspace)
+        A2 = randn(ComplexF64, Aspace)
+        for MM in [TNRKit._get_MMdag_3d(A1, A2), TNRKit._get_MdagM_3d(A1, A2)]
+            @test isposdef(MM)
+        end
+    end
+end
+
 # ImpurityHOTRG
 @testset "ImpurityHOTRG - Ising Model" begin
 
