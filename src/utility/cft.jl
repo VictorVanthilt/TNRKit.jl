@@ -1,3 +1,19 @@
+# Two functions we need to perform operations on SectorVectors, which do not just convert to Vectors.
+Base.broadcasted(f, v::TensorKit.SectorVector) = SectorVector(broadcast(f, parent(v)), v.structure)
+
+function Base.filter(f, v::TensorKit.SectorVector)
+    data = copy(parent(v))
+    structure = copy(v.structure)
+
+    kept_inds = findall(f, parent(v))
+    sectors = keys(structure)
+    for (i, sector) in enumerate(sectors)
+        structure[sector] = i == 1 ? (1:findlast(x -> x <= structure[sector].stop, kept_inds)) : ((structure[sectors[i - 1]].stop + 1):findlast(x -> x <= structure[sector].stop, kept_inds))
+    end
+    data = data[kept_inds]
+    return SectorVector(data, structure)
+end
+
 struct CFTData{E, I}
     central_charge::E
     scaling_dimensions::TensorKit.SectorVector{E, I}
