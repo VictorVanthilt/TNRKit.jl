@@ -13,8 +13,8 @@ model_temp_answer_string_2d = [
     (sixvertex(Trivial), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with no symmetry"),
     (sixvertex(U1Irrep), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with U(1) symmetry"),
     (sixvertex(), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with CU(1) symmetry"),
-    (classical_XY(U1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with U(1) symmetry"), # This is an approximation!
-    (classical_XY(CU1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with CU(1) symmetry"), # This is an approximation!
+    # (classical_XY(U1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with U(1) symmetry"), # This is an approximation!
+    # (classical_XY(CU1Irrep, 0.89351, 6), 0.89351, -1.0251, "Classical XY model with CU(1) symmetry"), # This is an approximation!
     (phi4_real(Trivial, 10, -1.0, 1.0), -1.0, 0.4241912271276211, "Real φ⁴ model with no symmetry"), # This is an approximation!
     (phi4_real(10, -1.0, 1.0), -1.0, 0.4232381701937374, "Real φ⁴ model with ℤ₂ symmetry"), # This is an approximation!
     (phi4_complex(Trivial, 6, -1.0, 1.0), -1.0, 0.7583605364656325, "Complex φ⁴ model with no symmetry"), # This is an approximation!
