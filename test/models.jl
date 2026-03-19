@@ -35,6 +35,44 @@ for (model, temp, answer, description) in model_temp_answer_string_2d
     end
 end
 
+@testset "LoopTNR - 2D XY model" begin
+    @info "Central charge of KT phase with U(1) symmetry"
+    T_KT = classical_XY_U1_symmetric(XY_βc + 0.1, 8)
+    scheme = LoopTNR(T_KT)
+    data = run!(scheme, truncrank(16), maxiter(20))
+    cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
+    central_charge = cft["c"]
+    @test central_charge ≈ 1.0 atol = 1.0e-2
+    @info "Obtained central charge:\n$central_charge."
+
+    @info "Central charge of symmetric phase with U(1) symmetry"
+    T_sym = classical_XY_U1_symmetric(XY_βc - 0.1, 8)
+    scheme = LoopTNR(T_sym)
+    data = run!(scheme, truncrank(16), maxiter(20))
+    cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
+    central_charge = cft["c"]
+    @test central_charge ≈ 0.0 atol = 1.0e-13
+    @info "Obtained central charge:\n$central_charge."
+
+    @info "Central charge of KT phase with O(2) symmetry"
+    T_KT = classical_XY_O2_symmetric(XY_βc + 0.1, 8)
+    scheme = LoopTNR(T_KT)
+    data = run!(scheme, truncrank(16), maxiter(20))
+    cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
+    central_charge = cft["c"]
+    @test central_charge ≈ 1.0 atol = 1.0e-2
+    @info "Obtained central charge:\n$central_charge."
+
+    @info "Central charge of symmetric phase with O(2) symmetry"
+    T_sym = classical_XY_O2_symmetric(XY_βc - 0.1, 8)
+    scheme = LoopTNR(T_sym)
+    data = run!(scheme, truncrank(16), maxiter(20))
+    cft = cft_data(scheme, [sqrt(2), 2 * sqrt(2), 0])
+    central_charge = cft["c"]
+    @test central_charge ≈ 0.0 atol = 1.0e-13
+    @info "Obtained central charge:\n$central_charge."
+end
+
 for (model, temp, answer, description) in model_temp_answer_string_3d
     @testset "$(description)" begin
         scheme = HOTRG_3D(model)

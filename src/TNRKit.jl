@@ -102,7 +102,7 @@ include("models/clock.jl")
 export classical_clock
 
 include("models/XY.jl")
-export classical_XY
+export classical_XY, XY_βc
 
 include("models/phi4_real.jl")
 export phi4_real, phi4_real_imp1, phi4_real_imp2

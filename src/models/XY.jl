@@ -1,4 +1,4 @@
-function algebraic_initialization(m::TensorMap, bond::TensorMap)
+function algebraic_initialization(m::AbstractTensorMap{E, S, 1, 2}, bond::AbstractTensorMap{E, S, 1, 1}) where {E, S}
     @tensor opt = true T[l u; d r] :=
         m[u; Au Bu] *
         bond[Au; Ad] *
@@ -10,6 +10,8 @@ function algebraic_initialization(m::TensorMap, bond::TensorMap)
         m'[Dd Cd; d]
     return T
 end
+
+const XY_βc = 1.1199 # This is an approximation!
 
 """
     classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
@@ -26,6 +28,9 @@ Defaults to CU(1) symmetry if the symmetry type is not provided.
     classical_XY(U1Irrep, 0.9, 6)
     classical_XY(CU1Irrep, 0.9, 4)
 ```
+
+### References
+* [Yu et. al. 10.1103/PhysRevE.89.013308 (2014)](@cite Yu_2014)
 """
 function classical_XY(beta::Float64, charge_trunc::Int; kwargs...)
     return classical_XY(CU1Irrep, beta, charge_trunc; kwargs...)
