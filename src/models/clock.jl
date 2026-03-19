@@ -12,14 +12,15 @@ function clock_tensor(q::Int, β::Real; T::Type{<:Number} = Float64)
 end
 
 """
-    classical_clock(S::Type{Trivial}, q::Int, β::Real; T::Type{<:Number} = Float64)
+    classical_clock(q::Int, β::Real; kwargs...)
+    classical_clock(::Type{Trivial}, q::Int, β::Real; T::Type{<:Number} = Float64)
     classical_clock(::Type{ZNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
 
 Constructs the partition function tensor for the classical clock model with `q` states
 and a given inverse temperature `β`.
 
 Compatible with no symmetry or with explicit ℤq symmetry on each of its spaces.
-Defaults to ℤq symmetry if `S` is not provided.
+Defaults to ℤq symmetry if the symmetry type is not provided.
 """
 function classical_clock(q::Int, β::Real; kwargs...)
     return classical_clock(ZNIrrep{q}, q, β; kwargs...)

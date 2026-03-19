@@ -2,6 +2,8 @@ const ising_βc_honeycomb = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(3.0))
 const f_onsager_honeycomb::BigFloat = -1.556707467816387475214957698255679494804
 
 """
+    classical_ising_honeycomb(; kwargs...)
+    classical_ising_honeycomb(β::Real; kwargs...)
     classical_ising_honeycomb(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
     classical_ising_honeycomb(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
 

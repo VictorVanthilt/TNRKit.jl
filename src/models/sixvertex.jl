@@ -1,4 +1,5 @@
 """
+    sixvertex(; kwargs...)
     sixvertex(::Type{Trivial}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
     sixvertex(::Type{U1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
     sixvertex(::Type{CU1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)

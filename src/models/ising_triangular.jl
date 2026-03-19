@@ -2,6 +2,8 @@ const ising_βc_triangular = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(1.0)
 const f_onsager_triangular::BigFloat = -3.20253248660790791834355252025862951439
 
 """
+    classical_ising_triangular(; kwargs...)
+    classical_ising_triangular(β::Real; kwargs...)
     classical_ising_triangular(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
     classical_ising_triangular(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
 

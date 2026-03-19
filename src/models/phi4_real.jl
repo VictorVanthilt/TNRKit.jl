@@ -41,6 +41,7 @@ end
 #####################################
 
 """
+    phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; kwargs....)
     phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
     phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
 

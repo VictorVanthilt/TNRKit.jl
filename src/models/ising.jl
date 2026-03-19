@@ -15,6 +15,8 @@ function ising_bond_tensor(β::Real, T::Type{<:Number})
 end
 
 """
+    classical_ising(; kwargs...)
+    classical_ising(β::Real; kwargs...)
     classical_ising(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64, h = 0.0)
     classical_ising(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64, h = 0.0)
 
@@ -100,6 +102,8 @@ function classical_ising_impurity(::Type{Trivial}, β::Real; T::Type{<:Number} =
 end
 
 """
+    classical_ising_3D(; kwargs...)
+    classical_ising_3D(β::Real; kwargs...)
     classical_ising_3D(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64, J = 1.0)
     classical_ising_3D(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64, J = 1.0)
 

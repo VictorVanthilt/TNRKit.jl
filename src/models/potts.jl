@@ -39,6 +39,7 @@ See also: [`classical_potts`](@ref).
 potts_βc(q) = log(1.0 + sqrt(q))
 
 """
+    classical_potts(q::Int, β::Real)
     classical_potts(::Type{Trivial}, q::Int, β::Float64)
     classical_potts(::Type{ZNIrrep{N}}, q::Int, β::Float64) where {N}
 

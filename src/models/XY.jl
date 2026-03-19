@@ -14,6 +14,8 @@ end
 const XY_βc = 1.1199 # This is an approximation!
 
 """
+    classical_XY(charge_trunc::Int; kwargs...)
+    classical_XY(beta::Float64, charge_trunc::Int; kwargs...)
     classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
     classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
 

@@ -7,7 +7,7 @@ function P_tensor()
     return P
 end
 
-function gross_neveu_8_leg_tensor(μ::Number, m::Number, g::Number; T::Type{<:Number} = ComplexF64)
+function gross_neveu_8_leg_tensor(μ::Number, m::Number, g::Number; T::Type{<:Complex} = ComplexF64)
     # Manually defining the A and A_bar tensors
     A = zeros(T, 2, 2, 2, 2)
     A[2, 2, 1, 1] = 1 + 1im
@@ -48,7 +48,7 @@ end
 
 
 """
-    gross_neveu_start(::Type{FermionParity}, μ::Number, m::Number, g::Number; T::Type{<:Number} = ComplexF64)
+    gross_neveu_start([::Type{FermionParity}], μ::Number, m::Number, g::Number; T::Type{<:Complex} = ComplexF64)
 
 Constructs the partition function tensor for the Gross-Neveu model with given parameters `μ`, `m`, and `g`.
 Compatible with explicit fermion parity symmetry on each of its spaces.
@@ -59,7 +59,7 @@ Compatible with explicit fermion parity symmetry on each of its spaces.
 function gross_neveu_start(μ::Number, m::Number, g::Number; kwargs...)
     return gross_neveu_start(FermionParity, μ, m, g; kwargs...)
 end
-function gross_neveu_start(::Type{FermionParity}, μ::Number, m::Number, g::Number; T::Type{<:Number} = ComplexF64)
+function gross_neveu_start(::Type{FermionParity}, μ::Number, m::Number, g::Number; T::Type{<:Complex} = ComplexF64)
     T_unfused = gross_neveu_8_leg_tensor(μ, m, g; T = T)
     V = Vect[FermionParity](0 => 1, 1 => 1)
     U = isometry(fuse(V, V), V ⊗ V)
