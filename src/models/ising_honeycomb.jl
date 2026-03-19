@@ -2,8 +2,8 @@ const ising_βc_honeycomb = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(3.0))
 const f_onsager_honeycomb::BigFloat = -1.556707467816387475214957698255679494804
 
 """
-    classical_ising_honeycomb(::Type{Trivial}, β::Float64; T = Float64)
-    classical_ising_honeycomb(::Type{Z2Irrep}, β::Float64; T = Float64)
+    classical_ising_honeycomb(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
+    classical_ising_honeycomb(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a 2D honeycomb lattice
 for the classical Ising model with a given inverse temperature `β`.
@@ -18,20 +18,20 @@ Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_honeycomb` if the
 ```
 
 """
-function classical_ising_honeycomb(β::Float64; T::Type{<:Number} = Float64)
-    return classical_ising_honeycomb(Z2Irrep, β; T = T)
+function classical_ising_honeycomb(β::Real; kwargs...)
+    return classical_ising_honeycomb(Z2Irrep, β; kwargs...)
 end
 classical_ising_honeycomb(; kwargs...) = classical_ising_honeycomb(ising_βc_honeycomb; kwargs...)
 classical_ising_honeycomb(::Type{Trivial}; kwargs...) = classical_ising_honeycomb(Trivial, ising_βc_honeycomb; kwargs...)
-function classical_ising_honeycomb(::Type{Trivial}, β::Float64; T::Type{<:Number} = Float64)
+function classical_ising_honeycomb(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
     t = T[exp(β) exp(-β); exp(-β) exp(β)]
 
     r = eigen(t)
     nt = r.vectors * sqrt(LinearAlgebra.Diagonal(r.values)) * r.vectors
 
-    O = zeros(2, 2, 2)
-    O[1, 1, 1] = 1
-    O[2, 2, 2] = 1
+    O = zeros(T, 2, 2, 2)
+    O[1, 1, 1] = one(T)
+    O[2, 2, 2] = one(T)
 
     H = [1 1; 1 -1] / sqrt(2)
 
@@ -40,7 +40,7 @@ function classical_ising_honeycomb(::Type{Trivial}, β::Float64; T::Type{<:Numbe
 
     return TensorMap(o2, ℂ^2 * ℂ^2, ℂ^2)
 end
-function classical_ising_honeycomb(::Type{Z2Irrep}, β::Float64; T::Type{<:Number} = Float64)
+function classical_ising_honeycomb(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
     x = cosh(β)
     y = sinh(β)
 

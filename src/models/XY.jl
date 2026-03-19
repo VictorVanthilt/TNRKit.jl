@@ -12,8 +12,8 @@ function algebraic_initialization(m::TensorMap, bond::TensorMap)
 end
 
 """
-    classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int)
-    classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int)
+    classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
+    classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a symmetric 2D square lattice
 for the classical XY model using inverse temperature `beta`
@@ -27,15 +27,15 @@ Defaults to CU(1) symmetry if the symmetry type is not provided.
     classical_XY(CU1Irrep, 0.9, 4)
 ```
 """
-function classical_XY(beta::Float64, charge_trunc::Int)
-    return classical_XY(CU1Irrep, beta, charge_trunc)
+function classical_XY(beta::Float64, charge_trunc::Int; kwargs...)
+    return classical_XY(CU1Irrep, beta, charge_trunc; kwargs...)
 end
-function classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int)
+function classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
     FunU1 = U1Space(map(x -> (x => 1), (-charge_trunc):charge_trunc))
 
-    m = ones(Float64, FunU1 ← FunU1 ⊗ FunU1)
+    m = ones(T, FunU1 ← FunU1 ⊗ FunU1)
 
-    bond = zeros(Float64, FunU1 ← FunU1)
+    bond = zeros(T, FunU1 ← FunU1)
     for (s, f) in fusiontrees(bond)
         charge = s.uncoupled[1].charge
         bond[s, f] .= besseli(charge, beta)
@@ -43,12 +43,12 @@ function classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int)
 
     return algebraic_initialization(m, bond)
 end
-function classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int)
+function classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
     FunU1_0 = CU1Space((0, 0) => 1)
     FunU1_1 = CU1Space(((i, 2) => 1 for i in 1:charge_trunc))
     FunU1 = FunU1_0 ⊕ FunU1_1
 
-    m = zeros(Float64, FunU1 ← FunU1 ⊗ FunU1)
+    m = zeros(T, FunU1 ← FunU1 ⊗ FunU1)
     for (to, from) in fusiontrees(m)
         left, right = from.uncoupled
         if (left == right) && !isunit(left) && isunit(from.coupled)
@@ -58,7 +58,7 @@ function classical_XY(::Type{CU1Irrep}, beta::Float64, charge_trunc::Int)
         end
     end
 
-    bond = zeros(Float64, FunU1 ← FunU1)
+    bond = zeros(T, FunU1 ← FunU1)
 
     for (s, f) in fusiontrees(bond)
         charge = s.uncoupled[1].j

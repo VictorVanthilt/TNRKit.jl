@@ -105,13 +105,13 @@ function moment_matrix(N, μ0, λ; rtol = 1.0e-8)
     return M
 end
 
-function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{Float64}) where {TT, SS, NN} # for Trivial symmetry
+function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{Float64}; T::Type{<:Number} = ComplexF64) where {TT, SS, NN} # for Trivial symmetry
     K = size(weights, 1)
     N = K^2
     perms = collect(permutations(1:4))  # 24 total
 
     U, S, V = svd_compact!(f)
-    T_arr = zeros(ComplexF64, N, N, N, N)
+    T_arr = zeros(T, N, N, N, N)
 
     @threads for i in 1:N
         for j in i:N, k in j:N, l in k:N
@@ -138,15 +138,14 @@ function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{Float
 end
 
 
-
 #####################################
 #       TENSOR FUNCTIONS            #
 #####################################
 
 """
-    phi4_complex(S::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
-    phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ::Float64)
-    phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex(S::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
+    phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
+    phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -175,10 +174,10 @@ Piceu Jarid and Adwait Naravane, but based on:
 
 See also: [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex(U1Irrep, K, μ0, λ)
+function phi4_complex(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex(U1Irrep, K, μ0, λ; kwargs...)
 end
-function phi4_complex(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -188,10 +187,10 @@ function phi4_complex(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
     weights = [ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
     # Build tensor
-    T = phi4_complex_tensor(f, weights)
-    return T
+    t = phi4_complex_tensor(f, weights; T = T)
+    return t
 end
-function phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
@@ -202,7 +201,7 @@ function phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ:
     logfact = log.(factorial.(0:(K - 1)))
 
 
-    T_arr = zeros(Float64, K, K, K, K, K, K, K, K)
+    T_arr = zeros(T, K, K, K, K, K, K, K, K)
 
     @threads for a in 0:(K - 1)
         for c in 0:(K - 1), f in 0:(K - 1), h in 0:(K - 1)
@@ -251,7 +250,7 @@ function phi4_complex(::Type{Z2Irrep ⊠ Z2Irrep}, K::Integer, μ0::Float64, λ:
     @tensor T_fused[-1 -2; -3 -4] := T_unfused[1 2 3 4; 5 6 7 8] * U[-1; 1 2] * U[-2; 3 4] * Udg[5 6; -3] * Udg[7 8; -4]
     return T_fused
 end
-function phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
@@ -261,7 +260,7 @@ function phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64)
     # log factorials 0..K-1
     logfact = log.(factorial.(0:(K - 1)))
 
-    T_arr = zeros(Float64, K, K, K, K, K, K, K, K)
+    T_arr = zeros(T, K, K, K, K, K, K, K, K)
 
     @threads for a in 0:(K - 1)
         for b in 0:(K - 1), c in 0:(K - 1), d in 0:(K - 1), e in 0:(K - 1), f in 0:(K - 1), g in 0:(K - 1)
@@ -309,7 +308,7 @@ function phi4_complex(::Type{U1Irrep}, K::Integer, μ0::Float64, λ::Float64)
 end
 
 """
-    phi4_complex_impϕ([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex_impϕ([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
 
 Constructs the impurity tensor for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -332,10 +331,10 @@ Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite k
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_impϕ(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex_impϕ(Trivial, K, μ0, λ)
+function phi4_complex_impϕ(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex_impϕ(Trivial, K, μ0, λ; kwargs...)
 end
-function phi4_complex_impϕ(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex_impϕ(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -345,13 +344,13 @@ function phi4_complex_impϕ(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float
     weights = [(ys[α] + ys[β]im) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
     # Build tensor
-    T = TensorMap(T_arr, ℂ^N ⊗ ℂ^N ← ℂ^N ⊗ ℂ^N)
+    T = phi4_complex_tensor(f, weights; T = T)
     return T
 end
 
 
 """
-    phi4_complex_impϕdag([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex_impϕdag([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
 
 Constructs the impurity tensor for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -374,10 +373,10 @@ Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite k
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_impϕdag(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex_impϕdag(Trivial, K, μ0, λ)
+function phi4_complex_impϕdag(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex_impϕdag(Trivial, K, μ0, λ; kwargs...)
 end
-function phi4_complex_impϕdag(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex_impϕdag(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -387,12 +386,12 @@ function phi4_complex_impϕdag(::Type{Trivial}, K::Integer, μ0::Float64, λ::Fl
     weights = [(ys[α] - ys[β]im) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
     # Build tensor
-    T = phi4_complex_tensor(f, weights)
+    T = phi4_complex_tensor(f, weights; T = T)
     return T
 end
 
 """
-    phi4_complex_impϕabs([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex_impϕabs([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
 
 Constructs the impurity tensor for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -415,10 +414,10 @@ Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite k
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕ2`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_impϕabs(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex_impϕabs(Trivial, K, μ0, λ)
+function phi4_complex_impϕabs(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex_impϕabs(Trivial, K, μ0, λ; kwargs...)
 end
-function phi4_complex_impϕabs(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex_impϕabs(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -428,12 +427,12 @@ function phi4_complex_impϕabs(::Type{Trivial}, K::Integer, μ0::Float64, λ::Fl
     weights = [sqrt(ys[α]^2 + ys[β]^2) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
     # Build tensor
-    T = phi4_complex_tensor(f, weights)
+    T = phi4_complex_tensor(f, weights; T = T)
     return T
 end
 
 """
-    phi4_complex_impϕ2([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex_impϕ2([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
 
 Constructs the impurity tensor for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -456,10 +455,10 @@ Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite k
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_all`](@ref).
 """
-function phi4_complex_impϕ2(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex_impϕ2(Trivial, K, μ0, λ)
+function phi4_complex_impϕ2(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex_impϕ2(Trivial, K, μ0, λ; kwargs...)
 end
-function phi4_complex_impϕ2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64)
+function phi4_complex_impϕ2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -469,12 +468,12 @@ function phi4_complex_impϕ2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Floa
     weights = [sqrt(ys[α]^2 + ys[β]^2) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
 
     # Build tensor
-    T = phi4_complex_tensor(f, weights)
+    T = phi4_complex_tensor(f, weights; T = T)
     return T
 end
 
 """
-    phi4_complex_all([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64)
+    phi4_complex_all([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
 
 Constructs all the tensors: the partition function tensor and all the impurity tensors for a 2D square lattice for the complex ϕ^4 model with a given approximation `K`, bare mass µ_0^2 `μ0` and interaction constant `λ`.
 
@@ -497,10 +496,10 @@ Piceu Jarid, but based on [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite k
 
 See also: [`phi4_complex`](@ref), [`phi4_complex_impϕ`](@ref), [`phi4_complex_impϕdag`](@ref), [`phi4_complex_impϕabs`](@ref), [`phi4_complex_impϕ2`](@ref).
 """
-function phi4_complex_all(K::Integer, μ0::Float64, λ::Float64)
-    return phi4_complex_all(Trivial, K, μ0, λ)
+function phi4_complex_all(K::Integer, μ0::Float64, λ::Float64; kwargs...)
+    return phi4_complex_all(Trivial, K, μ0, λ; kwargs...)
 end
-function phi4_complex_all(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64) #TODO: refactor all of this, it's always the same
+function phi4_complex_all(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = ComplexF64)
     ys, ws = gausshermite(K)
 
     # Determine fmatrix
@@ -511,12 +510,11 @@ function phi4_complex_all(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64
 
     N = K^2
 
-
-    T_arr = zeros(ComplexF64, N, N, N, N)
-    T_ϕ_arr = zeros(ComplexF64, N, N, N, N)
-    T_ϕdag_arr = zeros(ComplexF64, N, N, N, N)
-    T_ϕabs_arr = zeros(ComplexF64, N, N, N, N)
-    T_ϕ2_arr = zeros(ComplexF64, N, N, N, N)
+    T_arr = zeros(T, N, N, N, N)
+    T_ϕ_arr = zeros(T, N, N, N, N)
+    T_ϕdag_arr = zeros(T, N, N, N, N)
+    T_ϕabs_arr = zeros(T, N, N, N, N)
+    T_ϕ2_arr = zeros(T, N, N, N, N)
 
     w = [ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]
     w_ϕ = [(ys[α] + ys[β]im) * ws[α] * ws[β] * exp(ys[α]^2 + ys[β]^2) for α in 1:K, β in 1:K]

@@ -80,9 +80,9 @@ function classical_potts(::Type{ZNIrrep{N}}, q::Int64, β::Real) where {N}
 end
 
 """
-    classical_potts_impurity(q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1)
-    classical_potts_impurity(q::Int64, k1::Int64, k2::Int64)
-    classical_potts_impurity(q::Int64)
+    classical_potts_impurity(q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1; T::Type{<:Number} = Float64)
+    classical_potts_impurity(q::Int64, k1::Int64, k2::Int64; T::Type{<:Number} = Float64)
+    classical_potts_impurity(q::Int64; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a Potts model with `q` states
 and a given inverse temperature `β` with impurities in sectors `k1` and `k2`.
@@ -97,20 +97,20 @@ The impurity breaks the ℤq symmetry, but the impurity sectors match the symmet
 
 See also: [`classical_potts`](@ref), [`potts_βc`](@ref).
 """
-function classical_potts_impurity(q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1)
-    return classical_potts_impurity(Trivial, q, β, k1, k2)
+function classical_potts_impurity(q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1; kwargs...)
+    return classical_potts_impurity(Trivial, q, β, k1, k2; kwargs...)
 end
-classical_potts_impurity(q::Int64, k1::Int64, k2::Int64) = classical_potts_impurity(q, potts_βc(q), k1, k2)
-classical_potts_impurity(q::Int64) = classical_potts_impurity(q, potts_βc(q), 1, 1)
-function classical_potts_impurity(::Type{Trivial}, q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1)
-    bond_tensor = zeros(Float64, q, q)
+classical_potts_impurity(q::Int64, k1::Int64, k2::Int64; kwargs...) = classical_potts_impurity(q, potts_βc(q), k1, k2; kwargs...)
+classical_potts_impurity(q::Int64; kwargs...) = classical_potts_impurity(q, potts_βc(q), 1, 1; kwargs...)
+function classical_potts_impurity(::Type{Trivial}, q::Int64, β::Real, k1::Int64 = 1, k2::Int64 = 1; T::Type{<:Number} = Float64)
+    bond_tensor = zeros(T, q, q)
     for i in 0:(q - 1)
         bond_tensor[i + 1, i + 1] = sqrt(exp(β) - 1 + q * (i == 0))
     end
     Vp = ℂ^q
     bond_tensor = TensorMap(bond_tensor, Vp ← Vp)
 
-    core_tensor = zeros(Float64, q, q, q, q)
+    core_tensor = zeros(T, q, q, q, q)
     for (i, j, k, l) in Iterators.product(0:(q - 1), 0:(q - 1), 0:(q - 1), 0:(q - 1))
         core_tensor[i + 1, j + 1, k + 1, l + 1] =
             mod(i + j - k - l + k1 - k2, q) == 0 ? 1 : 0
@@ -118,7 +118,7 @@ function classical_potts_impurity(::Type{Trivial}, q::Int64, β::Real, k1::Int64
 
     core_tensor = TensorMap(core_tensor, Vp ⊗ Vp ← Vp ⊗ Vp)
 
-    @tensor T[-1 -2; -3 -4] := core_tensor[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] * bond_tensor[3; -3] * bond_tensor[4; -4] * (1 / q)
+    @tensor t[-1 -2; -3 -4] := core_tensor[1 2; 3 4] * bond_tensor[-1; 1] * bond_tensor[-2; 2] * bond_tensor[3; -3] * bond_tensor[4; -4] * (1 / q)
 
-    return T
+    return t
 end

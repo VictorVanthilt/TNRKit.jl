@@ -1,13 +1,13 @@
 """
-    sixvertex(::Type{Trivial}, elt::Type{<:Number} = ComplexF64; a = 1.0, b = 1.0, c = 1.0)
-    sixvertex(::Type{U1Irrep}, elt::Type{<:Number} = ComplexF64; a = 1.0, b = 1.0, c = 1.0)
-    sixvertex(::Type{CU1Irrep}, elt::Type{<:Number} = ComplexF64; a = 1.0, b = 1.0, c = 1.0)
+    sixvertex(::Type{Trivial}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
+    sixvertex(::Type{U1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
+    sixvertex(::Type{CU1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
 
 Constructs the partition function tensor for the six-vertex model with a given symmetry type and coupling constants `a`, `b`, and `c`.
 Compatible with no symmetry, U(1) symmetry, or CU(1) symmetry on each of its spaces.
 
 ### Defaults
-    - elt: Float64
+    - T: Float64
     - symmetry: CU1Irrep
     - a: 1.0
     - b: 1.0
@@ -22,11 +22,11 @@ Compatible with no symmetry, U(1) symmetry, or CU(1) symmetry on each of its spa
 
 Note: The free energy density depends on the boundary conditions.  
 """
-function sixvertex(elt::Type{<:Number} = Float64; kwargs...)
-    return sixvertex(CU1Irrep, elt; kwargs...)
+function sixvertex(; kwargs...)
+    return sixvertex(CU1Irrep; kwargs...)
 end
-function sixvertex(::Type{Trivial}, elt::Type{<:Number} = Float64; a = 1.0, b = 1.0, c = 1.0) #TODO: inconsistent order of args, remove elt?
-    d = elt[
+function sixvertex(::Type{Trivial}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
+    d = T[
         a 0 0 0
         0 c b 0
         0 b c 0
@@ -34,17 +34,17 @@ function sixvertex(::Type{Trivial}, elt::Type{<:Number} = Float64; a = 1.0, b = 
     ]
     return TensorMap(d, ℂ^2 ⊗ ℂ^2, ℂ^2 ⊗ ℂ^2)
 end
-function sixvertex(::Type{U1Irrep}, elt::Type{<:Number} = Float64; a = 1.0, b = 1.0, c = 1.0)
+function sixvertex(::Type{U1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
     pspace = U1Space(-1 // 2 => 1, 1 // 2 => 1)
-    mpo = zeros(elt, pspace ⊗ pspace, pspace ⊗ pspace)
+    mpo = zeros(T, pspace ⊗ pspace, pspace ⊗ pspace)
     block(mpo, Irrep[U₁](0)) .= [b c; c b]
     block(mpo, Irrep[U₁](1)) .= reshape([a], (1, 1))
     block(mpo, Irrep[U₁](-1)) .= reshape([a], (1, 1))
     return mpo
 end
-function sixvertex(::Type{CU1Irrep}, elt::Type{<:Number} = Float64; a = 1.0, b = 1.0, c = 1.0)
+function sixvertex(::Type{CU1Irrep}; T::Type{<:Number} = Float64, a = 1.0, b = 1.0, c = 1.0)
     pspace = CU1Space(1 // 2 => 1)
-    mpo = zeros(elt, pspace ⊗ pspace, pspace ⊗ pspace)
+    mpo = zeros(T, pspace ⊗ pspace, pspace ⊗ pspace)
     block(mpo, Irrep[CU₁](0, 0)) .= reshape([b + c], (1, 1))
     block(mpo, Irrep[CU₁](0, 1)) .= reshape([-b + c], (1, 1))
     block(mpo, Irrep[CU₁](1, 2)) .= reshape([a], (1, 1))

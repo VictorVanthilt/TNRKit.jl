@@ -2,8 +2,8 @@ const ising_βc_triangular = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(1.0)
 const f_onsager_triangular::BigFloat = -3.20253248660790791834355252025862951439
 
 """
-    classical_ising_triangular(::Type{Trivial}, β::Float64; T = Float64)
-    classical_ising_triangular(::Type{Z2Irrep}, β::Float64; T = Float64)
+    classical_ising_triangular(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
+    classical_ising_triangular(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a 2D triangular lattice
 for the classical Ising model with a given inverse temperature `β`.
@@ -17,29 +17,29 @@ Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_triangular` if th
     classical_ising_triangular(0.5) # Custom inverse temperature with ℤ₂ symmetry.
 ```
 """
-function classical_ising_triangular(β::Float64; T::Type{<:Number} = Float64)
-    return classical_ising_triangular(Z2Irrep, β; T = T)
+function classical_ising_triangular(β::Real; kwargs...)
+    return classical_ising_triangular(Z2Irrep, β; kwargs...)
 end
 classical_ising_triangular(; kwargs...) = classical_ising_triangular(ising_βc_triangular; kwargs...)
 classical_ising_triangular(::Type{Trivial}; kwargs...) = classical_ising_triangular(Trivial, ising_βc_triangular; kwargs...)
-function classical_ising_triangular(::Type{Trivial}, β::Float64; T::Type{<:Number} = Float64)
+function classical_ising_triangular(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
     t = T[exp(β) exp(-β); exp(-β) exp(β)]
 
     r = eigen(t)
     nt = r.vectors * sqrt(LinearAlgebra.Diagonal(r.values)) * r.vectors
 
-    O = zeros(2, 2, 2, 2, 2, 2)
-    O[1, 1, 1, 1, 1, 1] = 1
-    O[2, 2, 2, 2, 2, 2] = 1
+    O = zeros(T, 2, 2, 2, 2, 2, 2)
+    O[1, 1, 1, 1, 1, 1] = one(T)
+    O[2, 2, 2, 2, 2, 2] = one(T)
 
-    H = [1 1; 1 -1] / sqrt(2)
+    H = T[1 1; 1 -1] / sqrt(2)
 
     @tensor o[-1 -2 -3; -4 -5 -6] := O[1 2 3; 4 5 6] * nt[-1; 1] * nt[-2; 2] * nt[-3; 3] * nt[-4; 4] * nt[-5; 5] * nt[-6; 6]
     @tensor o2[-1 -2 -3; -4 -5 -6] := o[1 2 3; 4 5 6] * H[-1; 1] * H[-2; 2] * H[-3; 3] * H[-4; 4] * H[-5; 5] * H[-6; 6]
 
     return TensorMap(o2, ℂ^2 * ℂ^2 * ℂ^2, ℂ^2 * ℂ^2 * ℂ^2)
 end
-function classical_ising_triangular(::Type{Z2Irrep}, β::Float64; T::Type{<:Number} = Float64)
+function classical_ising_triangular(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
     x = cosh(β)
     y = sinh(β)
 

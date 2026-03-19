@@ -41,8 +41,8 @@ end
 #####################################
 
 """
-    phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
-    phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64)
+    phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
+    phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
@@ -74,10 +74,10 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 See also: [`phi4_real_imp1`](@ref), [`phi4_real_imp2`](@ref).
 """
-function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
-    return phi4_real(Z2Irrep, K, μ0, λ, h)
+function phi4_real(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; kwargs...)
+    return phi4_real(Z2Irrep, K, μ0, λ, h; kwargs...)
 end
-function phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+function phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -88,7 +88,7 @@ function phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Fl
     U, S, V = svd_compact!(f)
 
     # Make tensor for one site
-    T_arr = [
+    T_arr = T[
         sum(
                 √(S[i, i] * S[j, j] * S[k, k] * S[l, l]) *
                 ws[p] * exp(ys[p]^2) *
@@ -98,10 +98,11 @@ function phi4_real(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Fl
             for i in 1:K, j in 1:K, k in 1:K, l in 1:K
     ]
 
-    T = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
-    return T
+    t = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
+    return t
 end
-function phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+function phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
+    @assert h == 0.0 "External magnetic field is not compatible with ℤ₂ symmetry"
     if K % 2 != 0
         error("K must be even to split into even/odd groups")
     end
@@ -109,7 +110,7 @@ function phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64, h::Fl
     logfact = log.(factorial.(0:(K - 1)))
     moments = precompute_moments_real(K, μ0, λ)
 
-    T = zeros(Float64, K, K, K, K)
+    t = zeros(T, K, K, K, K)
 
     perms = collect(permutations(1:4))  # 24 total
 
@@ -130,7 +131,7 @@ function phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64, h::Fl
         idxs = (s1 + 1, s2 + 1, s3 + 1, s4 + 1)
         for p in perms
             ii, jj, kk, ll = idxs[p[1]], idxs[p[2]], idxs[p[3]], idxs[p[4]]
-            T[ii, jj, kk, ll] = val
+            t[ii, jj, kk, ll] = val
         end
     end
 
@@ -138,15 +139,15 @@ function phi4_real(::Type{Z2Irrep}, K::Integer, μ0::Float64, λ::Float64, h::Fl
     evens = 1:2:K
     odds = 2:2:K
     perm = vcat(evens, odds)
-    T = T[perm, perm, perm, perm]
+    t = t[perm, perm, perm, perm]
 
     V = Z2Space(0 => K / 2, 1 => K / 2)
-    return TensorMap(T, V ⊗ V ← V ⊗ V)
+    return TensorMap(t, V ⊗ V ← V ⊗ V)
 end
 
 
 """
-    phi4_real_imp1([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+    phi4_real_imp1([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
 
 Constructs the impurity tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
@@ -171,10 +172,10 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp2`](@ref).
 """
-function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
-    return phi4_real_imp1(Trivial, K, μ0, λ, h)
+function phi4_real_imp1(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; kwargs...)
+    return phi4_real_imp1(Trivial, K, μ0, λ, h; kwargs...)
 end
-function phi4_real_imp1(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+function phi4_real_imp1(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -185,7 +186,7 @@ function phi4_real_imp1(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, 
     U, S, V = svd_compact!(f)
 
     # Make tensor for one site
-    T_arr = [
+    T_arr = T[
         sum(
                 √(S[i, i] * S[j, j] * S[k, k] * S[l, l]) *
                 ys[p] * ws[p] * exp(ys[p]^2) *
@@ -195,13 +196,13 @@ function phi4_real_imp1(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, 
             for i in 1:K, j in 1:K, k in 1:K, l in 1:K
     ]
 
-    T = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
-    return T
+    t = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
+    return t
 end
 
 
 """
-    phi4_real_imp2([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+    phi4_real_imp2([Type{Trivial}], K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
 
 Constructs the impurity tensor for a 2D square lattice
 for the real ϕ^4 model with a given approximation (and bond dimension) `K`, bare mass ``µ_0^2`` `μ0`, interaction constant `λ` and external field `h`.
@@ -226,10 +227,10 @@ It is based on [Gauss-Hermite quadrature](https://en.wikipedia.org/wiki/Gauss%E2
 
 See also: [`phi4_real`](@ref), [`phi4_real_imp1`](@ref).
 """
-function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
-    return phi4_real_imp2(Trivial, K, μ0, λ, h)
+function phi4_real_imp2(K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; kwargs...)
+    return phi4_real_imp2(Trivial, K, μ0, λ, h; kwargs...)
 end
-function phi4_real_imp2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0)
+function phi4_real_imp2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, h::Float64 = 0.0; T::Type{<:Number} = Float64)
     # Weights and locations
     ys, ws = gausshermite(K)
 
@@ -240,7 +241,7 @@ function phi4_real_imp2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, 
     U, S, V = svd_compact!(f)
 
     # Make tensor for one site
-    T_arr = [
+    T_arr = T[
         sum(
                 √(S[i, i] * S[j, j] * S[k, k] * S[l, l]) *
                 ys[p]^2 * ws[p] * exp(ys[p]^2) *
@@ -250,6 +251,6 @@ function phi4_real_imp2(::Type{Trivial}, K::Integer, μ0::Float64, λ::Float64, 
             for i in 1:K, j in 1:K, k in 1:K, l in 1:K
     ]
 
-    T = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
-    return T
+    t = TensorMap(T_arr, ℂ^K ⊗ ℂ^K ← ℂ^K ⊗ ℂ^K)
+    return t
 end
