@@ -16,7 +16,7 @@ function fmatrix_complex(ys::Vector{Float64}, μ0::Float64, λ::Float64)
     K = length(ys)
     matrix = zeros(K^2, K^2)
     @threads for i in 1:K
-        for j in i:K, k in j:K, l in k:K
+        for j in i:K, k in 1:K, l in 1:K
             idx1 = (i - 1) * K + j
             idx2 = (k - 1) * K + l
             if idx2 >= idx1  # only compute upper triangle
