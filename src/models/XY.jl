@@ -35,6 +35,8 @@ Defaults to CU(1) symmetry if the symmetry type is not provided.
 function classical_XY(beta::Float64, charge_trunc::Int; kwargs...)
     return classical_XY(CU1Irrep, beta, charge_trunc; kwargs...)
 end
+classical_XY(charge_trunc::Int; kwargs...) = classical_XY(XY_βc, charge_trunc; kwargs...)
+classical_XY(::Type{U1Irrep}, charge_trunc::Int; kwargs...) = classical_XY(U1Irrep, XY_βc, charge_trunc; kwargs...)
 function classical_XY(::Type{U1Irrep}, beta::Float64, charge_trunc::Int; T::Type{<:Number} = Float64)
     FunU1 = U1Space(map(x -> (x => 1), (-charge_trunc):charge_trunc))
 
