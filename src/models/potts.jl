@@ -16,11 +16,11 @@ function weyl_heisenberg_matrices(q::Int, elt::Type{<:Number} = ComplexF64)
             W[row, col] = ω^((row - 1) * (col - 1))
         end
     end
-    return U, V, W / sqrt(q)
+    return U, V, W / elt(sqrt(q))
 end
 
-function potts_tensor(q::Int, β::Real)
-    A_potts = zeros(Float64, q, q, q, q)
+function potts_tensor(q::Int, β::Real; T::Type{<:Number} = Float64)
+    A_potts = zeros(T, q, q, q, q)
     for i in 1:q, j in 1:q, k in 1:q, l in 1:q
         E = -(Int(i == j) + Int(j == l) + Int(k == l) + Int(k == i))
         A_potts[i, j, k, l] = exp(-β * E)
@@ -39,9 +39,9 @@ See also: [`classical_potts`](@ref).
 potts_βc(q) = log(1.0 + sqrt(q))
 
 """
-    classical_potts(q::Int, β::Real)
-    classical_potts(::Type{Trivial}, q::Int, β::Float64)
-    classical_potts(::Type{ZNIrrep{N}}, q::Int, β::Float64) where {N}
+    classical_potts(q::Int, β::Real; kwargs...)
+    classical_potts(::Type{Trivial}, q::Int, β::Float64; kwargs...)
+    classical_potts(::Type{ZNIrrep{N}}, q::Int, β::Float64; kwargs...) where {N}
 
 Constructs the partition function tensor for the classical Potts model with `q` states
 and a given inverse temperature `β`.
@@ -60,24 +60,24 @@ Defaults to ℤq symmetry if the symmetry type is not provided.
 
 See also: [`potts_βc`](@ref).
 """
-function classical_potts(q::Int, β::Real)
-    return classical_potts(ZNIrrep{q}, q, β)
+function classical_potts(q::Int, β::Real; kwargs...)
+    return classical_potts(ZNIrrep{q}, q, β; kwargs...)
 end
-classical_potts(::Type{Trivial}, q::Int64) = classical_potts(Trivial, q, potts_βc(q))
-classical_potts(q::Int) = classical_potts(q, potts_βc(q))
-function classical_potts(::Type{Trivial}, q::Int, β::Real)
-    return potts_tensor(q, β)
+classical_potts(::Type{Trivial}, q::Int64; kwargs...) = classical_potts(Trivial, q, potts_βc(q); kwargs...)
+classical_potts(q::Int; kwargs...) = classical_potts(q, potts_βc(q); kwargs...)
+function classical_potts(::Type{Trivial}, q::Int, β::Real; T::Type{<:Number} = Float64)
+    return potts_tensor(q, β; T = T)
 end
-function classical_potts(::Type{ZNIrrep{N}}, q::Int64, β::Real) where {N}
+function classical_potts(::Type{ZNIrrep{N}}, q::Int64, β::Real; T::Type{<:Number} = Float64) where {N}
     @assert N == q "number of irreps must match the number of states"
-    A = potts_tensor(q, β)
+    A = potts_tensor(q, β; T = T)
 
-    _, _, W = weyl_heisenberg_matrices(q)
+    _, _, W = weyl_heisenberg_matrices(q, complex(T))
     P = TensorMap(W, ℂ^q ← ℂ^q)
     Udat = reshape(((P' ⊗ P') * A * (P ⊗ P)).data, (q, q, q, q))
     Vp = Vect[ZNIrrep{q}](sector => 1 for sector in 0:(q - 1))
-    A_potts = TensorMap(real(Udat), Vp ⊗ Vp ← Vp ⊗ Vp)
-    return A_potts
+    A_potts = TensorMap(Udat, Vp ⊗ Vp ← Vp ⊗ Vp)
+    return T <: Real ? real(A_potts) : A_potts
 end
 
 """
