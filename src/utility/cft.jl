@@ -37,27 +37,17 @@ function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D, _ = eig_full(T)
+    D = eig_vals(T)
 
-    data = zeros(ComplexF64, dim(space(D, 1)))
+    # data = sort(data; by = x -> abs(x), rev = true) # sorting by magnitude
+    # data = filter(x -> real(x) > 0, data) # filtering out negative real values
+    # data = filter(x -> abs(x) > 1.0e-12, data) # filtering out small values
 
-    i = 1
-    for (_, b) in blocks(D)
-        for I in LinearAlgebra.diagind(b)
-            data[i] = b[I]
-            i += 1
-        end
-    end
+    # if is_real
+    # data = real(data)
+    # end
 
-    data = sort(data; by = x -> abs(x), rev = true) # sorting by magnitude
-    data = filter(x -> real(x) > 0, data) # filtering out negative real values
-    data = filter(x -> abs(x) > 1.0e-12, data) # filtering out small values
-
-    if is_real
-        data = real(data)
-    end
-
-    return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
+    return scale(log.(D[1] ./ D), unitcell * (1 / (2π * v)))
 end
 
 function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
