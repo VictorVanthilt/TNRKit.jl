@@ -60,17 +60,17 @@ TNRKit exports the following pre-built `Finalizer` instances:
 using TNRKit
 
 # Default finalization (simple norm)
-T = classical_ising_symmetric(ising_βc)
+T = classical_ising(ising_βc)
 scheme = TRG(T)
 data = run!(scheme, truncrank(16), maxiter(25))
 
 # Use the two-by-two normalizer (more stable)
-T = classical_ising_symmetric(ising_βc)
+T = classical_ising(ising_βc)
 scheme = TRG(T)
 data = run!(scheme, truncrank(16), maxiter(25); finalizer=two_by_two_Finalizer)
 
 # Track ground state degeneracy throughout the simulation
-T = classical_ising_symmetric(ising_βc)
+T = classical_ising(ising_βc)
 scheme = TRG(T)
 gsd_data = run!(scheme, truncrank(16), maxiter(25); finalizer=GSDegeneracy_Finalizer)
 ```

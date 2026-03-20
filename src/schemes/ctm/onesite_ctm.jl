@@ -84,8 +84,8 @@ function CTM_init(T; bc = ones, bc_free = false)
     if bc_free
         V = Vps[1]
     end
-    C = TensorMap(bc, elt, V ← V)
-    El, Eb, Et, Er = [TensorMap(bc, elt, V ⊗ Vps[i] ← V) for i in 1:4]
+    C = bc(elt, V ← V)
+    El, Eb, Et, Er = [bc(elt, V ⊗ Vps[i] ← V) for i in 1:4]
     return C, C, C, C, El, Eb, Et, Er
 end
 
@@ -122,7 +122,7 @@ end
 function rotate_T(T; num = 1)
     Tnew = copy(T)
     for _ in 1:num
-        Tnew = permute(Tnew, (3, 1), (4, 2))
+        Tnew = permute(Tnew, ((3, 1), (4, 2)))
     end
     return Tnew
 end
@@ -178,7 +178,7 @@ function run!(ctm::CTM, trunc::TruncationStrategy, criterion::maxiter; conv_crit
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if space(ES) == space(ES_new)
+            if size(ES) == size(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
@@ -195,7 +195,7 @@ function run!(ctm::CTM, trunc::TruncationStrategy, criterion::maxiter; conv_crit
             @infov 1 "CTM reached the maximum iteration $(steps)"
         end
     end
-    return hist
+    return lnz(ctm)
 end
 
 function Base.show(io::IO, scheme::CTM)

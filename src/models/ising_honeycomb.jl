@@ -2,28 +2,38 @@ const ising_βc_honeycomb = BigFloat(BigFloat(asinh(BigFloat(sqrt(BigFloat(3.0))
 const f_onsager_honeycomb::BigFloat = -1.556707467816387475214957698255679494804
 
 """
-$(SIGNATURES)
+    classical_ising_honeycomb(; kwargs...)
+    classical_ising_honeycomb(β::Real; kwargs...)
+    classical_ising_honeycomb(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
+    classical_ising_honeycomb(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
 
 Constructs the partition function tensor for a 2D honeycomb lattice
 for the classical Ising model with a given inverse temperature `β`.
+Compatible with no symmetry or with explicit ℤ₂ symmetry on each of its spaces.
+Defaults to ℤ₂ symmetry and inverse temperature `ising_βc_honeycomb` if the symmetry type and inverse temperature are not provided.
 
 ### Examples
 ```julia
-    classical_ising_honeycomb() # Default inverse temperature is `ising_βc_honeycomb`
-    classical_ising_honeycomb(0.5; h = 1.0) # Custom inverse temperature.
+    classical_ising_honeycomb() # Default ℤ₂ symmetry, inverse temperature is `ising_βc_honeycomb`
+    classical_ising_honeycomb(Trivial, 0.5) # Custom inverse temperature.
+    classical_ising_honeycomb(Z2Irrep, 0.5) # Custom inverse temperature with explicit ℤ₂ symmetry.
 ```
 
-See also: [`classical_ising_honeycomb_symmetric`](@ref).
 """
-function classical_ising_honeycomb(β; T = Float64)
+function classical_ising_honeycomb(β::Real; kwargs...)
+    return classical_ising_honeycomb(Z2Irrep, β; kwargs...)
+end
+classical_ising_honeycomb(; kwargs...) = classical_ising_honeycomb(ising_βc_honeycomb; kwargs...)
+classical_ising_honeycomb(::Type{Trivial}; kwargs...) = classical_ising_honeycomb(Trivial, ising_βc_honeycomb; kwargs...)
+function classical_ising_honeycomb(::Type{Trivial}, β::Real; T::Type{<:Number} = Float64)
     t = T[exp(β) exp(-β); exp(-β) exp(β)]
 
     r = eigen(t)
     nt = r.vectors * sqrt(LinearAlgebra.Diagonal(r.values)) * r.vectors
 
-    O = zeros(2, 2, 2)
-    O[1, 1, 1] = 1
-    O[2, 2, 2] = 1
+    O = zeros(T, 2, 2, 2)
+    O[1, 1, 1] = one(T)
+    O[2, 2, 2] = one(T)
 
     H = [1 1; 1 -1] / sqrt(2)
 
@@ -32,25 +42,7 @@ function classical_ising_honeycomb(β; T = Float64)
 
     return TensorMap(o2, ℂ^2 * ℂ^2, ℂ^2)
 end
-classical_ising_honeycomb() = classical_ising_honeycomb(ising_βc_honeycomb)
-
-"""
-$(SIGNATURES)
-
-Constructs the partition function tensor for a symmetric 2D honeycomb lattice
-for the classical Ising model with a given inverse temperature `β`.
-
-This tensor has explicit ℤ₂ symmetry on each of it spaces.
-
-### Examples
-```julia
-    classical_ising_honeycomb_symmetric() # Default inverse temperature is `ising_βc_honeycomb`
-    classical_ising_honeycomb_symmetric(0.5) # Custom inverse temperature.
-```
-
-See also: [`classical_ising_honeycomb`](@ref).
-"""
-function classical_ising_honeycomb_symmetric(β; T = Float64)
+function classical_ising_honeycomb(::Type{Z2Irrep}, β::Real; T::Type{<:Number} = Float64)
     x = cosh(β)
     y = sinh(β)
 
@@ -61,4 +53,3 @@ function classical_ising_honeycomb_symmetric(β; T = Float64)
     block(tens, Irrep[ℤ₂](1)) .= [2 * sqrt(x) * y; 2 * sqrt(x) * y;;]
     return tens
 end
-classical_ising_honeycomb_symmetric() = classical_ising_honeycomb_symmetric(ising_βc_honeycomb)

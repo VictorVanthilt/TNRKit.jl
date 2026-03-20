@@ -73,7 +73,7 @@ function lnz(ctm::Sublattice_CTM)
         bottom[4; 5] *
         ctm.ElA[5 8; 6] *
         ctm.ElB[6 7; 1]
-    return log(abs(A * B / (C * D)))
+    return log(abs(A * B / (C * D))) / 4
 end
 
 ρA(ctm::Sublattice_CTM) = ctm.Ctl1 * ctm.Ctr1 * ctm.Cbr1 * ctm.Cbl1
@@ -86,9 +86,9 @@ function CTM_init(TA, TB; bc = ones, bc_free = false)
     if bc_free
         V = Vps_A[1]
     end
-    C = TensorMap(bc, elt, V ← V)
-    ElA, EbA, EtA, ErA = [TensorMap(bc, elt, V ⊗ Vps_B[i] ← V) for i in 1:4]
-    ElB, EbB, EtB, ErB = [TensorMap(bc, elt, V ⊗ Vps_A[i] ← V) for i in 1:4]
+    C = bc(elt, V ← V)
+    ElA, EbA, EtA, ErA = [bc(elt, V ⊗ Vps_B[i] ← V) for i in 1:4]
+    ElB, EbB, EtB, ErB = [bc(elt, V ⊗ Vps_A[i] ← V) for i in 1:4]
     return C, C, C, C, C, C, C, C, ElA, ElB, EbA, EbB, ErA, ErB, EtA, EtB
 end
 
@@ -219,7 +219,7 @@ function run!(
         @infov 1 "Starting CTM calculation\n $(ctm)\n"
         while crit
             ES_new = step!(ctm, trunc)
-            if space(ES) == space(ES_new)
+            if size(ES) == size(ES_new)
                 normdiff = norm(ES - ES_new)
                 @infov 2 "Step $(steps + 1), |ES - ES_new| = $(normdiff)"
                 push!(hist, normdiff)
@@ -236,7 +236,7 @@ function run!(
             @infov 1 "CTM reached the maximum iteration $(steps)"
         end
     end
-    return hist
+    return lnz(ctm)
 end
 
 function Base.show(io::IO, scheme::Sublattice_CTM)

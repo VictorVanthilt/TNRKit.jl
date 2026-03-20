@@ -84,12 +84,10 @@ export run!
 include("models/ising.jl")
 include("models/ising_triangular.jl")
 include("models/ising_honeycomb.jl")
-export classical_ising, classical_ising_symmetric, ising_βc, f_onsager, ising_cft_exact,
-    ising_βc_3D, classical_ising_symmetric_3D, classical_ising_3D, classical_ising_impurity,
-    classical_ising_triangular, classical_ising_triangular_symmetric,
-    ising_βc_triangular, f_onsager_triangular,
-    classical_ising_honeycomb, classical_ising_honeycomb_symmetric,
-    ising_βc_honeycomb, f_onsager_honeycomb
+export classical_ising, ising_βc, f_onsager, ising_cft_exact,
+    ising_βc_3D, classical_ising_3D, classical_ising_impurity,
+    classical_ising_triangular, ising_βc_triangular, f_onsager_triangular,
+    classical_ising_honeycomb, ising_βc_honeycomb, f_onsager_honeycomb
 
 include("models/gross-neveu.jl")
 export gross_neveu_start
@@ -98,22 +96,19 @@ include("models/sixvertex.jl")
 export sixvertex
 
 include("models/potts.jl")
-export classical_potts, classical_potts_symmetric, potts_βc, classical_potts_impurity
+export classical_potts, potts_βc, classical_potts_impurity
 
 include("models/clock.jl")
-export classical_clock, classical_clock_symmetric
+export classical_clock
 
 include("models/XY.jl")
-export classical_XY_U1_symmetric
-export classical_XY_O2_symmetric
+export classical_XY, XY_βc
 
 include("models/phi4_real.jl")
 export phi4_real, phi4_real_imp1, phi4_real_imp2
-export phi4_real_Z2
 
 include("models/phi4_complex.jl")
 export phi4_complex, phi4_complex_impϕ, phi4_complex_impϕdag, phi4_complex_impϕabs, phi4_complex_impϕ2, phi4_complex_all
-export phi4_complex_U1, phi4_complex_Z2Z2
 
 # utility functions
 include("utility/free_energy.jl")

@@ -1,48 +1,48 @@
-"""
-$(SIGNATURES)
-
-Constructs the partition function tensor for the classical clock model with `q` states
-and a given inverse temperature `β`.
-"""
-function classical_clock(q::Int, β::Float64)
+function clock_tensor(q::Int, β::Real; T::Type{<:Number} = Float64)
     V = ℂ^q
-    A_clock = zeros(Float64, V ⊗ V ← V ⊗ V)
+    A_clock = zeros(T, V ⊗ V ← V ⊗ V)
     clock(i, j) = -cos(2π / q * (i - j))
 
-    for i in 1:q
-        for j in 1:q
-            for k in 1:q
-                for l in 1:q
-                    E = clock(i, j) + clock(j, l) + clock(l, k) + clock(k, i)
-                    A_clock[i, j, k, l] = exp(-β * E)
-                end
-            end
-        end
+    for i in 1:q, j in 1:q, k in 1:q, l in 1:q
+        E = clock(i, j) + clock(j, l) + clock(l, k) + clock(k, i)
+        A_clock[i, j, k, l] = exp(-β * E)
     end
+
     return A_clock
 end
 
 """
-$(SIGNATURES)
+    classical_clock(q::Int, β::Real; kwargs...)
+    classical_clock(::Type{Trivial}, q::Int, β::Real; T::Type{<:Number} = Float64)
+    classical_clock(::Type{ZNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
 
 Constructs the partition function tensor for the classical clock model with `q` states
 and a given inverse temperature `β`.
 
-This tensor has explicit ℤq symmetry on each of it spaces.
+Compatible with no symmetry or with explicit ℤq symmetry on each of its spaces.
+Defaults to ℤq symmetry if the symmetry type is not provided.
 """
-function classical_clock_symmetric(q::Int, β::Float64)
-    A = classical_clock(q, β)
+function classical_clock(q::Int, β::Real; kwargs...)
+    return classical_clock(ZNIrrep{q}, q, β; kwargs...)
+end
+function classical_clock(::Type{Trivial}, q::Int, β::Real; kwargs...)
+    return clock_tensor(q, β; kwargs...)
+end
+function classical_clock(::Type{ZNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
+    @assert N == q "number of irreps must match the number of states"
+    A = classical_clock(Trivial, q, β; T = T)
 
     # Construct the Fourier matrix for the clock model
-    U = zeros(ComplexF64, q, q)
+    Udat = zeros(ComplexF64, q, q)
     for i in 0:(q - 1)
         for j in 0:(q - 1)
-            U[i + 1, j + 1] = exp(2im * π / q * i * j) / sqrt(q)
+            Udat[i + 1, j + 1] = cispi(2 / q * i * j) / sqrt(q)
         end
     end
-    U = TensorMap(U, ℂ^q ← ℂ^q)
+    U = TensorMap(Udat, ℂ^q ← ℂ^q)
 
     @tensor Anew[-1 -2;-3 -4] := A[1 2; 3 4] * U[4; -4] * conj(U[1; -1]) * U[3; -3] * conj(U[2; -2])
     V = ZNSpace{q}(i => 1 for i in 0:(q - 1))
-    return real(TensorMap(convert(Array, Anew), V ⊗ V ← V ⊗ V))
+    t = TensorMap(convert(Array, Anew), V ⊗ V ← V ⊗ V)
+    return T <: Real ? real(t) : t
 end

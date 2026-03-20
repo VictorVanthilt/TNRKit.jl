@@ -74,7 +74,7 @@ For example:
 ```julia
 using TNRKit, TensorKit
 
-T = classical_ising_symmetric(ising_βc) # partition function of classical Ising model at the critical point
+T = classical_ising(ising_βc) # partition function of classical Ising model at the critical point
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncrank(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
 ```
@@ -106,14 +106,23 @@ To choose the verbosity level, simply use `run!(...; verbosity=n)`. The default 
 
 ## Included Models on the square lattice
 TNRKit includes several common models out of the box.
-- Ising model: `classical_ising(β; h=0)` and `classical_ising_symmetric(β)`, which has a $\mathbb{Z}_2$ grading on each leg.
-- Potts model: `classical_potts(q, β)` and `classical_potts_symetric(q, β)`, which has a $\mathbb{Z}_q$ grading on each leg.
-- Six Vertex model: `sixvertex(scalartype, spacetype; a=1.0, b=1.0, c=1.0)`
-- Clock model: `classical_clock` and `classical_clock_symmetric`, which has a $\mathbb{Z}_q$ grading on each leg.
-- XY model: `classical_XY_U1_symmetric` and `classical_XY_O2_symmetric`
-- Real $\phi^4$ model: `phi4_real` and  `phi4_real_Z2`, which has a $\mathbb{Z}_2$ grading on each leg.
-- Complex $\phi^4$ model: `phi4_complex`,  `phi4_complex_U1`, which has a $U(1)$ grading on each leg and `phi4_complex_Z2Z2`, which has a $\mathbb{Z}_2 \times \mathbb{Z}_2$ grading on each leg.
+- Ising model in 2D: `classical_ising(S, β; h=0)` where `S` can be `Trivial` or `Z2Irrep` to specify the symmetry.
+- Ising model in 2D with impurities: `classical_ising_impurity(β; h=0)`.
+- Ising model in 3D: `classical_ising_3D(S, β; h=0)` where `S` can be `Trivial` or `Z2Irrep` to specify the symmetry.
+- Potts model in 2D: `classical_potts(S, q, β)`, where `S` can be `Trivial` or `ZNIrrep{q}` to specify the symmetry.
+- Potts model in 2D with impurities: `classical_potts_impurity(q, β)`.
+- Six Vertex model: `sixvertex(S, elt; a=1.0, b=1.0, c=1.0)` where `S` can be `Trivial`, `U1Irrep` or `CU1Irrep` to specify the symmetry and `elt` can be any number type (default is `Float64`).
+- Clock model: `classical_clock(S, q, β)` where `S` can be `Trivial` or `ZNIrrep{q}` to specify the symmetry.
+- XY model in 2D: `classical_XY(S, β, charge_trunc)` where `S` can be `U1Irrep` or `CU1Irrep` to specify the symmetry.
+- Real $\phi^4$ model: `phi4_real(S, K, μ0, λ, h)` where `S` can be `Trivial` or `Z2Irrep` to specify the symmetry.
+- Real $\phi^4$ model with impurities: `phi4_real_imp1(S, K, μ0, λ, h)` and `phi4_real_imp2(S, K, μ0, λ, h)` where `S` can be `Trivial`.
+- Complex $\phi^4$ model: `phi4_complex(S, K, μ0, λ)` where `S` can be `Trivial`, `Z2Irrep ⊠ Z2Irrep` or `U1Irrep` to specify the symmetry.
+- Gross-Neveu model: `gross_neveu_start(S, μ, m, g)` where `S` can be `FermionParity` to specify the symmetry.
 
 ## Included Models on the triangular lattice
 TNRKit includes several common models out of the box.
-- Ising model: `classical_ising_triangular` and `classical_ising_triangular_symmetric`, which has a $ℤ_2$ grading on each leg.
+- Ising model: `classical_ising_triangular(S, β; h=0)` where `S` can be `Trivial` or `Z2Irrep` to specify the symmetry.
+
+## Included Models on the honeycomb lattice
+TNRKit includes several common models out of the box.
+- Ising model: `classical_ising_honeycomb(S, β; h=0)` where `S` can be `Trivial` or `Z2Irrep` to specify the symmetry.

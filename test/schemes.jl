@@ -4,8 +4,8 @@ println("---------------------")
 println(" Testing all schemes ")
 println("---------------------")
 
-T = classical_ising_symmetric()
-T_3D = classical_ising_symmetric_3D()
+T = classical_ising()
+T_3D = classical_ising_3D()
 # from Fig. 5 of Physical Review B 102, 054432 (2020)
 const f_benchmark3D = -3.507
 
@@ -33,7 +33,7 @@ end
 
     @info "TRG ising ground state degeneracy"
 
-    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    T1 = classical_ising(ising_βc - 0.01)
     scheme = TRG(T1)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -42,7 +42,7 @@ end
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
-    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    T2 = classical_ising(ising_βc + 0.01)
     scheme = TRG(T2)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -71,7 +71,7 @@ end
     @test cft[2] ≈ ising_cft_exact[2] rtol = 2.0e-2
 
     @info "BTRG ising ground state degeneracy"
-    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    T1 = classical_ising(ising_βc - 0.01)
     scheme = BTRG(T1)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -80,7 +80,7 @@ end
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
-    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    T2 = classical_ising(ising_βc + 0.01)
     scheme = BTRG(T2)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -108,7 +108,7 @@ end
     @test cft[2] ≈ ising_cft_exact[2] rtol = 1.0e-2
 
     @info "HOTRG ising ground state degeneracy"
-    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    T1 = classical_ising(ising_βc - 0.01)
     scheme = HOTRG(T1)
     run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -117,7 +117,7 @@ end
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
-    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    T2 = classical_ising(ising_βc + 0.01)
     scheme = HOTRG(T2)
     run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -145,7 +145,7 @@ end
     @test cft[2] ≈ ising_cft_exact[2] rtol = 1.0e-2
 
     @info "ATRG ising ground state degeneracy"
-    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    T1 = classical_ising(ising_βc - 0.01)
     scheme = ATRG(T1)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -154,7 +154,7 @@ end
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
-    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    T2 = classical_ising(ising_βc + 0.01)
     scheme = ATRG(T2)
     run!(scheme, truncrank(16), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -165,7 +165,7 @@ end
 end
 
 # LoopTNR
-@testset "LoopTNR - Ising Model" begin
+@testset "LoopTNR - Ising Model - Dense Solver" begin
     @info "LoopTNR ising free energy"
     scheme = LoopTNR(T)
 
@@ -201,7 +201,7 @@ end
     end
 
     @info "LoopTNR ising ground state degeneracy"
-    T1 = classical_ising_symmetric(ising_βc - 0.01)
+    T1 = classical_ising(ising_βc - 0.01)
     scheme = LoopTNR(T1)
     run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -210,7 +210,7 @@ end
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
-    T2 = classical_ising_symmetric(ising_βc + 0.01)
+    T2 = classical_ising(ising_βc + 0.01)
     scheme = LoopTNR(T2)
     run!(scheme, truncrank(12), maxiter(20))
     gsd = ground_state_degeneracy(scheme)
@@ -219,6 +219,59 @@ end
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2
 end
+
+@testset "LoopTNR - Ising Model - Dense Solver - NNR" begin
+    @info "LoopTNR ising free energy"
+    scheme = LoopTNR(T)
+
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])),
+        truncentanglement = trunctol(atol = 1.0e-12),
+        nuclear_norm = true
+    )
+
+    data = run!(
+        scheme, truncrank(8), maxiter(25), loop_condition
+    )
+
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
+end
+
+@testset "LoopTNR - Ising Model - Krylov Solver" begin
+    @info "LoopTNR ising free energy"
+    scheme = LoopTNR(T)
+
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])),
+        truncentanglement = trunctol(atol = 1.0e-12),
+        krylov = true
+    )
+
+    data = run!(
+        scheme, truncrank(8), maxiter(25), loop_condition
+    )
+
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
+end
+
+@testset "LoopTNR - Ising Model - Krylov Solver- NNR" begin
+    @info "LoopTNR ising free energy"
+    scheme = LoopTNR(T)
+
+    loop_condition = LoopParameters(
+        sweeping = maxiter(5) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end])),
+        truncentanglement = trunctol(atol = 1.0e-12),
+        krylov = true,
+        nuclear_norm = true
+    )
+
+    data = run!(
+        scheme, truncrank(8), maxiter(25), loop_condition
+    )
+
+    @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-6
+end
+
 
 @testset "LoopTNR - Initialization with 2 x 2 unit cell" begin
     loop_condition = LoopParameters(
@@ -243,6 +296,28 @@ end
     data = run!(scheme, truncrank(4), maxiter(25))
 
     @test free_energy(data, ising_βc) ≈ f_onsager rtol = 1.0e-5
+end
+
+# ctm
+@testset "CTM - Ising Model" begin
+    @info "CTM ising free energy"
+    scheme = CTM(T)
+
+    lz = run!(scheme, truncrank(32), maxiter(256))
+    fs = lz * -1 / ising_βc
+
+    @test fs ≈ f_onsager rtol = 1.0e-6
+end
+
+# Sublattice CTM
+@testset "Sublattice_CTM - Ising Model" begin
+    @info "Sublattice_CTM ising free energy"
+    scheme = Sublattice_CTM(T, T)
+
+    lz = run!(scheme, truncrank(32), maxiter(256))
+    fs = lz * -1 / ising_βc
+
+    @test fs ≈ f_onsager rtol = 1.0e-6
 end
 
 # ctm_TRG
@@ -324,7 +399,7 @@ end
 # ImpurityHOTRG
 @testset "ImpurityHOTRG - Ising Model" begin
 
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp1 = classical_ising_impurity()
 
     scheme = ImpurityHOTRG(T, T_imp1, T_imp1, T)
@@ -338,9 +413,9 @@ end
     # High temperature limit (<m^2> -> 0)
     β = 0.2
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp_order1_1 = classical_ising_impurity(β)
-    T_imp_order2 = classical_ising(β)
+    T_imp_order2 = classical_ising(Trivial, β)
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
@@ -352,9 +427,9 @@ end
     # Low temperature limit (<m^2> -> 1)
     β = 1.0
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp_order1_1 = classical_ising_impurity(β)
-    T_imp_order2 = classical_ising(β)
+    T_imp_order2 = classical_ising(Trivial, β)
 
     scheme = ImpurityHOTRG(T, T_imp_order1_1, T_imp_order1_1, T_imp_order2)
 
@@ -366,7 +441,7 @@ end
 
 # ImpurityTRG
 @testset "ImpurityTRG - Ising Model" begin
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -380,7 +455,7 @@ end
     # High T
     β = 0.1
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -393,7 +468,7 @@ end
     # Low T
     β = 2
 
-    T = classical_ising(β; h = 1.0e-6)
+    T = classical_ising(Trivial, β; h = 1.0e-6)
     T_imp = classical_ising_impurity(β; h = 1.0e-6)
 
     scheme = ImpurityTRG(T, T_imp, T, T, T)
@@ -407,7 +482,7 @@ end
 # CorrelationHOTRG
 @testset "Correlation HOTRG - Ising Model" begin
 
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -421,7 +496,7 @@ end
     # High temperature limit
     β = 0.2
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -432,7 +507,7 @@ end
     @test highT ≈ 7.396177e-6 rtol = 1.0e-5
 
     # Critical temperature limit
-    T = classical_ising()
+    T = classical_ising(Trivial)
     T_imp = classical_ising_impurity()
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
@@ -445,7 +520,7 @@ end
     # Low temperature limit
     β = 3.0
 
-    T = classical_ising(β)
+    T = classical_ising(Trivial, β)
     T_imp = classical_ising_impurity(β)
 
     scheme = CorrelationHOTRG(T, T_imp, T_imp, 5)
