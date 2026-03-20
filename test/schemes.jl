@@ -309,6 +309,17 @@ end
     @test fs ≈ f_onsager rtol = 1.0e-6
 end
 
+# Sublattice CTM
+@testset "Sublattice_CTM - Ising Model" begin
+    @info "Sublattice_CTM ising free energy"
+    scheme = Sublattice_CTM(T, T)
+
+    lz = run!(scheme, truncrank(32), maxiter(256))
+    fs = lz * -1 / ising_βc
+
+    @test fs ≈ f_onsager rtol = 1.0e-6
+end
+
 # ctm_TRG
 @testset "ctm_TRG - Ising Model" begin
     @info "ctm_TRG ising free energy"
