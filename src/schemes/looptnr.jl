@@ -19,8 +19,8 @@ Loop Optimization for Tensor Network Renormalization
 ### LoopParameters
 See also: [`LoopParameters`](@ref)
 This stuct is used to set all internal parameters in LoopTNR.
-It can also be used to control wether Krylov methods are used (default: false)
-And wether nuclear norm regularization is used (default: false)
+It can also be used to control whether Krylov methods are used (default: false)
+And whether nuclear norm regularization is used (default: false)
 
 ### Fields
 
