@@ -11,6 +11,7 @@ Given a LoopTNR scheme, consider the loop MPS |ψ⟩ = tr(TA * TB * TA * TB).
 Compute a gauge-invariant data called loop entropy on each of the four edges of the loop MPS.
 This loop entropy is defined as the von Neumann entropy of the transfer matrix formed by contracting the loop MPS with itself, with the bond of interest as the cut.
 The loop entropy is a measure of the entanglement across the bond, and can be used to diagnose the presence of short-range entanglement in the loop MPS.
+The entanglement spectrum is also returned.
 
 ### References
 * [Evenbly et. al. Phys. Rev. B 98 (2018)](@cite Evenbly_2018)
