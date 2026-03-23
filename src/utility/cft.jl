@@ -26,64 +26,38 @@ function Base.show(io::IO, data::CFTData)
     return nothing
 end
 
-function cft_data(scheme::TNRScheme; v = 1, unitcell = 1, is_real = true)
-    # make the indices
+function _scaling_dimensions(T::TensorMap{E, S, 2, 2}; v = 1, unitcell = 1) where {E, S}
+    # stack unitcell copies of T and trace
     indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
     indices[end][4] = 1
 
-    T = ncon(fill(scheme.T, unitcell), indices)
+    T = ncon(fill(T, unitcell), indices)
 
     outinds = Tuple(collect(1:unitcell))
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
 
     T = permute(T, (outinds, ininds))
-    D = eig_vals(T)
 
-    # data = sort(data; by = x -> abs(x), rev = true) # sorting by magnitude
-    # data = filter(x -> real(x) > 0, data) # filtering out negative real values
-    # data = filter(x -> abs(x) > 1.0e-12, data) # filtering out small values
-
-    # if is_real
-    # data = real(data)
-    # end
-
-    return scale(log.(D[1] ./ D), unitcell * (1 / (2π * v)))
-end
-
-function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
-    # make the indices
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
-
-    @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
-        scheme.S2[-1; 1]
-    T = ncon(fill(T_unit, unitcell), indices)
-
-    outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
-
-    T = permute(T, (outinds, ininds))
-    D, _ = eig_full(T)
-
-    data = zeros(ComplexF64, dim(space(D, 1)))
-
-    i = 1
-    for (_, b) in blocks(D)
-        for I in LinearAlgebra.diagind(b)
-            data[i] = b[I]
-            i += 1
-        end
-    end
-
+    data = eig_vals(T)
     data = sort(data; by = x -> abs(x), rev = true) # sorting by magnitude
     data = filter(x -> real(x) > 0, data) # filtering out negative real values
     data = filter(x -> abs(x) > 1.0e-12, data) # filtering out small values
 
-    if is_real
-        data = real(data)
-    end
+    return unitcell * (1 / (2π * v)) .* log.(data[1] ./ data)
+end
 
-    return unitcell * (1 / (2π * v)) * log.(data[1] ./ data)
+function cft_data(scheme::TNRScheme; v = 1, unitcell = 1)
+    central_charge = 0.0im # TODO: IMPLEMENT THIS
+    scaling_dimensions = _scaling_dimensions(scheme.T; v = v, unitcell = unitcell)
+    return CFTData(central_charge, scaling_dimensions)
+end
+
+function cft_data(scheme::BTRG; v = 1, unitcell = 1, is_real = true)
+    central_charge = 0.0im # TODO: IMPLEMENT THIS
+    @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
+        scheme.S2[-1; 1]
+    scaling_dimensions = _scaling_dimensions(T_unit; v = v, unitcell = unitcell)    # make the indices
+    return CFTData(central_charge, scaling_dimensions)
 end
 
 """
