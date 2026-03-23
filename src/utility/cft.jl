@@ -1,5 +1,7 @@
 # Two functions we need to perform operations on SectorVectors, which do not just convert to Vectors.
-Base.broadcasted(f, v::TensorKit.SectorVector) = SectorVector(broadcast(f, parent(v)), v.structure)
+Base.broadcasted(f, v::TensorKit.SectorVector) = TensorKit.SectorVector(broadcast(f, parent(v)), v.structure)
+Base.broadcasted(f, v::TensorKit.SectorVector, a) = TensorKit.SectorVector(broadcast(f, parent(v), a), v.structure)
+Base.broadcasted(f, a, v::TensorKit.SectorVector) = TensorKit.SectorVector(broadcast(f, a, parent(v)), v.structure)
 
 function Base.filter(f, v::TensorKit.SectorVector)
     data = copy(parent(v))
@@ -11,8 +13,23 @@ function Base.filter(f, v::TensorKit.SectorVector)
         structure[sector] = i == 1 ? (1:findlast(x -> x <= structure[sector].stop, kept_inds)) : ((structure[sectors[i - 1]].stop + 1):findlast(x -> x <= structure[sector].stop, kept_inds))
     end
     data = data[kept_inds]
-    return SectorVector(data, structure)
+    return TensorKit.SectorVector(data, structure)
 end
+
+function Base.sort(v::TensorKit.SectorVector; kwargs...)
+    # sort within the sectors, then concatenate the data and update the structure
+    data = copy(parent(v))
+    newdata = similar(data)
+    structure = copy(v.structure)
+    sectors = keys(structure)
+    for sector in sectors
+        newdata[structure[sector]] = sort(data[structure[sector]]; kwargs...)
+    end
+    return TensorKit.SectorVector(newdata, structure)
+end
+
+Base.:*(a::Number, v::TensorKit.SectorVector) = scale(v, a)
+Base.:*(v::TensorKit.SectorVector, a::Number) = scale(v, a)
 
 struct CFTData{E, I}
     central_charge::E
