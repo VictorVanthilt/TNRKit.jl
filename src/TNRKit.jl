@@ -36,6 +36,8 @@ include("schemes/ctm/sublattice_ctm.jl")
 include("schemes/ctm/triangular.jl")
 include("schemes/ctm/ctm_triangular.jl")
 include("schemes/ctm/c6vctm_triangular.jl")
+include("schemes/ctm/honeycomb.jl")
+include("schemes/ctm/ctm_honeycomb.jl")
 include("schemes/ctm/c3vctm_honeycomb.jl")
 
 # Impurity methods
@@ -69,6 +71,7 @@ export lnz
 export c6vCTM_triangular
 export CTM_triangular
 export c3vCTM_honeycomb
+export CTM_honeycomb
 
 export ImpurityTRG
 export ImpurityHOTRG
