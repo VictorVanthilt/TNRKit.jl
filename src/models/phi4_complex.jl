@@ -156,9 +156,22 @@ Compatible with no symmetry, explicit ℤ₂×ℤ₂ symmetry or explicit U(1) s
 Defaults to U(1) symmetry if the symmetry type is not provided.
 
 ### Arguments
-- `K::Integer`: Number of quadrature points for Gauss-Hermite integration.
+- `K::Integer`: Approximation parameter.
 - `μ0::Float64`: Bare mass. Note that in the calculation actually ``µ_0^2`` is used, but for readibility we write the ``µ_0^2`` as μ0
 - `λ::Float64`: Coupling constant.
+
+### Approximation parameter `K`
+#### Trivial (no symmetry)
+The tensor is constructed by performing a Gauss-Hermite quadrature to approximate the integrals in the partition function.
+The bond dimension is equal to `K^2`.
+
+#### ℤ₂×ℤ₂ symmetry
+The tensor is constructed by Taylor expanding the mixed sites term in the partition function.
+The order of the Taylor expansion is `K`. The total bond dimension is `K^2`.
+
+#### U(1) symmetry
+The tensor is constructed by Taylor expanding the mixed sites term in the partition function.
+The order of the Taylor expansion is `K`. The total bond dimension is `K^2`.
 
 ### Examples
 ```julia
