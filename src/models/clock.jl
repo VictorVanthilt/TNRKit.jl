@@ -15,15 +15,16 @@ end
     classical_clock(q::Int, β::Real; kwargs...)
     classical_clock(::Type{Trivial}, q::Int, β::Real; T::Type{<:Number} = Float64)
     classical_clock(::Type{ZNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
+    classical_clock(::Type{DNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
 
 Constructs the partition function tensor for the classical clock model with `q` states
 and a given inverse temperature `β`.
 
-Compatible with no symmetry or with explicit ℤq symmetry on each of its spaces.
-Defaults to ℤq symmetry if the symmetry type is not provided.
+Compatible with no symmetry, with explicit ℤq symmetry or Dq symmetry on each of its spaces.
+Defaults to Dq symmetry if the symmetry type is not provided.
 """
 function classical_clock(q::Int, β::Real; kwargs...)
-    return classical_clock(ZNIrrep{q}, q, β; kwargs...)
+    return classical_clock(DNIrrep{q}, q, β; kwargs...)
 end
 function classical_clock(::Type{Trivial}, q::Int, β::Real; kwargs...)
     return clock_tensor(q, β; kwargs...)
@@ -45,4 +46,75 @@ function classical_clock(::Type{ZNIrrep{N}}, q::Int, β::Real; T::Type{<:Number}
     V = ZNSpace{q}(i => 1 for i in 0:(q - 1))
     t = TensorMap(convert(Array, Anew), V ⊗ V ← V ⊗ V)
     return T <: Real ? real(t) : t
+end
+
+function classical_clock(::Type{DNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
+    @assert N == q "number of irreps must match the number of states"
+
+    if isodd(q)
+        FunZN, m = FunZN_Dihedral_odd(q; T = T)
+    else
+        FunZN, m = FunZN_Dihedral_even(q; T = T)
+    end
+
+    bond = zeros(T, FunZN ← FunZN)
+
+    for (s, f) in fusiontrees(bond)
+        charge = f.coupled.j
+        bond[s, f] .= real(sum(cispi(2 / q * spin * charge) * exp(β * cos(2pi / q * spin)) for spin in 0:(q - 1)))
+    end
+
+    t = algebraic_initialization(m, bond)
+
+    return T <: Real ? real(t) : t
+end
+
+function FunZN_Dihedral_odd(N::Int; T::Type{<:Number} = Float64)
+    @assert isodd(N) "N = $N is not odd"
+    n = N ÷ 2
+    FunZN = Rep[Dihedral{N}](DNIrrep{N}(n) => 1 for n in 0:(N ÷ 2)) # Representation space of the bond. Here all 1D irreps has the trivial charge conjugation representation.
+    m = zeros(T, FunZN ← FunZN ⊗ FunZN) # DN symmetric δ-function. The multiplication map of the algebra FunZN ∈ Rep[Dihedral{N}]. On ZN charges, it maps i ⊗ j to 1 / sqrt(N) i + j.
+
+    for (s, f) in fusiontrees(m)
+        upleft, upright = f.uncoupled
+        down = f.coupled
+        if upleft.j == 0
+            m[s, f] .= 1
+        elseif upright.j == 0
+            m[s, f] .= 1
+        elseif down.j == 0
+            m[s, f] .= sqrt(2)
+        else
+            m[s, f] .= 1
+        end
+    end
+
+    m /= sqrt(N)
+
+    return FunZN, m
+end
+
+function FunZN_Dihedral_even(N::Int; T::Type{<:Number} = Float64)
+    @assert iseven(N) "N = $N is not even"
+    n = N ÷ 2
+    FunZN = Rep[Dihedral{N}](DNIrrep{N}(n) => 1 for n in 0:(N ÷ 2)) # Representation space of the bond. Here all 1D irreps has the trivial charge conjugation representation.
+    m = zeros(T, FunZN ← FunZN ⊗ FunZN) # DN symmetric δ-function. The multiplication map of the algebra FunZN ∈ Rep[Dihedral{N}]. On ZN charges, it maps i ⊗ j to 1 / sqrt(N) i + j.
+
+    for (s, f) in fusiontrees(m)
+        upleft, upright = f.uncoupled
+        down = f.coupled
+        if upleft.j == 0 || upleft.j == n
+            m[s, f] .= 1
+        elseif upright.j == 0 || upright.j == n
+            m[s, f] .= 1
+        elseif down.j == 0 || down.j == n
+            m[s, f] .= sqrt(2)
+        else
+            m[s, f] .= 1
+        end
+    end
+
+    m /= sqrt(N)
+
+    return FunZN, m
 end

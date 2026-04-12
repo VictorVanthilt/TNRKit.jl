@@ -1,5 +1,6 @@
 module TNRKit
 using TensorKit, LinearAlgebra
+using TensorKitSectors
 using MatrixAlgebraKit
 using MatrixAlgebraKit: TruncationStrategy
 using LoggingExtras, Printf

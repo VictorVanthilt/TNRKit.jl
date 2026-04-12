@@ -8,6 +8,7 @@ model_temp_answer_string_2d = [
     (gross_neveu_start(0, 0, 0), 1.0, -1.4515448845652446, "Gross-Neveu model"),
     (classical_clock(Trivial, 3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635, "Clock model with no symmetry"), # This is an approximation!
     (classical_clock(Z3Irrep, 3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635, "Clock model with ℤ₃ symmetry"), # This is an approximation!
+    (classical_clock(D3Irrep, 3, 2.0 * log(√3 + 1) / 3), 2.0 * log(√3 + 1) / 3, -4.17924244901635, "Clock model with D₃ symmetry"), # This is an approximation!
     (classical_potts(Trivial, 3), potts_βc(3), -4.119552029995684, "Potts model with no symmetry"), # This is an approximation!
     (classical_potts(3), potts_βc(3), -4.119552029995684, "Potts model with ℤ₃ symmetry"), # This is an approximation!
     (sixvertex(Trivial), 1.0, 3 / 2 * log(3 / 4), "Six-vertex model with no symmetry"),
