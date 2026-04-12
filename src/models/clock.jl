@@ -61,7 +61,7 @@ function classical_clock(::Type{DNIrrep{N}}, q::Int, β::Real; T::Type{<:Number}
 
     for (s, f) in fusiontrees(bond)
         charge = f.coupled.j
-        bond[s, f] .= real(sum(cispi(2 / q * spin * charge) * exp(β * cos(2pi / q * spin)) for spin in 0:(q - 1)))
+        bond[s, f] .= sum(cos(2pi / q * spin * charge) * exp(β * cos(2pi / q * spin)) for spin in 0:(q - 1))
     end
 
     t = algebraic_initialization(m, bond)
