@@ -1,6 +1,7 @@
 using Test
 using TNRKit
 using TensorKit
+using TensorKitSectors
 using QuadGK
 
 include("spaces.jl") # do they give spacemismatches?
