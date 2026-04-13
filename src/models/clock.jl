@@ -51,11 +51,7 @@ end
 function classical_clock(::Type{DNIrrep{N}}, q::Int, β::Real; T::Type{<:Number} = Float64) where {N}
     @assert N == q "number of irreps must match the number of states"
 
-    if isodd(q)
-        FunZN, m = FunZN_Dihedral_odd(q; T = T)
-    else
-        FunZN, m = FunZN_Dihedral_even(q; T = T)
-    end
+    FunZN, m = FunZN_Dihedral(q; T = T)
 
     bond = zeros(T, FunZN ← FunZN)
 
@@ -66,48 +62,26 @@ function classical_clock(::Type{DNIrrep{N}}, q::Int, β::Real; T::Type{<:Number}
 
     t = algebraic_initialization(m, bond)
 
-    return T <: Real ? real(t) : t
+    return t
 end
 
-function FunZN_Dihedral_odd(N::Int; T::Type{<:Number} = Float64)
-    @assert isodd(N) "N = $N is not odd"
+function FunZN_Dihedral(N::Int; T::Type{<:Number} = Float64)
     n = N ÷ 2
-    FunZN = Rep[Dihedral{N}](DNIrrep{N}(n) => 1 for n in 0:(N ÷ 2)) # Representation space of the bond. Here all 1D irreps has the trivial charge conjugation representation.
-    m = zeros(T, FunZN ← FunZN ⊗ FunZN) # DN symmetric δ-function. The multiplication map of the algebra FunZN ∈ Rep[Dihedral{N}]. On ZN charges, it maps i ⊗ j to 1 / sqrt(N) i + j.
+
+    # Define which irreps are 1D irrep
+    is_one_d(j) = iseven(N) ? (j == 0 || j == n) : (j == 0)
+
+    FunZN = Rep[Dihedral{N}](DNIrrep{N}(k) => 1 for k in 0:n)
+
+    m = zeros(T, FunZN ← FunZN ⊗ FunZN)
 
     for (s, f) in fusiontrees(m)
         upleft, upright = f.uncoupled
         down = f.coupled
-        if upleft.j == 0
-            m[s, f] .= 1
-        elseif upright.j == 0
-            m[s, f] .= 1
-        elseif down.j == 0
-            m[s, f] .= sqrt(2)
-        else
-            m[s, f] .= 1
-        end
-    end
 
-    m /= sqrt(N)
-
-    return FunZN, m
-end
-
-function FunZN_Dihedral_even(N::Int; T::Type{<:Number} = Float64)
-    @assert iseven(N) "N = $N is not even"
-    n = N ÷ 2
-    FunZN = Rep[Dihedral{N}](DNIrrep{N}(n) => 1 for n in 0:(N ÷ 2)) # Representation space of the bond. Here all 1D irreps has the trivial charge conjugation representation.
-    m = zeros(T, FunZN ← FunZN ⊗ FunZN) # DN symmetric δ-function. The multiplication map of the algebra FunZN ∈ Rep[Dihedral{N}]. On ZN charges, it maps i ⊗ j to 1 / sqrt(N) i + j.
-
-    for (s, f) in fusiontrees(m)
-        upleft, upright = f.uncoupled
-        down = f.coupled
-        if upleft.j == 0 || upleft.j == n
+        if is_one_d(upleft.j) || is_one_d(upright.j)
             m[s, f] .= 1
-        elseif upright.j == 0 || upright.j == n
-            m[s, f] .= 1
-        elseif down.j == 0 || down.j == n
+        elseif is_one_d(down.j)
             m[s, f] .= sqrt(2)
         else
             m[s, f] .= 1
