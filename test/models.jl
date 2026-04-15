@@ -125,10 +125,10 @@ end
     λ = 1.0
     μ0 = 0.0
 
-    Tpure = phi4_complex(Trivial, 8, μ0, λ; T = ComplexF64)
-    T_imp11 = phi4_complex_impϕ(8, μ0, λ)
-    T_imp12 = phi4_complex_impϕdag(8, μ0, λ)
-    T_imp2 = phi4_complex_impϕ2(8, μ0, λ)
+    Tpure = phi4_complex(Trivial, 6, μ0, λ; T = ComplexF64)
+    T_imp11 = phi4_complex_impϕ(6, μ0, λ)
+    T_imp12 = phi4_complex_impϕdag(6, μ0, λ)
+    T_imp2 = phi4_complex_impϕ2(6, μ0, λ)
 
     scheme = ImpurityHOTRG(Tpure, T_imp11, T_imp12, T_imp2)
 
