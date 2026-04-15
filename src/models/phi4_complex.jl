@@ -105,7 +105,7 @@ function moment_matrix(N, μ0, λ; rtol = 1.0e-8)
     return M
 end
 
-function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{Float64}; T::Type{<:Number} = ComplexF64) where {TT, SS, NN} # for Trivial symmetry
+function phi4_complex_tensor(f::TensorMap{TT, SS, NN, NN}, weights::Matrix{<:Number}; T::Type{<:Number} = ComplexF64) where {TT, SS, NN} # for Trivial symmetry
     K = size(weights, 1)
     N = K^2
     perms = collect(permutations(1:4))  # 24 total
