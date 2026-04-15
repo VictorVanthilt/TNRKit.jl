@@ -84,3 +84,56 @@ for (model, temp, answer, description) in model_temp_answer_string_3d
         @test free_energy(data, temp; scalefactor = 8.0) ≈ answer rtol = 1.0e-3
     end
 end
+
+
+# Test for impurity tensors
+# Real phi^4
+@testset "Real φ⁴ model - Impure" begin
+    # Disordered phase
+    λ = 1.0
+    μ0 = 0.0
+
+    Tpure = phi4_real(Trivial, 10, μ0, λ)
+    T_imp1 = phi4_real_imp1(Trivial, 10, μ0, λ)
+    T_imp2 = phi4_real_imp2(Trivial, 10, μ0, λ)
+
+    scheme = ImpurityHOTRG(Tpure, T_imp1, T_imp1, T_imp2)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    order_para = data[end][4] / data[end][1]
+    @test order_para ≈ 0.0 atol = 1.0e-3
+
+    # Ordered phase
+    μ0 = -2.0
+
+    Tpure = phi4_real(Trivial, 10, μ0, λ)
+    T_imp1 = phi4_real_imp1(Trivial, 10, μ0, λ)
+    T_imp2 = phi4_real_imp2(Trivial, 10, μ0, λ)
+
+    scheme = ImpurityHOTRG(Tpure, T_imp1, T_imp1, T_imp2)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    order_para = data[end][4] / data[end][1]
+    @test order_para ≈ 1.5317112652447245 rtol = 1.0e-3
+end
+
+# Complex phi^4
+@testset "Complex φ⁴ model - Impure" begin
+    # Disordered phase
+    λ = 1.0
+    μ0 = 0.0
+
+    Tpure = phi4_complex(Trivial, 8, μ0, λ; T = ComplexF64)
+    T_imp11 = phi4_complex_impϕ(8, μ0, λ)
+    T_imp12 = phi4_complex_impϕdag(8, μ0, λ)
+    T_imp2 = phi4_complex_impϕ2(8, μ0, λ)
+
+    scheme = ImpurityHOTRG(Tpure, T_imp11, T_imp12, T_imp2)
+
+    data = run!(scheme, truncrank(16), maxiter(25))
+
+    order_para = data[end][4] / data[end][1]
+    @test order_para ≈ 0.0 atol = 1.0e-3
+end
