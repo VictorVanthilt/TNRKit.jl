@@ -74,6 +74,15 @@ function c3vCTM_honeycomb_init(T::TensorMap{A, S, 0, 3}) where {A, S}
     return C, L, R
 end
 
+function Base.show(io::IO, scheme::c3vCTM_honeycomb)
+    println(io, "c3vCTM_honeycomb - Corner Transfer Matrix for honeycomb lattice")
+    println(io, "  * T: $(summary(scheme.T))")
+    println(io, "  * C: $(summary(scheme.C))")
+    println(io, "  * L: $(summary(scheme.L))")
+    println(io, "  * R: $(summary(scheme.R))")
+    return nothing
+end
+
 # Functions to permute (unflipped) tensors under 120 degree rotation
 function rotl120_pf_honeycomb(T::TensorMap{A, S, 0, 3}) where {A, S}
     return permute(T, ((), (2, 3, 1)))
@@ -165,4 +174,14 @@ function CTM_honeycomb_init(A::TensorMap{E, S, 0, 3}; B::TensorMap{E, S, 0, 3} =
     Ta = [ones(S_type, oneunit(Vp) ⊗ space(B)[mod1(dir - 1, 3)]' ← oneunit(Vp)) for dir in 1:3]
     Tb = [ones(S_type, oneunit(Vp) ⊗ space(A)[mod1(dir + 1, 3)]' ← oneunit(Vp)) for dir in 1:3]
     return C, Ta, Tb
+end
+
+function Base.show(io::IO, scheme::CTM_honeycomb)
+    println(io, "CTM_honeycomb - Corner Transfer Matrix for honeycomb lattice")
+    println(io, "  * A: $(summary(scheme.A))")
+    println(io, "  * B: $(summary(scheme.B))")
+    println(io, "  * C: $(summary(scheme.C))")
+    println(io, "  * Ta: $(summary(scheme.Ta))")
+    println(io, "  * Tb: $(summary(scheme.Tb))")
+    return nothing
 end
