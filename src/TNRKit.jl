@@ -26,8 +26,10 @@ include("schemes/hotrg.jl")
 include("schemes/hotrg3d.jl")
 include("schemes/atrg.jl")
 include("schemes/atrg3d.jl")
+
 # CTM methods
 include("schemes/ctm/utility.jl")
+export ind_pair, R1R2, find_P1P2, oblique_projector
 include("schemes/ctm/c4vctm.jl")
 include("schemes/ctm/rctm.jl")
 include("schemes/ctm/ctm_trg.jl")
