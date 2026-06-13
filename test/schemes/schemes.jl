@@ -27,12 +27,12 @@ Normalize the tensor, return the normalization factor and elementary modular par
 """
 function tau_finalize!(scheme::TRG)
     n = finalize!(scheme)
-    τ0, c = extract_tau_and_c(scheme.T)
+    τ0, c = extract_tau_and_c(scheme.T; fast = false)
     return (n, τ0)
 end
 function tau_finalize!(scheme::LoopTNR)
     n = finalize!(scheme)
-    τ0, c = extract_tau_and_c(scheme.TA, scheme.TB)
+    τ0, c = extract_tau_and_c(scheme.TA, scheme.TB; fast = false)
     return (n, τ0)
 end
 
@@ -59,7 +59,7 @@ end
     @info "TRG anisotropic ising CFT data — shape [1, 1, 0]"
     scheme = TRG(T_aniso)
     run!(scheme, truncrank(24), maxiter(10))
-
+    # use fast tau algorithm below
     cft = CFTData(scheme; shape = [1, 1, 0])
     sd_all = real(cft.scaling_dimensions[Trivial])
     cft_sorted = sort(sd_all[2:end]; by = abs)
@@ -238,6 +238,7 @@ end
     scheme = LoopTNR(T_aniso)
     run!(scheme, truncrank(12), maxiter(10))
 
+    # use fast tau algorithm below
     for shape in ("[1, 4, 1]", "[√2, 2√2, 0]")
         cft = CFTData(scheme; shape = eval(Meta.parse(shape)))
         d_σ = real(cft.scaling_dimensions[Z2Irrep(1)][1])
