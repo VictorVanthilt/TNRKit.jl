@@ -343,20 +343,14 @@ function leading_eigenvalue(tm::CFTTransferMatrix{E, S}; Nh::Int = 25) where {E,
     end
 
     xspace = domain(tm)
-    data = ComplexF64[]
-    structure = Dict{I, Vector{Int}}()
-    last_index = 1
-
+    I = sectortype(tm.TA)
+    d = Dict{I, Vector{ComplexF64}}()
     for charge in sectors(fuse(xspace))
         vals = leading_eigenvalue(tm, charge; Nh = Nh)
-        if length(vals) > 0
-            push!(data, vals...)
-            structure[charge] = collect(last_index:(last_index + length(vals) - 1))
-            last_index += length(vals)
-        end
+        isempty(vals) && continue
+        d[charge] = vals
     end
-
-    return StructuredVector(data, structure)
+    return StructuredVector(d)
 end
 
 function leading_eigenvalue(tm::CFTTransferMatrix{E, S}, charge; Nh::Int = 1) where {E, S}
@@ -364,7 +358,7 @@ function leading_eigenvalue(tm::CFTTransferMatrix{E, S}, charge; Nh::Int = 1) wh
     I = sectortype(tm.TA)
     V = (I == Trivial) ? field(tm.TA)^1 : Vect[I](charge => 1)
     x = ones(domain(tm) ← V)
-    dim(x) != 0 || error("$charge is not allowed by the transfer matrix.")
+    dim(x) == 0 && error("$charge is not allowed by the transfer matrix.")
     spec, _, info = eigsolve(
         tm, x, Nh, :LM; krylovdim = 40, maxiter = 100, tol = 1.0e-12, verbosity = 0
     )

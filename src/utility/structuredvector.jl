@@ -1,23 +1,46 @@
+"""
+    StructuredVector{E, K, V, A} <: AbstractVector{E}
+
+A vector whose elements are partitioned into named sectors.  Internally, data
+is stored as a flat `AbstractVector{E}` and a `Dict{K, V}` maps each sector key
+to the indices that belong to it.
+
+Supports the `AbstractVector` interface (integer indexing, `length`, `eachindex`,
+…), sector-based access via `v[sector]`, and the full `Dict` key interface
+(`keys`, `in`).  `sort`, `filter`, scalar arithmetic, and element-wise
+broadcasting with scalars all preserve the sector structure.
+
+# Constructors
+
+    StructuredVector(sv::SectorVector)
+    StructuredVector(dict::Dict{K, <:AbstractVector{E}}) where {K, E}
+    StructuredVector(data::AbstractVector{E}, structure::Dict{K, V})
+
+- From a TensorKit `SectorVector`.
+- From a dictionary mapping sectors to their data vectors.
+- Directly from a flat data array and a sector‑index mapping.
+"""
 struct StructuredVector{E, K, V, A <: AbstractVector{E}} <: AbstractVector{E}
     data::A
     structure::Dict{K, V}
 end
 
-"""
-    StructuredVector(sv::SectorVector)
-
-Construct a `StructuredVector` from a TensorKit `SectorVector`.
-The flat data array and sector-index mapping are built automatically.
-
-# Example
-    StructuredVector(eig_vals(T))
-"""
-function StructuredVector end
-
-# From a TensorKit SectorVector — preserves the charge sector organisation.
 function StructuredVector(sv::TensorKit.SectorVector)
     structure = Dict(k => collect(r) for (k, r) in sv.structure)
     return StructuredVector(copy(sv.data), structure)
+end
+
+function StructuredVector(dict::Dict{K, <:AbstractVector{E}}) where {K, E}
+    data = E[]
+    structure = Dict{K, Vector{Int}}()
+    last_index = 1
+    for (key, values) in dict
+        isempty(values) && continue
+        append!(data, values)
+        structure[key] = collect(last_index:(last_index + length(values) - 1))
+        last_index += length(values)
+    end
+    return StructuredVector(data, structure)
 end
 
 @inline Base.getindex(v::StructuredVector, i::Int) = getindex(parent(v), i)
