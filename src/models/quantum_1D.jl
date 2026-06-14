@@ -1,6 +1,6 @@
 """
 Construct partition function tensor from nearest neighbor
-Trotter gate of (1 + 1)D quantum models
+Trotter gate of (1 + 1)D quantum models with translation symmetry.
 ```
                                                 2       3
                                                   ↘   ↙

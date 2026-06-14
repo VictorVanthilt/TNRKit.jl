@@ -1,6 +1,6 @@
 # 1+1D Quantum Models
 
-TNRKit provides tools to construct partition function tensors for $(1+1)$-dimensional quantum lattice models (currently only nearest-neighbor Hamiltonians are supported). These tensors can then be studied with any of the 2D tensor network renormalization schemes (TRG, HOTRG, LoopTNR, etc.).
+TNRKit provides tools to construct partition function tensors for $(1+1)$-dimensional quantum lattice models with translation symmetry (currently only nearest-neighbor Hamiltonians are supported). These tensors can then be studied with any of the 2D tensor network renormalization schemes (TRG, HOTRG, LoopTNR, etc.).
 
 ## Quantum Partition Functions
 
@@ -14,7 +14,7 @@ where $H$ is the Hamiltonian. By discretizing the imaginary-time direction into 
 
 ## Tensor Network Representation of $\mathcal{Z}$
 
-When $H = \sum_i H_{i,i+1}$, where $H_{i,i+1}$ is a nearest-neighbor term, the Trotter gate network naturally forms a square lattice. Each Trotter gate $g_{i,i+1} = \exp(-\delta\tau \, H_{i,i+1})$ connects two spatial sites (horizontal direction in the gate diagram) and advances by one imaginary-time step $\delta\tau$ (vertical direction in the gate diagram). However, the gate network is **rotated by 45 degrees** relative to the standard upright orientation.
+When $H = \sum_i h_{i,i+1}$, where $h_{i,i+1} = h$ (due to translation symmetry) is a nearest-neighbor term, the Trotter gate network naturally forms a square lattice. Each Trotter gate $g = \exp(-\delta\tau \, h)$ connects two spatial sites (horizontal direction in the gate diagram) and advances by one imaginary-time step $\delta\tau$ (vertical direction in the gate diagram). However, the gate network is **rotated by 45 degrees** relative to the standard upright orientation.
 
 `gate_to_tensor` transforms the rotated gate network into an **upright** square tensor network. The resulting tensor $T$ is the elementary cell of this upright network, and follows the standard TNRKit leg convention:
 
