@@ -73,11 +73,11 @@ function _TMaction(tm::CFTTransferMatrix{E, S}, x) where {E, S}
     elseif tm.shape ≈ [sqrt(2), sqrt(2), 0]
         return _TMaction_2x1_NEtoSW(tm, x)
     elseif tm.shape ≈ [1, 4, 1]
-        return _TMaction_1x4_twist(tm.TA, tm.TB, x)
+        return _TMaction_1x4_twist(tm, x)
     elseif _has_shape(tm, _SHAPES_140)
-        return _TMaction_1x4(tm.TA, tm.TB, x)
+        return _TMaction_1x4(tm, x)
     elseif _has_shape(tm, _SHAPES_2gates)
-        return _TMaction_2gates(tm.TA, tm.TB, x)
+        return _TMaction_2gates(tm, x)
     else
         error("Unsupported transfer matrix shape: $(tm.shape).")
     end
@@ -177,11 +177,11 @@ Action of [√2, 2√2, 0] transfer matrix
 First appeared in Chenfeng Bao's thesis: http://hdl.handle.net/10012/14674.
 """
 function _TMaction_2gates(
-        TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
     ) where {E, S}
     @tensor begin
-        fx[-1 -2 -3 -4; -5] := TB[-1 -2; 1 2] * x[1 2 3 4; -5] * TB[-3 -4; 3 4]
-        fx[-1 -2 -3 -4; -5] := TA[-3 -4; 2 3] * fx[1 2 3 4; -5] * TA[-1 -2; 4 1]
+        fx[-1 -2 -3 -4; -5] := tm.TB[-1 -2; 1 2] * x[1 2 3 4; -5] * tm.TB[-3 -4; 3 4]
+        fx[-1 -2 -3 -4; -5] := tm.TA[-3 -4; 2 3] * fx[1 2 3 4; -5] * tm.TA[-1 -2; 4 1]
     end
     return permute(fx, ((2, 3, 4, 1), (5,)))
 end
@@ -197,10 +197,11 @@ Action of [1, 4, 0] transfer matrix. Only valid when TA = TB.
 ```
 """
 function _TMaction_1x4(
-        TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
     ) where {E, S}
     return @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] *
-        TA[41 -1; 1 12] * TB[12 -2; 2 23] * TA[23 -3; 3 34] * TB[34 -4; 4 41]
+        tm.TA[41 -1; 1 12] * tm.TB[12 -2; 2 23] *
+        tm.TA[23 -3; 3 34] * tm.TB[34 -4; 4 41]
 end
 
 """
@@ -214,9 +215,9 @@ Action of [1, 4, 1] transfer matrix.
 ```
 """
 function _TMaction_1x4_twist(
-        TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
     ) where {E, S}
-    TTTTx = _TMaction_1x4(TA, TB, x)
+    TTTTx = _TMaction_1x4(tm, x)
     return permute(TTTTx, ((2, 3, 4, 1), (5,)))
 end
 
