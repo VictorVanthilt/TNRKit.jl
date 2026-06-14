@@ -45,7 +45,7 @@ function CFTData(
     if shape == [1, 1, 0] # trivial implementation
         τ0, c = extract_tau_and_c(T; fast = fast_tau_alg)
         Δs = _scaling_dimensions(T, τ0)
-        return CFTData(complex(c), τ0, StructuredVector(Δs, Dict([Trivial => collect(eachindex(Δs))])))
+        return CFTData(complex(c), τ0, Δs)
     else
         CFTData(T, T; shape, fast_tau_alg, kwargs...)
     end
@@ -77,20 +77,19 @@ function _scaling_dimensions(T::TensorMap{E, S, 2, 2}, τ0::Number; unitcell = 1
     indices[end][4] = 1
 
     T = ncon(fill(T, unitcell), indices)
-
+    # restore leg convention
     outinds = Tuple(collect(1:unitcell))
     ininds = Tuple(collect((unitcell + 1):(2unitcell)))
-
     T = permute(T, (outinds, ininds))
 
-    data = eig_vals(T)
-    data = sort(data; by = x -> abs(x), rev = true) # sorting by magnitude
-    data = filter(x -> real(x) > 0, data) # filtering out negative real values
-    data = filter(x -> abs(x) > 1.0e-12, data) # filtering out small values
+    sv = StructuredVector(eig_vals(T))
+    sv = filter(x -> real(x) > 0 && abs(x) > 1.0e-12, sv)
+    isempty(sv) && throw(ArgumentError("No valid eigenvalues found in transfer matrix spectrum."))
 
-    # modular parameter of the constructed transfer matrix
+    λ0 = argmax(abs, sv.data)
     Imτ = imag(τ0) / unitcell
-    return 1 / (2π * Imτ) .* log.(data[1] ./ data)
+    Δs = 1 / (2π * Imτ) .* log.(λ0 ./ sv)
+    return sort(Δs; by = real)
 end
 
 """
@@ -132,31 +131,21 @@ function spec(
     eigs = leading_eigenvalue(tm; Nh)
 
     # central charge
-    norm_const_0 = eigs[one(I)][1]
+    λ0 = eigs[one(I)][1]
     area = shape[1] * shape[2]
-    central_charge = 6 / pi / (imag(τ) - imag(τ0) * area / 4) * log(norm_const_0)
+    central_charge = 6 / pi / (imag(τ) - imag(τ0) * area / 4) * log(λ0)
 
-    # Construct a StructuredVector of scaling dimensions
-    data = ComplexF64[]
-    structure = Dict{I, Vector{Int}}()
-    last_index = 1
-    relative_shift = real(τ) / imag(τ)
-    for charge in keys(eigs)
-        # DeltaS = Δ - i s Re(τ) / Im(τ)
-        DeltaS = -1 / (2 * pi * imag(τ)) * log.(eigs[charge] / norm_const_0)
-        if !isapprox(relative_shift, 0; atol = 1.0e-6)
-            # save `Δ - i s` in `data`
-            push!(data, (real.(DeltaS) + imag.(DeltaS) / relative_shift * im)...)
-            structure[charge] = [last_index:(last_index + length(DeltaS) - 1)...]
-        else
-            # not enough precision to resolve conformal spin
-            push!(data, real.(DeltaS)...)
-            structure[charge] = [last_index:(last_index + length(DeltaS) - 1)...]
-        end
-        last_index += length(DeltaS)
+    # scaling dimension and conformal spin
+    # DeltaS = Δ - i s Re(τ) / Im(τ)
+    Reτ, Imτ = real(τ), imag(τ)
+    relative_shift = Reτ / Imτ
+    DeltaS = -1 / (2 * pi * Imτ) * log.(eigs / λ0)
+    if !isapprox(relative_shift, 0; atol = 1.0e-6)
+        sv = real.(DeltaS) + imag.(DeltaS) / relative_shift * im
+    else
+        # not enough precision to resolve conformal spin
+        sv = complex.(real.(DeltaS))
     end
-
-    sv = StructuredVector(data, structure)
     sv = sort(sv; by = real)
     sv = filter(x -> real(x) ≤ 1.0e16, sv)
     return CFTData(central_charge, τ0, sv)
@@ -168,7 +157,7 @@ end
 # Utility functions
 sigmoid(x) = 1 / (1 + exp(-x))
 logit(p) = log(p / (1 - p))
-function _λ0(TA, TB, shape)
+function _find_λ0(TA, TB, shape)
     charge = one(sectortype(TA))
     λs = leading_eigenvalue(CFTTransferMatrix(TA, TB, shape), charge; Nh = 1)
     return real(first(λs))
@@ -196,14 +185,14 @@ function _extract_tau_and_c_1x2(
     ) where {E, S}
     shape1, p1 = [1, 2, 1], ((3, 1), (4, 2))
     shape2, p2 = [sqrt(2), sqrt(2), 0], ((4, 2), (3, 1))
-    # N → S: τ1 = (1 + τ) / 2
-    λv = _λ0(TA, TB, shape1)
-    # E → W: τ2 = (τ - 1) / (2 τ)
-    λh = _λ0(permute(TB, p1), permute(TA, p1), shape1)
-    # NE → SW: τ3 = (1 + τ) / (1 - τ)
-    λa = _λ0(TA, TB, shape2)
-    # NW → SE: τ4 = (τ - 1) / (τ + 1)
-    λb = _λ0(permute(TB, p2), permute(TA, p2), shape2)
+    # N → S (1x2): τ1 = (1 + τ) / 2
+    λv = _find_λ0(TA, TB, shape1)
+    # E → W (1x2): τ2 = (τ - 1) / (2 τ)
+    λh = _find_λ0(permute(TB, p1), permute(TA, p1), shape1)
+    # NE → SW (2x1): τ3 = (1 + τ) / (1 - τ)
+    λa = _find_λ0(TA, TB, shape2)
+    # NW → SE (2x1): τ4 = (τ - 1) / (τ + 1)
+    λb = _find_λ0(permute(TB, p2), permute(TA, p2), shape2)
     # edge case: c = 0
     if all(isapprox.(λv, (λh, λa, λb); rtol = 1.0e-6))
         return complex(0.0, 1.0), 0.0
@@ -220,15 +209,15 @@ function _extract_tau_and_c_2x2(
     ) where {E, S}
     shape1, p1 = [2, 2, 0], ((3, 1), (4, 2))
     # N → S: τ1 = τ
-    λv = _λ0(TA, TB, shape1)
+    λv = _find_λ0(TA, TB, shape1)
     # E → W: τ2 = -1 / τ
-    λh = _λ0(permute(TB, p1), permute(TA, p1), shape1)
+    λh = _find_λ0(permute(TB, p1), permute(TA, p1), shape1)
 
     shape2, p2 = [sqrt(2) / 2, sqrt(2), sqrt(2) / 2], ((2, 4), (1, 3))
     # NE → SW: τ3 = 1 / (1 - τ)
-    λa = _λ0(TA, TB, shape2)
+    λa = _find_λ0(TA, TB, shape2)
     # NW → SE: τ4 = τ / (1 + τ)
-    λb = _λ0(permute(TB, p2), permute(TA, p2), shape2)
+    λb = _find_λ0(permute(TB, p2), permute(TA, p2), shape2)
 
     # edge case: c = 0
     if all(isapprox.(λv, (λh, λa, λb); rtol = 1.0e-6))
@@ -242,13 +231,12 @@ function _extract_tau_and_c_2x2(
 end
 
 """
-    solve_cvtheta(a1, a2, a3; fast::Bool = true, c0 = 0.5, v0 = 1.0, θ0 = π / 2)
+    solve_cvtheta(a1, a2, a3; c0 = 0.5, v0 = 1.0, θ0 = π / 2, fast::Bool = true)
 
 Solve for positive (c, v) and θ ∈ (0, π).
 """
 function solve_cvtheta(
-        a1, a2, a3; fast::Bool = true,
-        c0 = 0.5, v0 = 1.0, θ0 = π / 2
+        a1, a2, a3; c0 = 0.5, v0 = 1.0, θ0 = π / 2, fast::Bool = true
     )
     function f!(du, u, p)
         xc, xv, xθ = u

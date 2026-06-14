@@ -61,7 +61,7 @@ end
     run!(scheme, truncrank(24), maxiter(10))
     # use fast tau algorithm below
     cft = CFTData(scheme; shape = [1, 1, 0])
-    sd_all = real(cft.scaling_dimensions[Trivial])
+    sd_all = real(cft.scaling_dimensions)
     cft_sorted = sort(sd_all[2:end]; by = abs)
 
     @test cft_sorted[1] ≈ ising_cft_exact[1] rtol = 5.0e-4
