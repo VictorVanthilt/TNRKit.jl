@@ -135,12 +135,12 @@ Action of [√2/2, √2, √2/2] transfer matrix.
 ```
 """
 function _TMaction_2x2_NEtoSW(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
-    TB′ = pbc ? tm.TA : twist(tm.TA, 2)
+    TA′ = pbc ? tm.TA : twist(tm.TA, 2)
     TB′ = pbc ? tm.TB : twist(tm.TB, 2)
     @tensor begin
         fx[-1 -2 -3 -4; -5] := tm.TB[-2 -3; a b] * x[-1 a b -4; -5]
         fx[-1 -2 -3 -4; -5] := tm.TA[-1 -2; a b] * fx[a b -3 -4; -5]
-        fx[-1 -2 -3 -4; -5] := TB′[-3 -4; a b] * fx[-1 -2 a b; -5]
+        fx[-1 -2 -3 -4; -5] := TA′[-3 -4; a b] * fx[-1 -2 a b; -5]
         fx[-1 -2 -3 -4; -5] := TB′[-4 -1; a b] * fx[-3 a b -2; -5]
     end
     return fx
