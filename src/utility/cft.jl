@@ -43,6 +43,9 @@ function CFTData(
         T::TensorMap{E, S, 2, 2}; shape = [sqrt(2), 2 * sqrt(2), 0], fast_tau_alg::Bool = true, kwargs...
     ) where {E, S}
     if shape == [1, 1, 0] # trivial implementation
+        if BraidingStyle(sectortype(T)) != Bosonic()
+            error("Transfer matrix [1, 1, 0] does not work for non-bosonic networks yet.")
+        end
         τ0, c = extract_tau_and_c(T; fast = fast_tau_alg)
         Δs = _scaling_dimensions(T, τ0)
         return CFTData(complex(c), τ0, Δs)
@@ -100,7 +103,8 @@ function area_term(
         TA::TensorMap{E, S, 2, 2}, TB::TensorMap{E, S, 2, 2}; is_real = true
     ) where {E, S}
     I = sectortype(TA)
-    λ = first(leading_eigenvalue(CFTTransferMatrix(TA, TB, [2, 2, 0]), one(I)))
+    pbc = (BraidingStyle(I) == Fermionic()) ? false : true
+    λ = first(leading_eigenvalue(CFTTransferMatrix(TA, TB, [2, 2, 0]), one(I); pbc, Nh = 1))
     return is_real ? real(λ) : λ
 end
 
@@ -120,10 +124,6 @@ function spec(
         τ0::Number; Nh = 25, trunc = notrunc(), truncentanglement = notrunc()
     ) where {E, S}
     I = sectortype(TA)
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
     tm = CFTTransferMatrix(TA, TB, shape; trunc, truncentanglement)
     τ = modular_parameter(tm, τ0)
 
@@ -131,7 +131,11 @@ function spec(
     eigs = leading_eigenvalue(tm; Nh)
 
     # central charge
-    λ0 = eigs[one(I)][1]
+    λ0 = if BraidingStyle(I) == Fermionic()
+        eigs[(:NS, one(I))][1]
+    else
+        eigs[one(I)][1]
+    end
     area = shape[1] * shape[2]
     central_charge = 6 / pi / (imag(τ) - imag(τ0) * area / 4) * log(λ0)
 
@@ -158,8 +162,10 @@ end
 sigmoid(x) = 1 / (1 + exp(-x))
 logit(p) = log(p / (1 - p))
 function _find_λ0(TA, TB, shape)
-    charge = one(sectortype(TA))
-    λs = leading_eigenvalue(CFTTransferMatrix(TA, TB, shape), charge; Nh = 1)
+    I = sectortype(TA)
+    charge = one(I)
+    pbc = (BraidingStyle(I) == Fermionic()) ? false : true
+    λs = leading_eigenvalue(CFTTransferMatrix(TA, TB, shape), charge; pbc, Nh = 1)
     return real(first(λs))
 end
 
