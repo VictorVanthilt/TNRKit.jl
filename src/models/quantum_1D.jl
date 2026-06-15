@@ -80,7 +80,7 @@ Partition function tensor for 1D transverse field Ising chain
 ```
 Allowed `symm`: Trivial, Z2Irrep.
 """
-function ising_chain(
+function quantum_ising_chain(
         elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64;
         J::Float64 = 1.0, g::Float64 = 0.0
     )
@@ -91,7 +91,7 @@ function ising_chain(
     gate = exp(dt * J * gate)
     return gate_to_tensor(gate)
 end
-ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
-    ising_chain(elt, Trivial, dt; kwargs...)
-ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
-    ising_chain(ComplexF64, symm, dt; kwargs...)
+quantum_ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
+    quantum_ising_chain(elt, Trivial, dt; kwargs...)
+quantum_ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
+    quantum_ising_chain(ComplexF64, symm, dt; kwargs...)

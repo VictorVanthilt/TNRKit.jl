@@ -182,12 +182,12 @@ end
     if stack_alg == :exponential
         nfold = 7
         dt = 1 / (2^nfold)
-        T = ising_chain(Float64, Z2Irrep, dt; J = 1.0, g = 1.0)
+        T = quantum_ising_chain(Float64, Z2Irrep, dt; J = 1.0, g = 1.0)
         T = vertical_stack_exp(T, nfold, trunc_stack)
     else
         n = 100
         dt = 1 / n
-        T = ising_chain(Float64, Z2Irrep, dt; J = 1.0, g = 1.0)
+        T = quantum_ising_chain(Float64, Z2Irrep, dt; J = 1.0, g = 1.0)
         T = vertical_stack_linear(T, n, trunc_stack)
     end
     scheme = LoopTNR(T)
