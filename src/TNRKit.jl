@@ -11,6 +11,7 @@ using SpecialFunctions
 using FastGaussQuadrature
 using QuadGK
 using Roots
+using NonlinearSolve
 using Base.Threads
 using Combinatorics: permutations
 import TensorKitTensors.SpinOperators as SO
@@ -132,8 +133,9 @@ export free_energy
 
 include("utility/structuredvector.jl")
 
+include("utility/transfer_matrix.jl")
 include("utility/cft.jl")
-export CFTData, central_charge
+export CFTData, extract_tau_and_c
 
 include("utility/gs_degeneracy.jl")
 export ground_state_degeneracy, gu_wen_ratio
