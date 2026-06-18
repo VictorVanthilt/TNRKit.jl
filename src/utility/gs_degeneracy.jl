@@ -2,7 +2,7 @@ function _ground_state_degeneracy(tm::AbstractTensorMap{E, S, N, N}) where {E, S
     D, _ = eig_full(tm)
     D = D / tr(D)
     evs = filter(!iszero, abs.(D.data))
-    entropy = -sum(evs .* log.(ev))
+    entropy = -sum(evs .* log.(evs))
     return exp(entropy)
 end
 
