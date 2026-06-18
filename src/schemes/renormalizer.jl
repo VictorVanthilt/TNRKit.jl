@@ -63,7 +63,7 @@ end
 """
     step!(r::Renormalizer)
 
-Perform one RG coarse-graining step. Wraps [`Base.iterate`](@ref).
+Perform one RG coarse-graining step. Wraps `Base.iterate`.
 Throws an error if `maxiter` has already been reached.
 """
 function step!(r::Renormalizer)
