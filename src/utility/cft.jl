@@ -68,21 +68,28 @@ function CFTData(
 end
 
 """
+    _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int)
+
+Build a row transfer matrix from `unitcell` copies of the tensor `T`
+concatenated horizontally with periodic boundary conditions.
+"""
+function _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int)
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+    Tcontracted = ncon(fill(T, unitcell), indices)
+    outinds = ntuple(i -> i, unitcell)
+    ininds = ntuple(i -> unitcell + i, unitcell)
+    return permute(Tcontracted, (outinds, ininds))
+end
+
+"""
 Construct the transfer matrix along vertical direction
 with `unitcell` copies of `T` concatenated horizontally.
 `τ0` is the modular parameter of a single `T`.
 """
 function _scaling_dimensions(T::TensorMap{E, S, 2, 2}, τ0::Number; unitcell = 1) where {E, S}
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
-
-    T = ncon(fill(T, unitcell), indices)
-    # restore leg convention
-    outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
-    T = permute(T, (outinds, ininds))
-
-    sv = StructuredVector(eig_vals(T))
+    tm = _row_transfer_matrix(T, unitcell)
+    sv = StructuredVector(eig_vals(tm))
     sv = filter(x -> real(x) > 0 && abs(x) > 1.0e-12, sv)
     isempty(sv) && throw(ArgumentError("No valid eigenvalues found in transfer matrix spectrum."))
 

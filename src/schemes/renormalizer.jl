@@ -27,7 +27,6 @@ end
     get_tensor(r::Renormalizer)
 
 Return the tensor(s) stored in the renormalizer's current state.
-For a single-tensor scheme like [`TRG`](@ref), returns the central tensor `T`.
 """
 function get_tensor end
 

@@ -1,3 +1,11 @@
+function _ground_state_degeneracy(tm::AbstractTensorMap{E, S, N, N}) where {E, S, N}
+    D, _ = eig_full(tm)
+    D = D / tr(D)
+    evs = filter(!iszero, abs.(D.data))
+    entropy = -sum(evs .* log.(ev))
+    return exp(entropy)
+end
+
 """
     ground_state_degeneracy(T::AbstractTensorMap, unitcell=1)
 
@@ -6,45 +14,28 @@ using the eigenvalues of the transfer matrix. The GSD is the exponential
 of the Shannon entropy of the normalized eigenvalue spectrum.
 """
 function ground_state_degeneracy(T::AbstractTensorMap, unitcell::Int = 1)
-    indices = Vector{NTuple{4, Int}}(undef, unitcell)
-    for i in 1:unitcell
-        indices[i] = (i, -i, -(i + unitcell), i + 1)
-    end
-    indices[end] = (unitcell, -unitcell, -(unitcell + unitcell), 1)
-
-    Ts = fill(T, unitcell)
-    Tcontracted = ncon(Ts, indices)
-
-    outinds = ntuple(i -> i, unitcell)
-    ininds = ntuple(i -> unitcell + i, unitcell)
-    Tcontracted = permute(Tcontracted, (outinds, ininds))
-
-    D, _ = eig_full(Tcontracted)
-    D = D / tr(D)
-    vals = filter(!iszero, abs.(D.data))
-    S = 0.0
-    for v in vals
-        ev = abs(v)
-        if ev > 0
-            S -= ev * log(ev)
-        end
-    end
-    return exp(S)
+    tm = _row_transfer_matrix(T, unitcell)
+    return _ground_state_degeneracy(tm)
 end
 
 """
-    ground_state_degeneracy(TA::AbstractTensorMap, TB::AbstractTensorMap; unitcell=1)
+    ground_state_degeneracy(TA::AbstractTensorMap, TB::AbstractTensorMap)
 
-Compute the GSD from a two-site unit cell (TA, TB). Builds an effective
-single-site tensor and delegates to the single-tensor method.
+Compute the GSD for a checkerboard network (TA, TB) from the 2-column transfer matrix
+```
+        ┌-┐     ┌-┐
+    1'--A-------B---3'
+        | |     | |
+        | |     | |
+        | |     | |
+    2'--B-------A---4'
+        └-┘     └-┘
+```
 """
-function ground_state_degeneracy(TA::AbstractTensorMap, TB::AbstractTensorMap; unitcell::Int = 1)
-    norm_const = area_term(TA, TB)
-    T1 = TA / abs(norm_const)^(1 / 4)
-    T2 = TB / abs(norm_const)^(1 / 4)
-    @tensor T_unit[-1 -2; -3 -4] := T1[-1 1; 3 2] * T2[2 6; 4 -3] *
-        T2[-2 3; 1 5] * T1[5 4; 6 -4]
-    return ground_state_degeneracy(T_unit, unitcell)
+function ground_state_degeneracy(TA::AbstractTensorMap, TB::AbstractTensorMap)
+    @tensor tm[-1 -2; -3 -4] := TA[-1 1; 3 2] * TB[2 6; 4 -3] *
+        TB[-2 3; 1 5] * TA[5 4; 6 -4]
+    return _ground_state_degeneracy(tm)
 end
 
 ground_state_degeneracy(scheme::TNRScheme; unitcell::Int = 1) = ground_state_degeneracy(scheme.T, unitcell)
@@ -55,10 +46,10 @@ function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
     return ground_state_degeneracy(T_unit, unitcell)
 end
 
-ground_state_degeneracy(scheme::LoopTNR; unitcell::Int = 2) = ground_state_degeneracy(scheme.TA, scheme.TB; unitcell)
+ground_state_degeneracy(scheme::LoopTNR) = ground_state_degeneracy(scheme.TA, scheme.TB)
 
 """
-    gu_wen_ratio(T::AbstractTensorMap)
+    gu_wen_ratio(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
 
 Compute the Gu-Wen ratios (X1, X2) from a single network tensor.
 The Gu-Wen ratios are related to the ground state degeneracy and
@@ -68,7 +59,7 @@ the scaling dimensions.
 * [Zheng-Cheng Gu & Xiao-Gang Wen. PhysRevB.80.155131](@cite gu2009)
 * [Satoshi Morita et al. arxiv:2512.03395](@cite morita2025)
 """
-function gu_wen_ratio(T::AbstractTensorMap)
+function gu_wen_ratio(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
     one_norm = norm(@tensor T[1 2; 2 1])
     two_norm_X1 = norm(@tensor T[1 2; 2 3] * T[3 4; 4 1])
     two_norm_X2 = norm(@tensor T[1 2; 3 4] * T[4 3; 2 1])
@@ -78,11 +69,13 @@ function gu_wen_ratio(T::AbstractTensorMap)
 end
 
 """
-    gu_wen_ratio(TA::AbstractTensorMap, TB::AbstractTensorMap)
+    gu_wen_ratio(TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}) where {E, S}
 
-Compute the Gu-Wen ratios (X1, X2) from a two-site unit cell (TA, TB).
+Compute the Gu-Wen ratios (X1, X2) for a checkerboard network (TA, TB).
 """
-function gu_wen_ratio(TA::AbstractTensorMap, TB::AbstractTensorMap)
+function gu_wen_ratio(
+        TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}
+    ) where {E, S}
     one_norm = norm(
         @tensor opt = true TA[1 2; 3 4] * TB[4 5; 6 1] *
             TB[7 3; 2 8] * TA[8 6; 5 7]
