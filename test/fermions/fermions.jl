@@ -7,8 +7,8 @@ T = gross_neveu_start(0, 0, 0)
 
 # === TRG ===
 @testset "TRG - Gross-Neveu Model" begin
-    scheme = TRG(T)
-    data = run!(scheme, truncrank(16), maxiter(25))
+    renorm = Renormalizer(TRG(; trunc = truncrank(16), maxiter = 25), T)
+    _, data = run!(renorm; verbosity = 0)
     @test free_energy(data, 1.0) ≈ f_bench rtol = 1.0e-3
 end
 
@@ -56,7 +56,12 @@ end
     data_c4vCTM = run!(c4vCTM(T_flipped_C4v), truncrank(8), maxiter(10))
     free_energy_c4vCTM = -data_c4vCTM / β
 
-    schemes = [TRG, BTRG, HOTRG, ATRG, LoopTNR]
+    # TRG uses the new iterable interface
+    renorm = Renormalizer(TRG(; trunc = truncrank(8), maxiter = 10), T_flipped_C4v)
+    _, data_TRG = run!(renorm; verbosity = 0)
+    @test free_energy_c4vCTM ≈ free_energy(data_TRG, β; scalefactor = 2.0) rtol = 1.0e-9
+
+    schemes = [BTRG, HOTRG, ATRG, LoopTNR]
     for scheme in schemes
         data = run!(scheme(T_flipped_C4v), truncrank(8), maxiter(10))
         scalefactor = scheme ∈ [HOTRG, ATRG] ? 4.0 : 2.0

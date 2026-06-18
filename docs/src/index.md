@@ -13,7 +13,7 @@ You can use TNRKit for calculating:
 Many common TNR schemes have already been implemented:
 
 **2D square tensor networks**
-* [`TRG`](@ref) (Levin and Nave's Tensor Renormalization Group)
+* [`TRG`](@ref) (Levin and Nave's Tensor Renormalization Group) — now with an iterable [`Renormalizer`](@ref) interface
 * [`BTRG`](@ref) (bond-weighted TRG)
 * [`LoopTNR`](@ref) (entanglement filtering + loop optimization)
 * [`SLoopTNR`](@ref) (c4 & inversion symmetric LoopTNR)
@@ -58,11 +58,23 @@ T = classical_ising(ising_βc) # partition function of classical Ising model at 
 scheme = BTRG(T) # Bond-weighted TRG (excellent choice)
 data = run!(scheme, truncrank(16), maxiter(25)) # max bond-dimension of 16, for 25 iterations
 ```
-`data` now contains 26 norms of the tensor, 1 for every time the tensor was normalized. (By default there is a normalization step before the first coarse-graining step wich can be turned off by changing the kwarg `run!(...; finalize_beginning=false)`)
+
+[`TRG`](@ref) has been refactored with a new iterable interface. Create a pure algorithm config and wrap it in a [`Renormalizer`](@ref):
+```julia
+alg = TRG(; trunc = truncrank(16), maxiter = 25)  # algorithm config (kwargs with defaults)
+renorm = Renormalizer(alg, T)                      # iterable RG state machine
+# Or iterate manually to inspect intermediate states:
+for (state, norms) in renorm
+    # state is a TRGState holding the current tensor
+    # norms is the accumulated normalization factors
+end
+T_final = get_tensor(renorm)                       # extract the final tensor
+```
+`norms` (or `renorm.norms`) now contains 26 normalization factors, 1 for every time the tensor was normalized. (The tensor is normalized once at the start, and once after each RG step.)
 
 Using these norms you could, for example, calculate the free energy of the critical classical Ising model:
 ```Julia
-f = free_energy(data, ising_βc) # -2.1096504926141826902647832
+f = free_energy(renorm.norms, ising_βc) # -2.1096504926141826902647832
 ```
 You could even compare to the exact value, as calculated by the [Onsager solution](https://en.wikipedia.org/wiki/Ising_model#:~:text=Onsager%27s%20exact%20solution):
 

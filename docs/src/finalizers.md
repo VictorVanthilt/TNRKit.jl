@@ -6,21 +6,30 @@ By default this finalization process is as follow:
 We calculate the "norm" of the scheme's tensor(s) by taking the trace over the lattice directions.
 To keep the numbers in the tensor(s) from diverging, we divide the tensor(s) by this norm.
 
-For TRG this is for example:
-```Julia
-n = norm(@tensor T[1 2; 2 1])
-T /= n
-```
-
 At the end of a simulation, the `run!` function returns a vector of these norms. You can take this data to calculate the free energy through the `free_energy(data, β)` function for example.
 
 This finalization is handled through what we call [`Finalizer`](@ref)s.
 
 These [`Finalizer`](@ref)s are a way for the user to calculate all sorts of things throughout a TNR calculation.
 
+!!! note "TRG and the new iterable interface"
+    [`TRG`](@ref) has been refactored with a new iterable interface via [`Renormalizer`](@ref). Instead of using a `Finalizer`, you can inspect intermediate states directly by iterating:
+    ```julia
+    renorm = Renormalizer(TRG(; trunc = truncrank(16), maxiter = 25), T)
+    # Inspect intermediate states during iteration:
+    for (state, norms) in renorm
+        # capture intermediate tensors, compute observables, etc.
+        τ0, c = extract_tau_and_c(state.T; fast = false)
+    end
+    # After iteration, access results directly:
+    T = get_tensor(renorm)           # final tensor
+    f = free_energy(renorm.norms, β) # norms are stored in the renormalizer
+    ```
+    The `Finalizer` pattern is still used by all other schemes ([`BTRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref), [`LoopTNR`](@ref), etc.).
+
 A custom instance of `Finalizer` can be created as:
 ```Julia
-function my_finalization(scheme::TRG)
+function my_finalization(scheme::HOTRG)
     n = finalize!(scheme) # normalizes the tensor and return said norm
     data = calculate_something(scheme)
     return n, data # Two Float64s
@@ -44,11 +53,11 @@ We use this type parameter `E` to correctly allocate a `Vector{E}` in which all 
 The default [`Finalizer`](@ref) is `default_Finalizer` which normalizes the tensor(s) and stores the norm.
 For the impurity methods ([`ImpurityTRG`](@ref) and [`ImpurityHOTRG`](@ref)) the defaults are `ImpurityTRG_Finalizer` and `ImpurityHOTRG_Finalizer` respectively, as these methods usually require us to store more than just one norm per iteration.
 
-[`TRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref) and [`BTRG`](@ref) can be normalized by calculating the norm of a 2x2 patch of tensors, which is more computationally expensive but should™ be more stable.
+[`ATRG`](@ref), [`HOTRG`](@ref) and [`BTRG`](@ref) can be normalized by calculating the norm of a 2x2 patch of tensors, which is more computationally expensive but should™ be more stable.
 
 TNRKit exports the following pre-built `Finalizer` instances:
 
-- **`two_by_two_Finalizer`** - Normalizes using a 2×2 patch of tensors (more stable but computationally more expensive). Works with [`TRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref), and [`BTRG`](@ref).
+- **`two_by_two_Finalizer`** - Normalizes using a 2×2 patch of tensors (more stable but computationally more expensive). Works with [`ATRG`](@ref), [`HOTRG`](@ref), and [`BTRG`](@ref).
 
 - **`GSDegeneracy_Finalizer`** - Computes the ground state degeneracy at each TNR step. Returns a `Float64` at each iteration.
 
@@ -59,18 +68,23 @@ TNRKit exports the following pre-built `Finalizer` instances:
 ```julia
 using TNRKit
 
-# Default finalization (simple norm)
+# Default finalization (simple norm) — using BTRG
 T = classical_ising(ising_βc)
-scheme = TRG(T)
+scheme = BTRG(T)
 data = run!(scheme, truncrank(16), maxiter(25))
 
-# Use the two-by-two normalizer (more stable)
-T = classical_ising(ising_βc)
-scheme = TRG(T)
-data = run!(scheme, truncrank(16), maxiter(25); finalizer=two_by_two_Finalizer)
+# TRG with the new iterable interface (no Finalizer needed)
+renorm = Renormalizer(TRG(; trunc = truncrank(16), maxiter = 25), T)
+# Iterate to inspect intermediate states:
+for (state, norms) in renorm
+    τ0, c = extract_tau_and_c(state.T; fast = true)
+    # ...
+end
+T_final = get_tensor(renorm)
+f = free_energy(renorm.norms, ising_βc)
 
 # Track ground state degeneracy throughout the simulation
 T = classical_ising(ising_βc)
-scheme = TRG(T)
+scheme = BTRG(T)
 gsd_data = run!(scheme, truncrank(16), maxiter(25); finalizer=GSDegeneracy_Finalizer)
 ```

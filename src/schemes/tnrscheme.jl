@@ -28,6 +28,15 @@ const ImpurityTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64})
 const ImpurityHOTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Float64, Float64})
 
 # Finalization functions for the various TNR schemes
+"""
+    abstract type TNRAlgorithm
+
+Abstract type for pure TNR algorithm descriptors.
+These store algorithm parameters (truncation, max iterations, etc.)
+but NOT tensor data. Tensors are managed by [`Renormalizer`](@ref).
+"""
+abstract type TNRAlgorithm end
+
 abstract type TNRScheme{E, S} end
 
 function run!(scheme::TNRScheme, trscheme::TruncationStrategy, criterion::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
