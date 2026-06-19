@@ -95,6 +95,8 @@ quantum_ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
     quantum_ising_chain(elt, Trivial, dt; kwargs...)
 quantum_ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
     quantum_ising_chain(ComplexF64, symm, dt; kwargs...)
+quantum_ising_chain(dt::Float64; kwargs...) =
+    quantum_ising_chain(ComplexF64, Trivial, dt; kwargs...)
 
 """
 Partition function tensor for 1D Kitaev chain model
@@ -138,5 +140,9 @@ function kitaev_chain(
     gate = exp(-dt * gate)
     return gate_to_tensor(gate)
 end
-kitaev_chain(elt::Type{<:Number}, dt::Float64; kwargs...) = kitaev_chain(elt, Trivial, dt; kwargs...)
-kitaev_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) = kitaev_chain(ComplexF64, symm, dt; kwargs...)
+kitaev_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
+    kitaev_chain(elt, Trivial, dt; kwargs...)
+kitaev_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
+    kitaev_chain(ComplexF64, symm, dt; kwargs...)
+kitaev_chain(dt::Float64; kwargs...) =
+    kitaev_chain(ComplexF64, Trivial, dt; kwargs...)

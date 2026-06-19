@@ -38,7 +38,7 @@ For a bosonic tensor network, `CFTData` builds a transfer matrix on the requeste
 - `:R`: periodic fermions around the tube, obtained with `pbc = true`. The macro `@tensor` automatically inserts a fermionic twist to take the *supertrace* across the tube.
 - `:NS`: antiperiodic fermions around the tube. Internally this is obtained by setting `pbc = false`, which explicitly inserts an additional fermionic twist to cancel the automatic supertrace twist, leaving the ordinary trace across the tube.
 
-The result is a `StructuredVector` whose keys are pairs `(spin_structure, charge)`. For fermionic systems without additional symmetries besides the fermion parity, there will be four sectors:
+The result is a `StructuredVector` whose keys are tuples `(spin_structure, charge)`. For fermionic systems without additional symmetries besides the fermion parity, there will be four sectors:
 
 ```julia
 (:NS, FermionParity(0))
