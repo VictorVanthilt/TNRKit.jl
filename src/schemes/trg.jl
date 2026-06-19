@@ -38,11 +38,11 @@ end
 """
 $(TYPEDEF)
 
-Stores the tensor state for one step of a [`TRG`](@ref) renormalization.
+Stores the tensor state for one step of a single-tensor TNR algorithm (TRG, HOTRG, ATRG, etc.).
 
 $(TYPEDFIELDS)
 """
-mutable struct TRGState{TT <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+mutable struct OneTensorState{TT <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
     "Central tensor"
     T::TT
 end
@@ -50,8 +50,8 @@ end
 function Renormalizer(alg::TRG, T::TT) where {TT}
     n = norm(@tensor T[1 2; 2 1])
     T_norm = T / n
-    state = TRGState{TT}(T_norm)
-    return Renormalizer{TRG, TRGState{TT}}(alg, state, [n], 0)
+    state = OneTensorState{TT}(T_norm)
+    return Renormalizer{TRG, OneTensorState{TT}}(alg, state, [n], 0)
 end
 
 """

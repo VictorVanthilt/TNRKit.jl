@@ -65,7 +65,7 @@ alg = TRG(; trunc = truncrank(16), maxiter = 25)  # algorithm config (kwargs wit
 renorm = Renormalizer(alg, T)                      # iterable RG state machine
 # Or iterate manually to inspect intermediate states:
 for (state, norms) in renorm
-    # state is a TRGState holding the current tensor
+    # state is a OneTensorState holding the current tensor
     # norms is the accumulated normalization factors
 end
 T_final = get_tensor(renorm)                       # extract the final tensor
