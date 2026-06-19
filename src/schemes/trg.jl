@@ -42,16 +42,16 @@ Stores the tensor state for one step of a [`TRG`](@ref) renormalization.
 
 $(TYPEDFIELDS)
 """
-mutable struct TRGState{E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+mutable struct TRGState{TT <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
     "Central tensor"
     T::TT
 end
 
-function Renormalizer(alg::TRG, T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
+function Renormalizer(alg::TRG, T::TT) where {TT}
     n = norm(@tensor T[1 2; 2 1])
     T_norm = T / n
-    state = TRGState{E, S, TT}(T_norm)
-    return Renormalizer{TRG, TRGState{E, S, TT}}(alg, state, [n], 0)
+    state = TRGState{TT}(T_norm)
+    return Renormalizer{TRG, TRGState{TT}}(alg, state, [n], 0)
 end
 
 """
