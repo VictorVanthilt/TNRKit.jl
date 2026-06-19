@@ -107,7 +107,7 @@ function run!(
         verbosity = 1,
     )
     maxit = criterion isa maxiter ? criterion.n :
-           criterion isa MultipleCrit ? (c for c in criterion.crits if c isa maxiter) |> first |> (c -> c.n) : 100
+        criterion isa MultipleCrit ? (c for c in criterion.crits if c isa maxiter) |> first |> (c -> c.n) : 100
     params = TRGParams(; trunc = trscheme, maxiter = maxit)
     renorm = Renormalizer(params, scheme)
 
