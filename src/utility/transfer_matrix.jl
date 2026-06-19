@@ -414,3 +414,17 @@ function _row_transfer_matrix(
     ininds = ntuple(i -> unitcell + i, unitcell)
     return permute(Tcontracted, (outinds, ininds))
 end
+
+function _rowtm_eigvals(T::AbstractTensorMap{E, S, 2, 2}, unitcell::Int) where {E, S}
+    if BraidingStyle(sectortype(T)) == Fermionic()
+        # include contribution from both NS and R sectors
+        tm = twistdual(_row_transfer_matrix(T, unitcell; pbc = false), 1:unitcell)
+        ev_ns = mapkeys(k -> (:NS, k), StructuredVector(eig_vals(tm)))
+        tm = twistdual(_row_transfer_matrix(T, unitcell; pbc = true), 1:unitcell)
+        ev_rm = mapkeys(k -> (:R, k), StructuredVector(eig_vals(tm)))
+        return vcat(ev_ns, ev_rm)
+    else
+        tm = _row_transfer_matrix(T, unitcell; pbc = true)
+        return StructuredVector(eig_vals(tm))
+    end
+end

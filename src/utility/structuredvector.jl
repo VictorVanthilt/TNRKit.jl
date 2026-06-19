@@ -140,3 +140,15 @@ function Base.similar(bc::Broadcast.Broadcasted{StructuredVectorStyle}, ::Type{E
     end
     return StructuredVector(similar(sv.data, ElType), copy(sv.structure))
 end
+
+"""
+    mapkeys(f, v::StructuredVector)
+
+Return a new `StructuredVector` with each `structure` key transformed
+by a function `f`. The underlying `data` is shared with `v`.
+```
+"""
+function mapkeys(f, v::StructuredVector)
+    new_structure = Dict(f(k) => copy(inds) for (k, inds) in v.structure)
+    return StructuredVector(v.data, new_structure)
+end

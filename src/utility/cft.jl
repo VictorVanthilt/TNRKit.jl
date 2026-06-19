@@ -43,9 +43,6 @@ function CFTData(
         T::TensorMap{E, S, 2, 2}; shape = [sqrt(2), 2 * sqrt(2), 0], fast_tau_alg::Bool = true, kwargs...
     ) where {E, S}
     if shape == [1, 1, 0] # trivial implementation
-        if BraidingStyle(sectortype(T)) != Bosonic()
-            error("Transfer matrix [1, 1, 0] does not work for non-bosonic networks yet.")
-        end
         τ0, c = extract_tau_and_c(T; fast = fast_tau_alg)
         Δs = _scaling_dimensions(T, τ0)
         return CFTData(complex(c), τ0, Δs)
@@ -76,8 +73,7 @@ with `unitcell` copies of `T` concatenated horizontally.
 `τ0` is the modular parameter of a single `T`.
 """
 function _scaling_dimensions(T::TensorMap{E, S, 2, 2}, τ0::Number; unitcell = 1) where {E, S}
-    tm = _row_transfer_matrix(T, unitcell)
-    sv = StructuredVector(eig_vals(tm))
+    sv = _rowtm_eigvals(T, unitcell)
     sv = filter(x -> real(x) > 0 && abs(x) > 1.0e-12, sv)
     isempty(sv) && throw(ArgumentError("No valid eigenvalues found in transfer matrix spectrum."))
 
