@@ -390,3 +390,27 @@ function leading_eigenvalue(
     end
     return filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
 end
+
+# ===========================================================================
+#  Special treatment: [1, L, 0] without `eigsolve`
+# ===========================================================================
+
+"""
+    _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int; pbc::Bool = true)
+
+Build a row transfer matrix from `unitcell` copies of the tensor `T`.
+"""
+function _row_transfer_matrix(
+        T::AbstractTensorMap{E, S, 2, 2}, unitcell::Int; pbc::Bool = true
+    ) where {E, S}
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+    tensors = fill(T, unitcell)
+    if !pbc
+        tensors[end] = twist(T, 4)
+    end
+    Tcontracted = ncon(tensors, indices)
+    outinds = ntuple(i -> i, unitcell)
+    ininds = ntuple(i -> unitcell + i, unitcell)
+    return permute(Tcontracted, (outinds, ininds))
+end

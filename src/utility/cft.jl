@@ -1,5 +1,5 @@
 """
-    struct CFTData{E, K, V, A <: AbstractVector{E}}
+    struct CFTData{E, K, A <: AbstractVector{E}}
 
 A struct to hold conformal data extracted from a TNR scheme.
 
@@ -11,16 +11,16 @@ A struct to hold conformal data extracted from a TNR scheme.
 # Fields
     - `central_charge::E`: The central charge of the CFT.
     - `modular_parameter::E`: The elementary modular parameter of a single tensor.
-    - `scaling_dimensions::StructuredVector{E, K, V, A}`: The scaling dimensions of the CFT, organized in a `StructuredVector` where the sectors correspond to different spin sectors (or other quantum numbers) and the data contains the scaling dimensions within those sectors
+    - `scaling_dimensions::StructuredVector{E, K, A}`: The scaling dimensions of the CFT, organized in a `StructuredVector` where the sectors correspond to different spin sectors (or other quantum numbers) and the data contains the scaling dimensions within those sectors
 
 """
-struct CFTData{E, K, V, A <: AbstractVector{E}}
+struct CFTData{E, K, A <: AbstractVector{E}}
     "Central charge of the CFT."
     central_charge::E
     "Elementary modular parameter for one tensor"
     modular_parameter::E
     "Scaling dimensions of the CFT."
-    scaling_dimensions::StructuredVector{E, K, V, A}
+    scaling_dimensions::StructuredVector{E, K, A}
 end
 
 function Base.show(io::IO, data::CFTData)
@@ -76,16 +76,8 @@ with `unitcell` copies of `T` concatenated horizontally.
 `τ0` is the modular parameter of a single `T`.
 """
 function _scaling_dimensions(T::TensorMap{E, S, 2, 2}, τ0::Number; unitcell = 1) where {E, S}
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
-
-    T = ncon(fill(T, unitcell), indices)
-    # restore leg convention
-    outinds = Tuple(collect(1:unitcell))
-    ininds = Tuple(collect((unitcell + 1):(2unitcell)))
-    T = permute(T, (outinds, ininds))
-
-    sv = StructuredVector(eig_vals(T))
+    tm = _row_transfer_matrix(T, unitcell)
+    sv = StructuredVector(eig_vals(tm))
     sv = filter(x -> real(x) > 0 && abs(x) > 1.0e-12, sv)
     isempty(sv) && throw(ArgumentError("No valid eigenvalues found in transfer matrix spectrum."))
 

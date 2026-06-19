@@ -1,9 +1,9 @@
 """
-    StructuredVector{E, K, V, A} <: AbstractVector{E}
+    StructuredVector{E, K, A} <: AbstractVector{E}
 
 A vector whose elements are partitioned into named sectors.  Internally, data
-is stored as a flat `AbstractVector{E}` and a `Dict{K, V}` maps each sector key
-to the indices that belong to it.
+is stored as a flat `AbstractVector{E}` and a `Dict{K, Vector{Int}}` maps each
+sector key to the indices that belong to it.
 
 Supports the `AbstractVector` interface (integer indexing, `length`, `eachindex`,
 …), sector-based access via `v[sector]`, and the full `Dict` key interface
@@ -14,15 +14,15 @@ broadcasting with scalars all preserve the sector structure.
 
     StructuredVector(sv::SectorVector)
     StructuredVector(dict::Dict{K, <:AbstractVector{E}}) where {K, E}
-    StructuredVector(data::AbstractVector{E}, structure::Dict{K, V})
+    StructuredVector(data::AbstractVector{E}, structure::Dict{K, Vector{Int}})
 
 - From a TensorKit `SectorVector`.
 - From a dictionary mapping sectors to their data vectors.
 - Directly from a flat data array and a sector‑index mapping.
 """
-struct StructuredVector{E, K, V, A <: AbstractVector{E}} <: AbstractVector{E}
+struct StructuredVector{E, K, A <: AbstractVector{E}} <: AbstractVector{E}
     data::A
-    structure::Dict{K, V}
+    structure::Dict{K, Vector{Int}}
 end
 
 function StructuredVector(sv::TensorKit.SectorVector)
@@ -83,6 +83,35 @@ Base.:/(v::StructuredVector, x::Number) = StructuredVector(v.data ./ x, v.struct
 Base.:/(x::Number, v::StructuredVector) = StructuredVector(x ./ v.data, v.structure)
 
 Base.keys(v::StructuredVector) = keys(v.structure)
+
+function Base.vcat(v1::StructuredVector{<:Any, K1}, v2::StructuredVector{<:Any, K2}) where {K1, K2}
+    new_data = vcat(v1.data, v2.data)
+    n1 = length(v1)
+    K = promote_type(K1, K2)
+    new_structure = Dict{K, Vector{Int}}()
+    for (k, inds) in v1.structure
+        new_structure[k] = copy(inds)
+    end
+    for (k, inds) in v2.structure
+        adjusted = inds .+ n1
+        if haskey(new_structure, k)
+            append!(new_structure[k], adjusted)
+        else
+            new_structure[k] = adjusted
+        end
+    end
+    return StructuredVector(new_data, new_structure)
+end
+
+# Julia Base provides a specialized `reduce(::typeof(vcat), A)` that bypasses
+# pairwise `vcat` calls and uses `similar` + bulk copy internally.  That path
+# does not know about sector structure and would produce a plain `Vector`.
+# We override it to fall back to pair-wise reduction which preserves the
+# StructuredVector container.
+function Base.reduce(::typeof(vcat), A::AbstractVector{<:StructuredVector})
+    isempty(A) && throw(ArgumentError("reducing vcat over an empty collection is not supported"))
+    return foldl(vcat, A)
+end
 
 # -- Broadcasting support -----------------------------------------------------
 # Custom broadcast style so that element-wise operations preserve the
