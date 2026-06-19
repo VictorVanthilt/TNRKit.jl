@@ -48,20 +48,3 @@ The result is a `StructuredVector` whose keys are pairs `(spin_structure, charge
 ```
 
 The largest eigenvalue (corresponding to the identity field) should be in the NS even sector.
-
-For a concrete example, see the testset `"Quantum Kitaev chain: Ising case"` in `test/models/models.jl`. It constructs the imaginary-time tensor for
-
-```math
-t = 1,\qquad \Delta = 1,\qquad V = 0,\qquad \mu = 2,
-```
-
-stacks it in the time direction, runs LoopTNR, and calls `CFTData(scheme; shape = shape)`. The expected low-lying fermionic Ising data are
-
-```math
-c = {1 \over 2},\qquad
-\Delta_{\mathbf{1}'} = 1,\qquad
-\Delta_f = {1 \over 2},\qquad
-\Delta_e = \Delta_m = {1 \over 8}.
-```
-
-Here $\mathbf{1}'$ denotes the first non-vacuum descendant in the NS even identity sector, $f$ is the NS odd fermion, and $e,m$ are the two Ramond ground states. For shifted tubes, the same test also checks that conformal spins are integral for $\mathbf{1},e,m$ and half-integral for $f$, as expected for the Majorana/Ising spin theory.
