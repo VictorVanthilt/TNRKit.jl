@@ -7,18 +7,21 @@ function VN_entropy(M::TensorMap; rtol = 1.0e-14, power = 1.0)
 end
 
 """
-Given a LoopTNR scheme, consider the loop MPS |ψ⟩ = tr(TA * TB * TA * TB). 
-Compute a gauge-invariant data called loop entropy on each of the four edges of the loop MPS.
-This loop entropy is defined as the von Neumann entropy of the transfer matrix formed by contracting the loop MPS with itself, with the bond of interest as the cut.
-The loop entropy is a measure of the entanglement across the bond, and can be used to diagnose the presence of short-range entanglement in the loop MPS.
-The entanglement spectrum is also returned.
+    loop_entropy(TA, TB)
+
+Compute the loop entropy from two-site unit cell tensors `TA` and `TB`.
+Given the loop MPS |ψ⟩ = tr(TA * TB * TA * TB), compute the gauge-invariant loop
+entropy on each of the four edges of the loop MPS. The loop entropy is defined as
+the von Neumann entropy of the transfer matrix formed by contracting the loop MPS
+with itself, with the bond of interest as the cut. It can be used to diagnose the
+presence of short-range entanglement in the loop MPS. The entanglement spectrum
+is also returned.
 
 # References
 * [Evenbly et. al. Phys. Rev. B 98 (2018)](@cite Evenbly_2018)
-
 """
-function loop_entropy(scheme::LoopTNR)
-    psi_A = Ψ_A(scheme)
+function loop_entropy(TA::AbstractTensorMap, TB::AbstractTensorMap)
+    psi_A = Ψ_A(TA, TB)
     psi_Apsi_A_vector = ΨAΨA(psi_A)
     N = length(psi_A)
     psi_Apsi_A_cache = right_cache(psi_Apsi_A_vector)

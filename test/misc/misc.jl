@@ -34,17 +34,20 @@ end
 @testset "NNR-TNR can reduce loop entropy" begin
     T = classical_ising()
 
-    scheme_loop = LoopTNR(T)
-    scheme_nnr = LoopTNR(T)
+    alg_loop = LoopTNR(; trunc = truncrank(16), maxiter = 15)
+    alg_nnr = LoopTNR(; trunc = truncrank(16), maxiter = 15, loop = LoopParameters(; nuclear_norm = true))
 
-    loop_condition = LoopParameters()
-    nnr_condition = LoopParameters(nuclear_norm = true)
+    renorm_loop = Renormalizer(alg_loop, T)
+    renorm_nnr = Renormalizer(alg_nnr, T)
 
-    run!(scheme_loop, truncrank(16), maxiter(15), loop_condition; verbosity = 1)
-    run!(scheme_nnr, truncrank(16), maxiter(15), nnr_condition; verbosity = 1)
+    run!(renorm_loop; verbosity = 0)
+    run!(renorm_nnr; verbosity = 0)
 
-    entropies_loop, _, entropies_rad_loop, _ = loop_entropy(scheme_loop)
-    entropies_nnr, _, entropies_rad_nnr, _ = loop_entropy(scheme_nnr)
+    TA_loop, TB_loop = get_tensor(renorm_loop)
+    TA_nnr, TB_nnr = get_tensor(renorm_nnr)
+
+    entropies_loop, _, entropies_rad_loop, _ = loop_entropy(TA_loop, TB_loop)
+    entropies_nnr, _, entropies_rad_nnr, _ = loop_entropy(TA_nnr, TB_nnr)
 
     @test all(abs.(entropies_nnr) .< abs.(entropies_loop))
     @test all(abs.(entropies_rad_nnr) .< abs.(entropies_rad_loop))

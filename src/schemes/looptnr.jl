@@ -1,26 +1,8 @@
 """
 $(TYPEDEF)
 
-Loop Optimization for Tensor Network Renormalization
-
-# Constructors
-    $(FUNCTIONNAME)(T)
-    $(FUNCTIONNAME)(TA, TB)
-    $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
-
-# Running the algorithm
-    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters, finalizer::Finalizer[,
-              entanglement_criterion::stopcrit, finalize_beginning=true, verbosity=1])
-    
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters; kwargs...)
-
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[finalize_beginning=true, verbosity=1])
-
-# LoopParameters
-See also: [`LoopParameters`](@ref)
-This stuct is used to set all internal parameters in LoopTNR.
-It can also be used to control whether Krylov methods are used (default: false)
-And whether nuclear norm regularization is used (default: false)
+Parameters for the loop optimization step of LoopTNR.
+Controls sweeping convergence, linear solver, and nuclear norm regularization.
 
 # Fields
 
@@ -29,74 +11,176 @@ $(TYPEDFIELDS)
 # References
 * [Yang et. al. Phys. Rev. Letters 118 (2017)](@cite yang2017)
 * [Homma et. al. Phys. Rev. Res. 6 (2024)](@cite homma2024a)
-
 """
-mutable struct LoopTNR{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
-    "Central tensor on sublattice A"
-    TA::TT
-
-    "Central tensor on sublattice B"
-    TB::TT
-
-    function LoopTNR(TA::TT, TB::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
-        return new{E, S, TT}(TA, TB)
-    end
-    function LoopTNR(T::TT) where {E, S, TT <: AbstractTensorMap{E, S, 2, 2}}
-        return new{E, S, TT}(T, copy(T))
-    end
-end
-
-"""
-    $(TYPEDEF)
-
-Parameters used during LoopTNR.
-This struct allows the user to control how the linear problem is solved.
-It also allows the user to turn on nuclear norm regularization.
-
-# Fields
-
-    $(TYPEDFIELDS)
-"""
-@kwdef struct LoopParameters{A}
+Base.@kwdef struct LoopParameters{A}
+    "Stopping criterion for loop optimization sweeping"
     sweeping::stopcrit = maxiter(20) & convcrit(1.0e-9, (steps, cost) -> abs(cost[end]))
+    "Whether to perform one loop of initialization with larger bond dimension"
     one_loop_init::Bool = true
+    "Truncation strategy for entanglement filtering"
     truncentanglement::TruncationStrategy = trunctol(; rtol = 1.0e-14)
-
     # Krylov parameters
     "Use Krylov methods to solve the linear system in loop optimization. Default = false, which uses the backslash operator."
     krylov::Bool = false
-    "Default Krylov algorithm is GMRES with maxiter = 250, krylovdim = 128, tol = 1.0e-10, verbosity = 0."
+    "Krylov algorithm configuration (default: GMRES)"
     krylovalg::A = GMRES(; maxiter = 250, krylovdim = 128, tol = 1.0e-10, verbosity = 0)
-
-    # NNR parameters
-    "Use Nuclear Norm Regularisation. Default = false"
+    # Nuclear norm regularization parameters
+    "Use Nuclear Norm Regularisation to suppress short-range entanglement"
     nuclear_norm::Bool = false
+    """
+    NNR penalty parameter decay factor. Recommended range: 0.8 to 1.
+    """
     ρ::Float64 = 0.8
+    """
+    NNR initial penalty. Recommended range: 1.0e-7 to 1.0e-4.
+    """
     ξ_init::Float64 = 1.0e-5
+    """
+    NNR minimum penalty to prevent ξ ← ρ ξ from vanishing.
+    """
     ξ_min::Float64 = 1.0e-7
 end
 
 """
-    LoopTNR(
-        unitcell_2x2::Matrix{T},
-        trunc::TruncationStrategy,
-        loop_condition::LoopParameters
-    ) where {T <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+$(TYPEDEF)
 
-Initialize LoopTNR using a network with 2 x 2 unit cell, 
-by first performing one round of loop optimization to reduce
-the network to a bipartite one (without normalization). 
+Loop Optimization for Tensor Network Renormalization algorithm parameters.
+
+This is a pure algorithm descriptor — it stores truncation, loop optimization,
+and iteration parameters but no tensor data. Tensors are managed by [`Renormalizer`](@ref).
+
+# Constructors
+
+All parameters are passed as keyword arguments with sensible defaults:
+
+    $(FUNCTIONNAME)(; trunc=truncrank(16), maxiter=20, loop=LoopParameters(), ...)
+
+# Fields
+
+$(TYPEDFIELDS)
 """
-function LoopTNR(
-        unitcell_2x2::Matrix{T};
-        trunc::TruncationStrategy,
-        loop_condition::LoopParameters
-    ) where {T <: AbstractTensorMap{<:Number, <:VectorSpace, 2, 2}}
-    ψA = Ψ_A(unitcell_2x2)
-    ψB = loop_opt(ψA, trunc, loop_condition, 0)
-    TA, TB = ΨB_to_TATB(ψB)
-    return LoopTNR(TA, TB)
+Base.@kwdef struct LoopTNR <: TNRAlgorithm
+    "Truncation strategy for SVD/loop optimization steps"
+    trunc::TruncationStrategy = truncrank(16)
+    "Maximum number of RG coarse-graining steps"
+    maxiter::Int = 20
+    "Loop optimization parameters"
+    loop::LoopParameters = LoopParameters()
+    # Entanglement filtering criterion
+    "Stopping criterion for entanglement filtering"
+    entanglement_criterion::stopcrit = default_entanglement_criterion
 end
+
+"""
+$(TYPEDEF)
+
+Stores the tensor state for one step of a [`LoopTNR`](@ref) renormalization.
+
+$(TYPEDFIELDS)
+"""
+mutable struct LoopTNRState{TT <: AbstractTensorMap{<:Any, <:Any, 2, 2}}
+    "Central tensor on sublattice A"
+    TA::TT
+    "Central tensor on sublattice B"
+    TB::TT
+end
+
+function Renormalizer(alg::LoopTNR, T::TT) where {TT}
+    n = _loop_norm(T, T)
+    T /= n^(1 / 4)
+    state = LoopTNRState{TT}(T, copy(T))
+    return Renormalizer{LoopTNR, LoopTNRState{TT}}(alg, state, [n^(1 / 4)], 0)
+end
+
+function Renormalizer(alg::LoopTNR, TA::TT, TB::TT) where {TT}
+    n = _loop_norm(TA, TB)
+    TA /= n^(1 / 4)
+    TB /= n^(1 / 4)
+    state = LoopTNRState{TT}(TA, TB)
+    return Renormalizer{LoopTNR, LoopTNRState{TT}}(alg, state, [n^(1 / 4)], 0)
+end
+
+# Normalization for LoopTNR: 2x2 patch norm
+function _loop_norm(TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 2}) where {E, S}
+    T1 = permute(TA, ((1, 2), (4, 3)))
+    T2 = permute(TB, ((1, 2), (4, 3)))
+    return norm(
+        @tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
+            T2[7 4; 8 2] * T1[8 6; 7 5]
+    )
+end
+
+function get_tensor(r::Renormalizer{<:LoopTNR})
+    return r.state.TA, r.state.TB
+end
+
+"""
+    loop_init(unitcell_2x2::Matrix, alg::LoopTNR) -> TA, TB
+
+Initialize LoopTNR from a 2×2 unit cell by performing one round of loop
+optimization to reduce the network to a bipartite one, without normalization.
+"""
+function loop_init(
+        unitcell_2x2::Matrix{<:AbstractTensorMap{<:Number, <:VectorSpace, 2, 2}},
+        alg::LoopTNR
+    )
+    psiA = Ψ_A(unitcell_2x2)
+    psiB = loop_opt(psiA, alg.trunc, alg.loop)  # verbosity = 0 for init
+    return ΨB_to_TATB(psiB)
+end
+
+"""
+    _renorm_step!(r::Renormalizer)
+
+Perform one LoopTNR step: entanglement filtering, loop optimization,
+coarse-graining, and normalization.
+"""
+function _renorm_step!(r::Renormalizer{<:LoopTNR})
+    state = r.state
+    alg = r.alg
+
+    # Entanglement filtering (skipped if nuclear norm regularization is active)
+    if !alg.loop.nuclear_norm
+        state.TA, state.TB = _entanglement_filtering(
+            state.TA, state.TB, alg.entanglement_criterion, alg.loop.truncentanglement
+        )
+    end
+
+    # Loop optimization
+    psiA = Ψ_A(state.TA, state.TB)
+    psiB = loop_opt(psiA, alg.trunc, alg.loop)  # verbosity = 0 in new interface
+
+    # Coarse-grain ψB back to TA, TB
+    state.TA, state.TB = ΨB_to_TATB(psiB)
+
+    # Normalize
+    n = _loop_norm(state.TA, state.TB)
+    state.TA /= n^(1 / 4)
+    state.TB /= n^(1 / 4)
+    push!(r.norms, n^(1 / 4))
+
+    return r
+end
+
+function Base.show(io::IO, alg::LoopTNR)
+    println(io, "LoopTNR - Loop Tensor Network Renormalization")
+    println(io, "  * truncation: $(alg.trunc)")
+    println(io, "  * maxiter: $(alg.maxiter)")
+    println(io, "  * krylov: $(alg.loop.krylov)")
+    println(io, "  * nuclear_norm: $(alg.loop.nuclear_norm)")
+    return nothing
+end
+
+function Base.show(io::IO, state::LoopTNRState)
+    println(io, "LoopTNRState")
+    println(io, "  * TA: $(summary(state.TA))")
+    println(io, "  * TB: $(summary(state.TB))")
+    return nothing
+end
+
+# ==============================================================================
+# Internal helper functions
+# ==============================================================================
 
 function _check_dual(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
     return [isdual(space(T, ax)) for ax in 1:4] == [0, 0, 1, 1]
@@ -122,17 +206,14 @@ function Ψ_A(TA::AbstractTensorMap{E, S, 2, 2}, TB::AbstractTensorMap{E, S, 2, 
     ]
     return ΨA
 end
-function Ψ_A(scheme::LoopTNR)
-    return Ψ_A(scheme.TA, scheme.TB)
-end
 
 # Function to construct MPS Ψ_B from MPS Ψ_A. Using a large cut-off dimension in SVD but a small cut-off dimension in loop to increase the precision of initialization.
-function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, loop_condition::LoopParameters) where {E, S}
+function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStrategy, lp::LoopParameters) where {E, S}
     @assert trunc isa MatrixAlgebraKit.TruncationByOrder
     NA = length(ΨA)
 
-    loop_condition.one_loop_init ? _trunc = truncrank(trunc.howmany * 2) : _trunc = trunc
-    #= 
+    lp.one_loop_init ? _trunc = truncrank(trunc.howmany * 2) : _trunc = trunc
+    #=
             |     |
             2 --- 3
           ↗         ↘
@@ -150,14 +231,14 @@ function Ψ_B(ΨA::Vector{<:AbstractTensorMap{E, S, 1, 3}}, trunc::TruncationStr
         collect(SVD12(ΨA[4], _trunc));
     ]
 
-    if loop_condition.one_loop_init
+    if lp.one_loop_init
         ΨB_function(steps, data) = abs(data[end])
         criterion = maxiter(10) & convcrit(1.0e-12, ΨB_function)
 
         in_inds = ones(Int, 2 * NA)
         out_inds = 2 * ones(Int, 2 * NA)
 
-        PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & loop_condition.truncentanglement)
+        PR_list, PL_list = find_projectors(ΨB, in_inds, out_inds, criterion, trunc & lp.truncentanglement)
         MPO_disentangled!(ΨB, in_inds, out_inds, PR_list, PL_list)
     end
 
@@ -202,7 +283,7 @@ function ΨBΨA(ΨB::Vector{<:AbstractTensorMap{E, S, 1, 2}}, ΨA::Vector{<:Abst
     end
 end
 
-#Entanglement Filtering
+# Entanglement Filtering
 entanglement_function(steps, data) = abs(data[end])
 default_entanglement_criterion = maxiter(100) & convcrit(1.0e-15, entanglement_function)
 
@@ -219,18 +300,6 @@ function _entanglement_filtering(
     @plansor TB[-1 -2; -3 -4] := TB[1 2; 3 4] * PLs[2][-1; 1] * PRs[3][2; -2] * PLs[4][-4; 4] * PRs[1][3; -3]
     @assert _check_dual(TA) && _check_dual(TB)
     return TA, TB
-end
-
-# Entanglement filtering function
-function entanglement_filtering!(
-        scheme::LoopTNR,
-        trunc::TruncationStrategy,
-        entanglement_criterion::stopcrit = default_entanglement_criterion
-    )
-    scheme.TA, scheme.TB = _entanglement_filtering(
-        scheme.TA, scheme.TB, entanglement_criterion, trunc
-    )
-    return scheme
 end
 
 # Optimisation functions
@@ -279,18 +348,18 @@ end
 
 function opt_T(
         N::AbstractTensorMap{E, S, 2, 2}, W::AbstractTensorMap{E, S, 2, 1},
-        psi::AbstractTensorMap{E, S, 2, 1}, loop_condition::LoopParameters
+        psi::AbstractTensorMap{E, S, 2, 1}, lp::LoopParameters
     ) where {E, S}
-    if loop_condition.krylov == false
+    if lp.krylov == false
         ΔW = W - N * psi
         Δpsi = N \ ΔW
         new_psi = psi + Δpsi
         res = norm(N * Δpsi - ΔW)
         relative_shift = norm(Δpsi) / norm(psi)
         return new_psi, res, relative_shift
-    elseif loop_condition.krylov == true
+    elseif lp.krylov == true
         new_psi, info = linsolve(
-            x -> N * x, W, psi, loop_condition.krylovalg
+            x -> N * x, W, psi, lp.krylovalg
         )
         if info.converged == 0
             @warn "The linsolve did not converge after $(info.numiter) iterations."
@@ -320,22 +389,23 @@ function right_cache(transfer_mats::Vector{T}) where {T <: AbstractTensorMap{E, 
     return cache
 end
 
-# A general function to optimize the truncation error of an MPS on a ring.
-# Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
-# Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping.
-# The transfer matrix on the left is updated after each optimization step.
-# The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
+"""
+Optimize the truncation error of an MPS on a ring (PBC).
+Sweeping from left to right, we optimize the tensors in the loop by minimizing the cost function.
+Here cache of right-half-chain is used to minimize the number of multiplications to accelerate the sweeping.
+The transfer matrix on the left is updated after each optimization step.
+The cache technique is from Chenfeng Bao's thesis, see http://hdl.handle.net/10012/14674.
+"""
 function loop_opt(
         psiA::Vector{T},
         trunc::TruncationStrategy,
-        loop_condition::LoopParameters,
-        verbosity::Int
+        lp::LoopParameters
     ) where {T <: AbstractTensorMap{E, S, 1, 3}} where {E, S}
-    psiB = Ψ_B(psiA, trunc, loop_condition)
-    if loop_condition.nuclear_norm
+    psiB = Ψ_B(psiA, trunc, lp)
+    if lp.nuclear_norm
         M = map(x -> zeros(E, space(x)), psiB)
         Λ = copy(M)
-        ξ = loop_condition.ξ_init
+        ξ = lp.ξ_init
     end
 
     NB = length(psiB) # Number of tensors in the MPS Ψ_B
@@ -366,7 +436,7 @@ function loop_opt(
             push!(cost, cost_this)
         end
 
-        crit = loop_condition.sweeping(sweep, cost)
+        crit = lp.sweeping(sweep, cost)
 
         !crit && break
 
@@ -377,7 +447,7 @@ function loop_opt(
             W = tW(pos_psiB, psiA, psiB, left_BA, right_cache_BA[pos_psiA]) # Compute the vector W for the current position in the loop, using the right cache for ΨBΨA
             psi = transpose(psiB[pos_psiB], ((1, 3), (2,)))
 
-            if loop_condition.nuclear_norm
+            if lp.nuclear_norm
                 N_eff = N + ξ * id(domain(N))
                 W_eff = W + ξ * transpose(M[pos_psiB], ((1, 3), (2,))) + transpose(Λ[pos_psiB], ((1, 3), (2,)))
             else
@@ -385,10 +455,10 @@ function loop_opt(
                 W_eff = W
             end
 
-            new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi, loop_condition) # Optimize the tensor T for the current position in the loop, with the psiB[pos_psiB] be the initial guess
+            new_psi, residual, relative_shift = opt_T(N_eff, W_eff, psi, lp) # Optimize the tensor T for the current position in the loop
             psiB[pos_psiB] = transpose(new_psi, ((1,), (3, 2)))
 
-            if loop_condition.nuclear_norm
+            if lp.nuclear_norm
                 if iseven(pos_psiB)
                     M[pos_psiB], rank, nuclear_norm1 = singular_value_thresholding(psiB[pos_psiB] + (-Λ[pos_psiB] / ξ), ξ)
                 else
@@ -420,12 +490,12 @@ function loop_opt(
         wdt = conj(tdw)
         cost_this = real((C + tNt - wdt - tdw) / C)
         push!(cost, cost_this)
-        crit = loop_condition.sweeping(sweep, cost)
+        crit = lp.sweeping(sweep, cost)
 
         @infov 3 "Sweep: $sweep, Cost: $(cost[end]), Time: $(time() - t_start)s" # Included the time taken for the sweep
 
-        if loop_condition.nuclear_norm
-            ξ = max(loop_condition.ρ * ξ, loop_condition.ξ_min)
+        if lp.nuclear_norm
+            ξ = max(lp.ρ * ξ, lp.ξ_min)
         end
     end
 
@@ -438,7 +508,7 @@ The lattice is rotated by 135 degrees in counter clockwise direction.
 The elementary modular parameter `τ₀ ↦ (1 + τ₀) / (1 - τ₀)`.
 """
 function ΨB_to_TATB(psiB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any, 1, 2}}
-    #= 
+    #=
     (4)         (2)     (4)         (2)
       ↘        ↗          ↘        ↗
         7 --- 6             4 --- 1
@@ -453,94 +523,4 @@ function ΨB_to_TATB(psiB::Vector{T}) where {T <: AbstractTensorMap{<:Any, <:Any
         psiB[5][3; 4 -3] * psiB[8][-1; 4 1]
     @assert _check_dual(TA) && _check_dual(TB)
     return TA, TB
-end
-
-function loop_opt!(
-        scheme::LoopTNR, trunc::TruncationStrategy,
-        loop_condition::LoopParameters,
-        verbosity::Int
-    )
-    psiA = Ψ_A(scheme)
-    psiB = loop_opt(psiA, trunc, loop_condition, verbosity)
-    scheme.TA, scheme.TB = ΨB_to_TATB(psiB)
-    return scheme
-end
-
-function step!(
-        scheme::LoopTNR,
-        trunc::TruncationStrategy,
-        entanglement_criterion::stopcrit,
-        loop_condition::LoopParameters,
-        verbosity::Int
-    )
-    if !loop_condition.nuclear_norm
-        entanglement_filtering!(scheme, loop_condition.truncentanglement, entanglement_criterion)
-    end
-    scheme = loop_opt!(scheme, trunc, loop_condition, verbosity)
-    return scheme
-end
-
-function step!(
-        scheme::LoopTNR,
-        trunc::TruncationStrategy,
-        loop_condition::LoopParameters,
-        verbosity::Int
-    )
-    return step!(scheme, trunc, default_entanglement_criterion, loop_condition, verbosity)
-end
-
-function run!(
-        scheme::LoopTNR, trscheme::TruncationStrategy,
-        criterion::stopcrit, loop_condition::LoopParameters,
-        finalizer::Finalizer{E};
-        entanglement_criterion = default_entanglement_criterion,
-        finalize_beginning = true,
-        verbosity = 1
-    ) where {E}
-    data = Vector{E}()
-
-    LoggingExtras.withlevel(; verbosity) do
-        @infov 1 "Starting simulation\n $(scheme)\n"
-        if finalize_beginning
-            push!(data, finalizer.f!(scheme))
-        end
-
-        steps = 0
-        crit = true
-
-        t = @elapsed while crit
-            @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, entanglement_criterion, loop_condition, verbosity)
-            push!(data, finalizer.f!(scheme))
-
-            steps += 1
-            crit = criterion(steps, data)
-        end
-
-        @infov 1 "Simulation finished\n $(stopping_info(criterion, steps, data))\n Elapsed time: $(t)s\n Iterations: $steps"
-    end
-    return data
-end
-
-function run!(scheme, trscheme, criterion, loop_condition; kwargs...)
-    return run!(scheme, trscheme, criterion, loop_condition, default_Finalizer; kwargs...)
-end
-
-function run!(
-        scheme::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit;
-        finalize_beginning = true, verbosity = 1
-    )
-    loop_condition = LoopParameters()
-    return run!(
-        scheme, trscheme, criterion, loop_condition;
-        finalize_beginning = finalize_beginning,
-        verbosity = verbosity
-    )
-end
-
-function Base.show(io::IO, scheme::LoopTNR)
-    println(io, "LoopTNR - Loop Tensor Network Renormalization")
-    println(io, "  * TA: $(summary(scheme.TA))")
-    println(io, "  * TB: $(summary(scheme.TB))")
-    return nothing
 end

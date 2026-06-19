@@ -31,7 +31,6 @@ function Base.show(io::IO, data::CFTData)
 end
 
 CFTData(scheme::TNRScheme; kwargs...) = CFTData(scheme.T; kwargs...) # simple 1-site unitcell schemes
-CFTData(scheme::LoopTNR; kwargs...) = CFTData(scheme.TA, scheme.TB; kwargs...) # 2-site unitcell schemes
 function CFTData(scheme::BTRG; kwargs...) # merge bond tensors into central tensor
     @tensor T_unit[-1 -2; -3 -4] := scheme.T[1 2; -3 -4] * scheme.S1[-2; 2] *
         scheme.S2[-1; 1]

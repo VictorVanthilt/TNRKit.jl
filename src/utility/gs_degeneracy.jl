@@ -46,8 +46,6 @@ function ground_state_degeneracy(scheme::BTRG; unitcell::Int = 1)
     return ground_state_degeneracy(T_unit, unitcell)
 end
 
-ground_state_degeneracy(scheme::LoopTNR) = ground_state_degeneracy(scheme.TA, scheme.TB)
-
 """
     gu_wen_ratio(T::AbstractTensorMap{E, S, 2, 2}) where {E, S}
 
@@ -103,5 +101,3 @@ function gu_wen_ratio(scheme::BTRG)
         scheme.S2[-1; 1]
     return gu_wen_ratio(T_unit)
 end
-
-gu_wen_ratio(scheme::LoopTNR) = gu_wen_ratio(scheme.TA, scheme.TB)

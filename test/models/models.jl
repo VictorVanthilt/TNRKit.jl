@@ -53,36 +53,40 @@ end
 @testset "LoopTNR - 2D XY model" begin
     @info "Central charge of KT phase with U(1) symmetry"
     T_KT = classical_XY(U1Irrep, XY_βc + 0.1, 8)
-    scheme = LoopTNR(T_KT)
-    data = run!(scheme, truncrank(16), maxiter(20))
-    cft = CFTData(scheme)
+    renorm = Renormalizer(LoopTNR(; trunc = truncrank(16), maxiter = 20), T_KT)
+    run!(renorm; verbosity = 0)
+    TA, TB = get_tensor(renorm)
+    cft = CFTData(TA, TB)
     central_charge = cft.central_charge
     @test central_charge ≈ 1.0 atol = 1.0e-2
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of symmetric phase with U(1) symmetry"
     T_sym = classical_XY(U1Irrep, XY_βc - 0.1, 8)
-    scheme = LoopTNR(T_sym)
-    data = run!(scheme, truncrank(16), maxiter(20))
-    cft = CFTData(scheme)
+    renorm = Renormalizer(LoopTNR(; trunc = truncrank(16), maxiter = 20), T_sym)
+    run!(renorm; verbosity = 0)
+    TA, TB = get_tensor(renorm)
+    cft = CFTData(TA, TB)
     central_charge = cft.central_charge
     @test central_charge ≈ 0.0 atol = 1.0e-12
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of KT phase with O(2) symmetry"
     T_KT = classical_XY(CU1Irrep, XY_βc + 0.1, 8)
-    scheme = LoopTNR(T_KT)
-    data = run!(scheme, truncrank(16), maxiter(20))
-    cft = CFTData(scheme)
+    renorm = Renormalizer(LoopTNR(; trunc = truncrank(16), maxiter = 20), T_KT)
+    run!(renorm; verbosity = 0)
+    TA, TB = get_tensor(renorm)
+    cft = CFTData(TA, TB)
     central_charge = cft.central_charge
     @test central_charge ≈ 1.0 atol = 1.0e-2
     @info "Obtained central charge:\n$central_charge."
 
     @info "Central charge of symmetric phase with O(2) symmetry"
     T_sym = classical_XY(CU1Irrep, XY_βc - 0.1, 8)
-    scheme = LoopTNR(T_sym)
-    data = run!(scheme, truncrank(16), maxiter(20))
-    cft = CFTData(scheme)
+    renorm = Renormalizer(LoopTNR(; trunc = truncrank(16), maxiter = 20), T_sym)
+    run!(renorm; verbosity = 0)
+    TA, TB = get_tensor(renorm)
+    cft = CFTData(TA, TB)
     central_charge = cft.central_charge
     @test central_charge ≈ 0.0 atol = 1.0e-12
     @info "Obtained central charge:\n$central_charge."
@@ -190,9 +194,10 @@ end
         T = quantum_ising_chain(Float64, Z2Irrep, dt; J = 1.0, g = 1.0)
         T = vertical_stack_linear(T, n, trunc_stack)
     end
-    scheme = LoopTNR(T)
-    data = run!(scheme, truncrank(16), maxiter(16))
-    cft = CFTData(scheme)
+    renorm = Renormalizer(LoopTNR(; trunc = truncrank(16), maxiter = 16), T)
+    run!(renorm; verbosity = 0)
+    TA, TB = get_tensor(renorm)
+    cft = CFTData(TA, TB)
     central_charge = cft.central_charge
     @test central_charge ≈ 0.5 atol = 1.0e-2
     @info "Obtained central charge:\n$central_charge."

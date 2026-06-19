@@ -40,19 +40,6 @@ function finalize_two_by_two!(scheme::BTRG)
     return n^(1 / 4)
 end
 
-function finalize!(scheme::LoopTNR)
-    T1 = permute(scheme.TA, ((1, 2), (4, 3)))
-    T2 = permute(scheme.TB, ((1, 2), (4, 3)))
-    n = norm(
-        @tensor opt = true T1[1 2; 3 4] * T2[3 5; 1 6] *
-            T2[7 4; 8 2] * T1[8 6; 7 5]
-    )
-
-    scheme.TA /= n^(1 / 4)
-    scheme.TB /= n^(1 / 4)
-    return n^(1 / 4)
-end
-
 function finalize!(scheme::ATRG_3D)
     n = norm(@tensor scheme.T[1 1; 2 3 2 3])
     scheme.T /= n
@@ -168,11 +155,6 @@ function finalize_groundstatedegeneracy!(scheme::BTRG)
     return ground_state_degeneracy(scheme; unitcell = 1)
 end
 
-function finalize_groundstatedegeneracy!(scheme::LoopTNR)
-    finalize!(scheme)
-    return ground_state_degeneracy(scheme; unitcell = 2)
-end
-
 GSDegeneracy_Finalizer = Finalizer(finalize_groundstatedegeneracy!, Float64)
 
 #Finalizer for Gu-Wen ratio
@@ -182,11 +164,6 @@ function finalize_gu_wen_ratio!(scheme::TNRScheme)
 end
 
 function finalize_gu_wen_ratio!(scheme::BTRG)
-    finalize!(scheme)
-    return gu_wen_ratio(scheme)
-end
-
-function finalize_gu_wen_ratio!(scheme::LoopTNR)
     finalize!(scheme)
     return gu_wen_ratio(scheme)
 end

@@ -25,7 +25,7 @@ These [`Finalizer`](@ref)s are a way for the user to calculate all sorts of thin
     T = get_tensor(renorm)           # final tensor
     f = free_energy(renorm.norms, β) # norms are stored in the renormalizer
     ```
-    The `Finalizer` pattern is still used by all other schemes ([`BTRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref), [`LoopTNR`](@ref), etc.).
+    The `Finalizer` pattern is still used by schemes that have not yet been migrated to the iterable interface ([`BTRG`](@ref), [`ATRG`](@ref), [`HOTRG`](@ref), etc.).
 
 A custom instance of `Finalizer` can be created as:
 ```Julia
