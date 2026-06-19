@@ -62,7 +62,8 @@ include("schemes/symmetric_looptnr.jl")
 export classical_ising_inv # Ising model with all legs in codomain
 
 export TNRScheme
-export TNRAlgorithm
+export TNRParams
+export TRGParams
 export Renormalizer
 export get_tensor
 

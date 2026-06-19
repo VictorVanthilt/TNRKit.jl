@@ -1,4 +1,4 @@
-const simple_scheme = Union{ATRG, HOTRG}
+const simple_scheme = Union{TRG, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)

@@ -12,7 +12,7 @@ Each iteration yields `(state, norms)`.
 - Subsequent yields: state after each RG step + normalization.
 - Stops after `alg.maxiter` RG steps have been performed.
 """
-mutable struct Renormalizer{A <: TNRAlgorithm, S}
+mutable struct Renormalizer{A <: TNRParams, S}
     "Algorithm configuration (truncation, maxiter, etc.)"
     alg::A
     "Algorithm-specific state holding all network tensors"
