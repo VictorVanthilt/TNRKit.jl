@@ -23,6 +23,7 @@ export trivial_convcrit
 
 # schemes
 include("schemes/tnrscheme.jl")
+include("schemes/renormalizer.jl")
 include("schemes/trg.jl")
 include("schemes/btrg.jl")
 include("schemes/hotrg.jl")
@@ -60,9 +61,9 @@ include("schemes/looptnr.jl")
 include("schemes/symmetric_looptnr.jl")
 export classical_ising_inv # Ising model with all legs in codomain
 
-export TNRScheme
+export Renormalizer, TNRScheme, TNRParams
 
-export TRG
+export TRG, TRGParams
 export BTRG
 export HOTRG
 export HOTRG_3D
@@ -90,7 +91,7 @@ export CorrelationHOTRG
 export LoopTNR, LoopParameters
 export SLoopTNR
 
-export run!
+export run!, rgstep!
 
 # models
 include("models/ising.jl")

@@ -17,19 +17,9 @@ const T_aniso = classical_ising(Z2Irrep, βc_aniso; Jx = Jx_aniso, Jy = Jy_aniso
 const f_aniso_exact = f_onsager_anisotropic(βc_aniso, Jx_aniso, Jy_aniso)
 const τ_aniso_exact = sinh(2 * βc_aniso * Jx_aniso)
 
-function cft_finalize!(scheme)
-    finalize!(scheme)
-    return CFTData(scheme)
-end
-
 """
 Normalize the tensor, return the normalization factor and elementary modular parameter
 """
-function tau_finalize!(scheme::TRG)
-    n = finalize!(scheme)
-    τ0, c = extract_tau_and_c(scheme.T; fast = false)
-    return (n, τ0)
-end
 function tau_finalize!(scheme::LoopTNR)
     n = finalize!(scheme)
     τ0, c = extract_tau_and_c(scheme.TA, scheme.TB; fast = false)
@@ -40,27 +30,28 @@ end
 @testset "TRG - Anisotropic Ising Model" begin
     @info "Anisotropy: Jx = $(Jx_aniso), Jy = $(Jy_aniso)"
     @info "TRG anisotropic ising free energy"
-    scheme = TRG(T_aniso)
-    elt = scalartype(T_aniso)
-    finalizer = Finalizer(tau_finalize!, Tuple{elt, complex(elt)})
-    data = run!(scheme, truncrank(24), maxiter(25), finalizer)
-
-    ns = map(Base.Fix2(getindex, 1), data)
-    @test free_energy(ns, βc_aniso) ≈ f_aniso_exact rtol = 2.0e-6
+    params = TRGParams(; trunc = truncrank(24), stop = maxiter(25))
+    renorm = Renormalizer(params, T_aniso)
+    T_step10 = nothing
+    τs = complex(scalartype(T_aniso))[]
+    for (state, _) in renorm
+        τ = first(extract_tau_and_c(state.T; fast = false))
+        @info "* Step $(renorm.step): τ = $τ."
+        push!(τs, τ)
+        (renorm.step == 10) && (T_step10 = state.T)
+    end
+    @test free_energy(renorm.data, βc_aniso) ≈ f_aniso_exact rtol = 2.0e-6
 
     @info "TRG τ → (τ - 1) / (τ + 1)"
     f_trg(τ) = (τ - 1) / (τ + 1)
-    τs = map(Base.Fix2(getindex, 2), data)
     for n in 5:7
         @test τs[n + 1] ≈ f_trg(τs[n]) rtol = 5.0e-2
         @info "* verified for step $(n - 1) → $n"
     end
 
     @info "TRG anisotropic ising CFT data — shape [1, 1, 0]"
-    scheme = TRG(T_aniso)
-    run!(scheme, truncrank(24), maxiter(10))
     # use fast tau algorithm below
-    cft = CFTData(scheme; shape = [1, 1, 0])
+    cft = CFTData(T_step10; shape = [1, 1, 0])
     sd_all = real(cft.scaling_dimensions)
     cft_sorted = sort(sd_all[2:end]; by = abs)
 

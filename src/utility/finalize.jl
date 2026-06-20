@@ -1,3 +1,7 @@
+# ========================================================
+# normalization after an RG step for different TNR schemes
+# ========================================================
+
 const simple_scheme = Union{TRG, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
@@ -133,6 +137,10 @@ function finalize_phase23!(scheme::CorrelationHOTRG)
 
     return n, n_imp, n_imp
 end
+
+# =====================================================================
+# TODO: remove the following once Renormalizer interface is finished
+# =====================================================================
 
 # cft data finalize
 function finalize_cftdata!(scheme::TNRScheme)

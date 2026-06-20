@@ -1,5 +1,4 @@
 # Extra code to make output type available
-function step! end
 function finalize! end
 
 """
@@ -30,6 +29,8 @@ const ImpurityHOTRG_Finalizer = Finalizer(finalize!, Tuple{Float64, Float64, Flo
 # Finalization functions for the various TNR schemes
 abstract type TNRScheme{E, S} end
 
+# TODO: This should be eventually replaced by `run!(renorm::Renormalizer; verbosity = 1)`.
+# Finalizers will be dropped at the end.
 function run!(scheme::TNRScheme, trscheme::TruncationStrategy, criterion::stopcrit, finalizer::Finalizer{E}; finalize_beginning = true, verbosity = 1) where {E}
     data = Vector{E}()
 

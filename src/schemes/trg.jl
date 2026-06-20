@@ -34,6 +34,39 @@ mutable struct TRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
     end
 end
 
+"""
+$(TYPEDEF)
+
+Parameters for the Tensor Renormalization Group algorithm.
+
+# Constructors
+
+All parameters are passed as keyword arguments with sensible defaults:
+
+    $(FUNCTIONNAME)(; trunc=truncrank(16), stop=maxiter(20))
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct TRGParams <: TNRParams
+    "Truncation strategy for SVD steps"
+    trunc::TruncationStrategy = truncrank(16)
+    "Stopping criterion"
+    stop::stopcrit = maxiter(20)
+end
+
+function Renormalizer(params::TRGParams, T::TT) where {TT}
+    scheme = TRG(T)
+    n = finalize!(scheme)
+    return Renormalizer(params, scheme, [n])
+end
+
+function Renormalizer(params::TRGParams, scheme::TRG)
+    n = finalize!(scheme)
+    return Renormalizer(params, scheme, [n])
+end
+
 function step!(scheme::TRG, trunc::TruncationStrategy)
     A, B = SVD12(scheme.T, trunc)
     Tp = transpose(scheme.T, ((2, 4), (1, 3)))
@@ -42,8 +75,28 @@ function step!(scheme::TRG, trunc::TruncationStrategy)
     return scheme
 end
 
+# TODO: legacy `run!` interface for backward compatibility. To be removed later.
+function run!(
+        scheme::TRG,
+        trscheme::TruncationStrategy,
+        criterion::stopcrit;
+        verbosity = 1,
+    )
+    params = TRGParams(; trunc = trscheme, stop = criterion)
+    renorm = Renormalizer(params, scheme)
+    _, data = run!(renorm; verbosity)
+    return data
+end
+
 function Base.show(io::IO, scheme::TRG)
     println(io, "TRG - Tensor Renormalization Group")
     println(io, "  * T: $(summary(scheme.T))")
+    return nothing
+end
+
+function Base.show(io::IO, params::TRGParams)
+    println(io, "TRGParams")
+    println(io, "  * truncation: $(params.trunc)")
+    println(io, "  * stop: $(params.stop)")
     return nothing
 end
