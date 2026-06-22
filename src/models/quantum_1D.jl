@@ -74,6 +74,11 @@ end
 # =================================================
 
 """
+    quantum_ising_chain(dt::Float64; kwargs...)
+    quantum_ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...)
+    quantum_ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...)
+    quantum_ising_chain(elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64; J::Float64=1.0, g::Float64=0.0)
+
 Partition function tensor for 1D transverse field Ising chain
 ```
     H(PBC) = -J ∑_i (σz_i σz_{i+1} + g σx_i)
@@ -99,6 +104,11 @@ quantum_ising_chain(dt::Float64; kwargs...) =
     quantum_ising_chain(ComplexF64, Trivial, dt; kwargs...)
 
 """
+    kitaev_chain(dt::Float64; kwargs...)
+    kitaev_chain(elt::Type{<:Number}, dt::Float64; kwargs...)
+    kitaev_chain(symm::Type{<:Sector}, dt::Float64; kwargs...)
+    kitaev_chain(elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64; t::Float64=1.0, Δ::Float64=1.0, V::Float64=0.0, µ::Float64=0.0)
+
 Partition function tensor for 1D Kitaev chain model
 ```
     H = ∑_i [
@@ -108,7 +118,7 @@ Partition function tensor for 1D Kitaev chain model
 ```
 It is related to the spin-1/2 Heisenberg XYZ model
 ```
-    H = ∑_i (J_x Sx_i Sx_{i+1} + J_y Sy_i Sy_{i+1} 
+    H = ∑_i (J_x Sx_i Sx_{i+1} + J_y Sy_i Sy_{i+1}
             + J_z Sz_i Sz_{i+1} - h Sz_j)
 ```
 by Jordan-Wigner transformation
