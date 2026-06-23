@@ -58,26 +58,26 @@ _has_shape(tm, shapes) = any(s -> tm.shape ≈ s, shapes)
 # ===========================================================================
 
 # Make the struct callable: (tm)(x) applies the transfer matrix
-function (tm::CFTTransferMatrix)(x)
-    return _TMaction(tm, x)
+function (tm::CFTTransferMatrix)(x; pbc::Bool = true)
+    return _TMaction(tm, x; pbc)
 end
 
 # Dispatch the action on the shape
-function _TMaction(tm::CFTTransferMatrix{E, S}, x) where {E, S}
+function _TMaction(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
     if tm.shape ≈ [1, 2, 1]
-        return _TMaction_1x2_NtoS(tm, x)
+        return _TMaction_1x2_NtoS(tm, x; pbc)
     elseif tm.shape ≈ [2, 2, 0]
-        return _TMaction_2x2_NtoS(tm, x)
+        return _TMaction_2x2_NtoS(tm, x; pbc)
     elseif tm.shape ≈ [sqrt(2) / 2, sqrt(2), sqrt(2) / 2]
-        return _TMaction_2x2_NEtoSW(tm, x)
+        return _TMaction_2x2_NEtoSW(tm, x; pbc)
     elseif tm.shape ≈ [sqrt(2), sqrt(2), 0]
-        return _TMaction_2x1_NEtoSW(tm, x)
+        return _TMaction_2x1_NEtoSW(tm, x; pbc)
     elseif tm.shape ≈ [1, 4, 1]
-        return _TMaction_1x4_twist(tm, x)
+        return _TMaction_1x4_twist(tm, x; pbc)
     elseif _has_shape(tm, _SHAPES_140)
-        return _TMaction_1x4(tm, x)
+        return _TMaction_1x4(tm, x; pbc)
     elseif _has_shape(tm, _SHAPES_2gates)
-        return _TMaction_2gates(tm, x)
+        return _TMaction_2gates(tm, x; pbc)
     else
         error("Unsupported transfer matrix shape: $(tm.shape).")
     end
@@ -93,9 +93,10 @@ Action of [1, 2, 1] transfer matrix.
     1'  2'
 ```
 """
-function _TMaction_1x2_NtoS(tm::CFTTransferMatrix{E, S}, x) where {E, S}
+function _TMaction_1x2_NtoS(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
+    TB′ = pbc ? tm.TB : twist(tm.TB, (2, 4))
     @tensor fx[-1 -2; -3] :=
-        tm.TA[a -2; 1 b] * twist(tm.TB, (2, 4))[b -1; 2 a] * x[1 2; -3]
+        tm.TA[a -2; 1 b] * TB′[b -1; 2 a] * x[1 2; -3]
     return fx
 end
 
@@ -111,10 +112,12 @@ Action of [2, 2, 0] transfer matrix.
         1'  2'
 ```
 """
-function _TMaction_2x2_NtoS(tm::CFTTransferMatrix{E, S}, x) where {E, S}
+function _TMaction_2x2_NtoS(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
+    TA′ = pbc ? tm.TA : twist(tm.TA, 1)
+    TB′ = pbc ? tm.TB : twist(tm.TB, 1)
     @tensor begin
-        fx[-1 -2; -3] := twist(tm.TA, 1)[c -1; 1 m] * x[1 2; -3] * tm.TB[m -2; 2 c]
-        fx[-1 -2; -3] := twist(tm.TB, 1)[c -1; 1 m] * fx[1 2; -3] * tm.TA[m -2; 2 c]
+        fx[-1 -2; -3] := TA′[c -1; 1 m] * x[1 2; -3] * tm.TB[m -2; 2 c]
+        fx[-1 -2; -3] := TB′[c -1; 1 m] * fx[1 2; -3] * tm.TA[m -2; 2 c]
     end
     return fx
 end
@@ -131,12 +134,14 @@ Action of [√2/2, √2, √2/2] transfer matrix.
         1'  2'
 ```
 """
-function _TMaction_2x2_NEtoSW(tm::CFTTransferMatrix{E, S}, x) where {E, S}
+function _TMaction_2x2_NEtoSW(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
+    TA′ = pbc ? tm.TA : twist(tm.TA, 2)
+    TB′ = pbc ? tm.TB : twist(tm.TB, 2)
     @tensor begin
         fx[-1 -2 -3 -4; -5] := tm.TB[-2 -3; a b] * x[-1 a b -4; -5]
         fx[-1 -2 -3 -4; -5] := tm.TA[-1 -2; a b] * fx[a b -3 -4; -5]
-        fx[-1 -2 -3 -4; -5] := twist(tm.TA, 2)[-3 -4; a b] * fx[-1 -2 a b; -5]
-        fx[-1 -2 -3 -4; -5] := twist(tm.TB, 2)[-4 -1; a b] * fx[-3 a b -2; -5]
+        fx[-1 -2 -3 -4; -5] := TA′[-3 -4; a b] * fx[-1 -2 a b; -5]
+        fx[-1 -2 -3 -4; -5] := TB′[-4 -1; a b] * fx[-3 a b -2; -5]
     end
     return fx
 end
@@ -153,10 +158,11 @@ Action of [√2, √2, 0] transfer matrix
         1'
 ```
 """
-function _TMaction_2x1_NEtoSW(tm::CFTTransferMatrix{E, S}, x) where {E, S}
+function _TMaction_2x1_NEtoSW(tm::CFTTransferMatrix{E, S}, x; pbc::Bool = true) where {E, S}
+    TB′ = pbc ? tm.TB : twist(tm.TB, (2, 4))
     @tensor begin
         fx[-1 -2; -3] := tm.TA[-1 -2; a b] * x[a b; -3]
-        fx[-1 -2; -3] := twist(tm.TB, (2, 4))[-2 -1; b a] * fx[a b; -3]
+        fx[-1 -2; -3] := TB′[-2 -1; b a] * fx[a b; -3]
     end
     return fx
 end
@@ -177,13 +183,14 @@ Action of [√2, 2√2, 0] transfer matrix
 First appeared in Chenfeng Bao's thesis: http://hdl.handle.net/10012/14674.
 """
 function _TMaction_2gates(
-        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}; pbc::Bool = true
     ) where {E, S}
+    TA′ = pbc ? tm.TA : twist(tm.TA, (2, 4))
     @tensor begin
-        fx[-1 -2 -3 -4; -5] := tm.TB[-1 -2; 1 2] * x[1 2 3 4; -5] * tm.TB[-3 -4; 3 4]
-        fx[-1 -2 -3 -4; -5] := tm.TA[-3 -4; 2 3] * fx[1 2 3 4; -5] * tm.TA[-1 -2; 4 1]
+        fx[-1 -2 -3 -4; -5] := tm.TB[-1 -2; 1 2] * tm.TB[-3 -4; 3 4] * x[1 2 3 4; -5]
+        fx[-1 -2 -3 -4; -5] := tm.TA[-2 -3; 2 3] * TA′[-4 -1; 4 1] * fx[1 2 3 4; -5]
     end
-    return permute(fx, ((2, 3, 4, 1), (5,)))
+    return fx
 end
 
 """
@@ -197,11 +204,12 @@ Action of [1, 4, 0] transfer matrix. Only valid when TA = TB.
 ```
 """
 function _TMaction_1x4(
-        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}; pbc::Bool = true
     ) where {E, S}
-    return @tensor TTTTx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] *
+    TB′ = pbc ? tm.TB : twist(tm.TB, 4)
+    return @tensor fx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] *
         tm.TA[41 -1; 1 12] * tm.TB[12 -2; 2 23] *
-        tm.TA[23 -3; 3 34] * tm.TB[34 -4; 4 41]
+        tm.TA[23 -3; 3 34] * TB′[34 -4; 4 41]
 end
 
 """
@@ -215,10 +223,13 @@ Action of [1, 4, 1] transfer matrix.
 ```
 """
 function _TMaction_1x4_twist(
-        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}
+        tm::CFTTransferMatrix{E, S}, x::TensorMap{E, S, 4, 1}; pbc::Bool = true
     ) where {E, S}
-    TTTTx = _TMaction_1x4(tm, x)
-    return permute(TTTTx, ((2, 3, 4, 1), (5,)))
+    TB′ = pbc ? tm.TB : twist(tm.TB, (2, 4))
+    @tensor fx[-1 -2 -3 -4; -5] := x[1 2 3 4; -5] *
+        tm.TA[41 -2; 1 12] * tm.TB[12 -3; 2 23] *
+        tm.TA[23 -4; 3 34] * TB′[34 -1; 4 41]
+    return fx
 end
 
 # Utility to renormalize tensors for [1, 8, 1] and [4/√10, 2√10, 2/√10]
@@ -339,32 +350,81 @@ Returns a vector of eigenvalues.
 function leading_eigenvalue(tm::CFTTransferMatrix{E, S}; Nh::Int = 25) where {E, S}
     @assert Nh >= 1
     I = sectortype(tm.TA)
-    if BraidingStyle(I) != Bosonic()
-        throw(ArgumentError("Sectors with non-Bosonic charge $I has not been implemented"))
-    end
-
     xspace = domain(tm)
-    I = sectortype(tm.TA)
-    d = Dict{I, Vector{ComplexF64}}()
-    for charge in sectors(fuse(xspace))
-        vals = leading_eigenvalue(tm, charge; Nh = Nh)
-        isempty(vals) && continue
-        d[charge] = vals
+    if BraidingStyle(I) == Fermionic()
+        d = Dict{Tuple{Symbol, I}, Vector{ComplexF64}}()
+        for pbc in (false, true), charge in sectors(fuse(xspace))
+            vals = leading_eigenvalue(tm, charge; pbc, Nh)
+            isempty(vals) && continue
+            bc_label = pbc ? :R : :NS
+            d[(bc_label, charge)] = vals
+        end
+    else
+        d = Dict{I, Vector{ComplexF64}}()
+        for charge in sectors(fuse(xspace))
+            vals = leading_eigenvalue(tm, charge; pbc = true, Nh)
+            isempty(vals) && continue
+            d[charge] = vals
+        end
     end
     return StructuredVector(d)
 end
 
-function leading_eigenvalue(tm::CFTTransferMatrix{E, S}, charge; Nh::Int = 1) where {E, S}
+function leading_eigenvalue(
+        tm::CFTTransferMatrix{E, S}, charge; pbc::Bool = true, Nh::Int = 1
+    ) where {E, S}
     @assert Nh >= 1
     I = sectortype(tm.TA)
+    if !pbc
+        BraidingStyle(I) != Bosonic() || error("pbc = false only applies to fermionic tensors.")
+    end
     V = (I == Trivial) ? field(tm.TA)^1 : Vect[I](charge => 1)
     x = ones(domain(tm) ← V)
     dim(x) == 0 && error("$charge is not allowed by the transfer matrix.")
+    tm′(x) = tm(x; pbc)
     spec, _, info = eigsolve(
-        tm, x, Nh, :LM; krylovdim = 40, maxiter = 100, tol = 1.0e-12, verbosity = 0
+        tm′, x, Nh, :LM; krylovdim = 40, maxiter = 100, tol = 1.0e-12, verbosity = 0
     )
     if info.converged == 0
-        @warn "CFTTransferMatrix eigensolver did not converge in sector $charge."
+        @warn "CFTTransferMatrix eigensolver did not converge in sector $charge with pbc = $pbc."
     end
     return filter(x -> abs(real(x)) ≥ 1.0e-12, spec)
+end
+
+# ===========================================================================
+#  Special treatment: [1, L, 0] without `eigsolve`
+# ===========================================================================
+
+"""
+    _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int; pbc::Bool = true)
+
+Build a row transfer matrix from `unitcell` copies of the tensor `T`.
+"""
+function _row_transfer_matrix(
+        T::AbstractTensorMap{E, S, 2, 2}, unitcell::Int; pbc::Bool = true
+    ) where {E, S}
+    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
+    indices[end][4] = 1
+    tensors = fill(T, unitcell)
+    if !pbc
+        tensors[end] = twist(T, 4)
+    end
+    Tcontracted = ncon(tensors, indices)
+    outinds = ntuple(i -> i, unitcell)
+    ininds = ntuple(i -> unitcell + i, unitcell)
+    return permute(Tcontracted, (outinds, ininds))
+end
+
+function _rowtm_eigvals(T::AbstractTensorMap{E, S, 2, 2}, unitcell::Int) where {E, S}
+    if BraidingStyle(sectortype(T)) == Fermionic()
+        # include contribution from both NS and R sectors
+        tm = twistdual(_row_transfer_matrix(T, unitcell; pbc = false), 1:unitcell)
+        ev_ns = mapkeys(k -> (:NS, k), StructuredVector(eig_vals(tm)))
+        tm = twistdual(_row_transfer_matrix(T, unitcell; pbc = true), 1:unitcell)
+        ev_rm = mapkeys(k -> (:R, k), StructuredVector(eig_vals(tm)))
+        return vcat(ev_ns, ev_rm)
+    else
+        tm = _row_transfer_matrix(T, unitcell; pbc = true)
+        return StructuredVector(eig_vals(tm))
+    end
 end

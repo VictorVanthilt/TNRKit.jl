@@ -9,12 +9,8 @@ Loop Optimization for Tensor Network Renormalization
     $(FUNCTIONNAME)(unitcell_2x2::Matrix{T})
 
 # Running the algorithm
-    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters, finalizer::Finalizer[,
-              entanglement_criterion::stopcrit, finalize_beginning=true, verbosity=1])
-    
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit, parameters::LoopParameters; kwargs...)
-
-    run!(::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit[finalize_beginning=true, verbosity=1])
+    run!(::LoopTNR, trunc::TruncationStrategy, criterion::stopcrit, [parameters::LoopParameters], [finalizer::Finalizer];
+        [entanglement_criterion::stopcrit, finalize_beginning=true, verbosity=1])
 
 # LoopParameters
 See also: [`LoopParameters`](@ref)
@@ -490,7 +486,7 @@ function step!(
 end
 
 function run!(
-        scheme::LoopTNR, trscheme::TruncationStrategy,
+        scheme::LoopTNR, trunc::TruncationStrategy,
         criterion::stopcrit, loop_condition::LoopParameters,
         finalizer::Finalizer{E};
         entanglement_criterion = default_entanglement_criterion,
@@ -510,7 +506,7 @@ function run!(
 
         t = @elapsed while crit
             @infov 2 "Step $(steps + 1), data[end]: $(!isempty(data) ? data[end] : "empty")"
-            step!(scheme, trscheme, entanglement_criterion, loop_condition, verbosity)
+            step!(scheme, trunc, entanglement_criterion, loop_condition, verbosity)
             push!(data, finalizer.f!(scheme))
 
             steps += 1
@@ -522,21 +518,23 @@ function run!(
     return data
 end
 
-function run!(scheme, trscheme, criterion, loop_condition; kwargs...)
-    return run!(scheme, trscheme, criterion, loop_condition, default_Finalizer; kwargs...)
-end
+# use default finalizer
+run!(
+    scheme::LoopTNR, trunc::TruncationStrategy,
+    criterion::stopcrit, loop_condition::LoopParameters; kwargs...
+) = run!(scheme, trunc, criterion, loop_condition, default_Finalizer; kwargs...)
 
-function run!(
-        scheme::LoopTNR, trscheme::TruncationStrategy, criterion::stopcrit;
-        finalize_beginning = true, verbosity = 1
-    )
-    loop_condition = LoopParameters()
-    return run!(
-        scheme, trscheme, criterion, loop_condition;
-        finalize_beginning = finalize_beginning,
-        verbosity = verbosity
-    )
-end
+# use default loop parameters
+run!(
+    scheme::LoopTNR, trunc::TruncationStrategy,
+    criterion::stopcrit, finalizer::Finalizer; kwargs...
+) = run!(scheme, trunc, criterion, LoopParameters(), finalizer; kwargs...)
+
+# use both default loop paramater and default finalizer
+run!(
+    scheme::LoopTNR, trunc::TruncationStrategy,
+    criterion::stopcrit; kwargs...
+) = run!(scheme, trunc, criterion, LoopParameters(), default_Finalizer; kwargs...)
 
 function Base.show(io::IO, scheme::LoopTNR)
     println(io, "LoopTNR - Loop Tensor Network Renormalization")

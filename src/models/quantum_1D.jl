@@ -74,6 +74,11 @@ end
 # =================================================
 
 """
+    quantum_ising_chain(dt::Float64; kwargs...)
+    quantum_ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...)
+    quantum_ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...)
+    quantum_ising_chain(elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64; J::Float64=1.0, g::Float64=0.0)
+
 Partition function tensor for 1D transverse field Ising chain
 ```
     H(PBC) = -J ∑_i (σz_i σz_{i+1} + g σx_i)
@@ -95,3 +100,59 @@ quantum_ising_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
     quantum_ising_chain(elt, Trivial, dt; kwargs...)
 quantum_ising_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
     quantum_ising_chain(ComplexF64, symm, dt; kwargs...)
+quantum_ising_chain(dt::Float64; kwargs...) =
+    quantum_ising_chain(ComplexF64, Trivial, dt; kwargs...)
+
+"""
+    kitaev_chain(dt::Float64; kwargs...)
+    kitaev_chain(elt::Type{<:Number}, dt::Float64; kwargs...)
+    kitaev_chain(symm::Type{<:Sector}, dt::Float64; kwargs...)
+    kitaev_chain(elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64; t::Float64=1.0, Δ::Float64=1.0, V::Float64=0.0, µ::Float64=0.0)
+
+Partition function tensor for 1D Kitaev chain model
+```
+    H = ∑_i [
+        (-t) (c†_i c_{i+1} + h.c.) + Δ (c_i c_{i+1} + h.c.)
+        + V (n_i - 1/2) (n_{i+1} - 1/2) - μ(n_i - 1/2)
+    ]
+```
+It is related to the spin-1/2 Heisenberg XYZ model
+```
+    H = ∑_i (J_x Sx_i Sx_{i+1} + J_y Sy_i Sy_{i+1}
+            + J_z Sz_i Sz_{i+1} - h Sz_j)
+```
+by Jordan-Wigner transformation
+```
+    t = -(Jx + Jy) / 4,  V = Jz,
+    Δ = -(Jx - Jy) / 4,  μ = h.
+```
+Special Cases
+- t = 1, Δ = 1, V = 0, μ = 2:   transverse field Ising model
+- t = 1, Δ = 0, V ≠ 0, μ = 0:   Heisenberg XXZ model
+"""
+function kitaev_chain(
+        elt::Type{<:Number}, symm::Type{<:Sector}, dt::Float64;
+        t::Float64 = 1.0, Δ::Float64 = 1.0, V::Float64 = 0.0, µ::Float64 = 0.0
+    )
+    fpfm = FO.f_plus_f_min(elt, symm)
+    hopping = (-t) * (fpfm + fpfm')
+    num = FO.f_num(elt, symm)
+    unit = TensorKit.id(codomain(num, 1))
+    num = num - 0.5 * unit
+    interac = V * (num ⊗ num)
+    chempot = -µ * (num ⊗ unit + unit ⊗ num) / 2
+    gate = hopping + interac + chempot
+    if Δ != 0
+        fmfm = FO.f_min_f_min(elt, symm)
+        pairing = Δ * (fmfm + fmfm')
+        gate = gate + pairing
+    end
+    gate = exp(-dt * gate)
+    return gate_to_tensor(gate)
+end
+kitaev_chain(elt::Type{<:Number}, dt::Float64; kwargs...) =
+    kitaev_chain(elt, Trivial, dt; kwargs...)
+kitaev_chain(symm::Type{<:Sector}, dt::Float64; kwargs...) =
+    kitaev_chain(ComplexF64, symm, dt; kwargs...)
+kitaev_chain(dt::Float64; kwargs...) =
+    kitaev_chain(ComplexF64, Trivial, dt; kwargs...)
