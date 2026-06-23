@@ -68,21 +68,6 @@ function CFTData(
 end
 
 """
-    _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int)
-
-Build a row transfer matrix from `unitcell` copies of the tensor `T`
-concatenated horizontally with periodic boundary conditions.
-"""
-function _row_transfer_matrix(T::AbstractTensorMap, unitcell::Int)
-    indices = [[i, -i, -(i + unitcell), i + 1] for i in 1:unitcell]
-    indices[end][4] = 1
-    Tcontracted = ncon(fill(T, unitcell), indices)
-    outinds = ntuple(i -> i, unitcell)
-    ininds = ntuple(i -> unitcell + i, unitcell)
-    return permute(Tcontracted, (outinds, ininds))
-end
-
-"""
 Construct the transfer matrix along vertical direction
 with `unitcell` copies of `T` concatenated horizontally.
 `τ0` is the modular parameter of a single `T`.
