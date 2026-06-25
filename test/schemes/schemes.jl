@@ -720,8 +720,7 @@ function _thermal_zn2_gu_wen_x1(β, Lz; χttnr = 12, χbtrg = 16, btrg_steps = 1
     @tensor effective_tensor[-1 -2 -3 -4] := scheme.T[1, 1][p p; -1 -2 -3 -4]
     btrg = BTRG(permute(effective_tensor, ((1, 2), (3, 4))))
     ratios = run!(
-        btrg, truncrank(χbtrg), maxiter(btrg_steps), guwenratio_Finalizer;
-        finalize_beginning = false, verbosity = 0,
+        btrg, truncrank(χbtrg), maxiter(btrg_steps), guwenratio_Finalizer; verbosity = 0,
     )
 
     x1, _ = last(ratios)

@@ -202,7 +202,7 @@ end
     scheme = LoopTNR(T)
     elt = scalartype(T)
     finalizer = Finalizer(cc_finalize!, Tuple{elt, complex(elt), elt})
-    data = run!(scheme, truncrank(16), maxiter(16), finalizer; finalize_beginning = false)
+    data = run!(scheme, truncrank(16), maxiter(16), finalizer)
     @test last(data)[3] ≈ 0.5 atol = 1.0e-2
 end
 
@@ -234,7 +234,7 @@ end
     scheme = LoopTNR(T)
     elt = scalartype(T)
     finalizer = Finalizer(cc_finalize!, Tuple{elt, complex(elt), elt})
-    data = run!(scheme, truncrank(16), maxiter(8), finalizer; finalize_beginning = false)
+    data = run!(scheme, truncrank(16), maxiter(8), finalizer)
     @test last(data)[3] ≈ 0.5 atol = 1.0e-2
     for shape in ([√2, 2√2, 0], [1, 4, 1], [1, 8, 1], [4 / √10, 2√10, 2 / √10])
         cft = CFTData(scheme; shape = shape)
