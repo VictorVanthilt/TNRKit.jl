@@ -2,7 +2,16 @@
 # normalization after an RG step for different TNR schemes
 # ========================================================
 
-const simple_scheme = Union{TRG, ATRG, HOTRG}
+# 1x1 unitcell finalize
+function finalize!(state::OneSiteState)
+    n = norm(@tensor state.T[1 2; 2 1])
+    state.T /= n
+    return n
+end
+
+# Below: for use with old `TNRScheme` interface.
+
+const simple_scheme = Union{OneSiteState, ATRG, HOTRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)

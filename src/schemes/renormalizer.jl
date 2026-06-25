@@ -1,4 +1,4 @@
-abstract type TNRParams end
+abstract type TNRAlgorithm end
 
 """
 $(TYPEDEF)
@@ -12,12 +12,12 @@ $(TYPEDFIELDS)
 In a for-loop, each iteration yields `(state, data)` after each RG step.
 Stops when the algorithm's stopping criterion is met.
 """
-mutable struct Renormalizer{A <: TNRParams, S, D}
+mutable struct Renormalizer{A <: TNRAlgorithm, S, D}
     "Algorithm configuration (truncation, maxiter, etc.)"
     alg::A
-    "Algorithm-specific state holding all network tensors"
+    "Algorithm-specific state holding all involved tensors"
     state::S
-    "Accumulated per-step data (data[1] is the initial value)"
+    "Accumulated per-step data"
     data::Vector{D}
     "Number of RG steps performed so far"
     step::Int
@@ -32,7 +32,7 @@ end
 
 function Base.iterate(r::Renormalizer, n::Int)
     r.alg.stop(n, r.data) || return nothing
-    step!(r.state, r.alg.trunc)
+    step!(r.state, r.alg)
     val = finalize!(r.state)
     push!(r.data, val)
     r.step = n + 1
@@ -57,7 +57,7 @@ Throws an error if the stopping criterion has already been met.
 function rgstep!(r::Renormalizer)
     r.alg.stop(r.step, r.data) || error("stop criterion reached")
     iterate(r, r.step)
-    return r
+    return r.state, r.data
 end
 
 """
@@ -65,13 +65,13 @@ end
 
 Run the RG flow to completion. Returns `(final_state, data)`.
 """
-function run!(renorm::Renormalizer; verbosity = 1)
+function run!(r::Renormalizer; verbosity = 1)
     LoggingExtras.withlevel(; verbosity) do
-        @infov 1 "Starting simulation\n $(renorm.state)\n"
-        t = @elapsed for (_, data) in renorm
-            @infov 2 "Step $(renorm.step), data[end]: $(data[end])"
+        @infov 1 "Starting simulation\n $(r.state)\n"
+        t = @elapsed for (_, data) in r
+            @infov 2 "Step $(r.step), data[end]: $(data[end])"
         end
-        @infov 1 "Simulation finished\n $(stopping_info(renorm.alg.stop, renorm.step, renorm.data))\n Elapsed time: $(t)s\n Iterations: $(renorm.step)"
+        @infov 1 "Simulation finished\n $(stopping_info(r.alg.stop, r.step, r.data))\n Elapsed time: $(t)s\n Iterations: $(r.step)"
     end
-    return renorm.state, renorm.data
+    return r.state, r.data
 end

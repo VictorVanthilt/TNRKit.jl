@@ -30,8 +30,8 @@ end
 @testset "TRG - Anisotropic Ising Model" begin
     @info "Anisotropy: Jx = $(Jx_aniso), Jy = $(Jy_aniso)"
     @info "TRG anisotropic ising free energy"
-    params = TRGParams(; trunc = truncrank(24), stop = maxiter(25))
-    renorm = Renormalizer(params, T_aniso)
+    alg = TRG(; trunc = truncrank(24), stop = maxiter(25))
+    renorm = Renormalizer(alg, T_aniso)
     T_step10 = nothing
     τs = complex(scalartype(T_aniso))[]
     for (state, _) in renorm
@@ -60,20 +60,21 @@ end
     @info "Obtained scaling dimensions: Δ₁ = $(cft_sorted[1]), Δ₂ = $(cft_sorted[2])"
 
     @info "TRG anisotropic ising ground state degeneracy"
+    alg = TRG(; trunc = truncrank(16), stop = maxiter(20))
     T1 = classical_ising(βc_aniso - 0.01; Jx = Jx_aniso, Jy = Jy_aniso)
-    scheme = TRG(T1)
-    run!(scheme, truncrank(16), maxiter(20))
-    gsd = ground_state_degeneracy(scheme)
-    X1, X2 = gu_wen_ratio(scheme)
+    renorm = Renormalizer(alg, T1)
+    run!(renorm; verbosity = 0)
+    gsd = ground_state_degeneracy(renorm.state)
+    X1, X2 = gu_wen_ratio(renorm.state)
     @test gsd ≈ 1 rtol = 1.0e-2
     @test X1 ≈ 1.0 rtol = 1.0e-2
     @test X2 ≈ 1.0 rtol = 1.0e-2
 
     T2 = classical_ising(βc_aniso + 0.01; Jx = Jx_aniso, Jy = Jy_aniso)
-    scheme = TRG(T2)
-    run!(scheme, truncrank(16), maxiter(20))
-    gsd = ground_state_degeneracy(scheme)
-    X1, X2 = gu_wen_ratio(scheme)
+    renorm = Renormalizer(alg, T2)
+    run!(renorm; verbosity = 0)
+    gsd = ground_state_degeneracy(renorm.state)
+    X1, X2 = gu_wen_ratio(renorm.state)
     @test gsd ≈ 2 rtol = 1.0e-2
     @test X1 ≈ 2.0 rtol = 1.0e-2
     @test X2 ≈ 2.0 rtol = 1.0e-2

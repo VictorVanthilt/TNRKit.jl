@@ -44,8 +44,9 @@ model_temp_answer_string_3d = [
 
 for (model, temp, answer, description) in model_temp_answer_string_2d
     @testset "$(description)" begin
-        scheme = TRG(model)
-        data = run!(scheme, truncrank(16), maxiter(25))
+        alg = TRG(; trunc = truncrank(16), stop = maxiter(25))
+        renorm = Renormalizer(alg, model)
+        _, data = run!(renorm; verbosity = 0)
         @test free_energy(data, temp) ≈ answer rtol = 1.0e-3
     end
 end
