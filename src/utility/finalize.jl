@@ -11,7 +11,7 @@ end
 
 # Below: for use with old `TNRScheme` interface.
 
-const simple_scheme = Union{OneSiteState, ATRG, HOTRG}
+const simple_scheme = Union{ATRG, HOTRG}
 
 # 1x1 unitcell finalize
 function finalize!(scheme::simple_scheme)

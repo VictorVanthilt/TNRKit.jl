@@ -61,7 +61,7 @@ function rgstep!(r::Renormalizer)
 end
 
 """
-    run!(renorm::Renormalizer; verbosity=1)
+    run!(r::Renormalizer; verbosity=1)
 
 Run the RG flow to completion. Returns `(final_state, data)`.
 """
