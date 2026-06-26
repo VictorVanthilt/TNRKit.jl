@@ -562,7 +562,7 @@ end
 
     data = run!(scheme, truncrank(16), maxiter(25))
 
-    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0, initial_size = 4.0) ≈ f_onsager rtol = 1.0e-4
+    @test free_energy(getindex.(data, 1), ising_βc; scalefactor = 4.0) ≈ f_onsager rtol = 1.0e-4
 end
 
 @testset "Correlation HOTRG - Magnetisation Correlation" begin
