@@ -214,9 +214,9 @@ end
     T = vertical_stack_exp(T, nfold, trunc_stack)
 
     @info "CFT data from TRG"
-    scheme = TRG(T)
-    run!(scheme, truncrank(24), maxiter(8))
-    cft = CFTData(scheme; shape = [1, 1, 0])
+    alg = TRG(; trunc = truncrank(24), stop = maxiter(8))
+    state, _ = run!(Renormalizer(alg, T); verbosity = 0)
+    cft = CFTData(state.T; shape = [1, 1, 0])
     c = cft.central_charge
     sd = cft.scaling_dimensions
     d_1 = real(sd[(:NS, FermionParity(0))][2])
