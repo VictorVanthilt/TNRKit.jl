@@ -33,7 +33,7 @@ p---4---3---p
 
 # References
 * [Kadoh et. al. 10.1007/JHEP05(2019)184 (2019)](@cite kadoh2019)
-* [Morita et. al. Phys. Rev. B 111 (2025)](@cite morita2025)
+* [Morita et. al. Phys. Rev. B 111 (2025)](@cite morita2025a)
 """
 mutable struct ImpurityTRG{E, S, TT <: AbstractTensorMap{E, S, 2, 2}} <: TNRScheme{E, S}
     "Pure tensor"

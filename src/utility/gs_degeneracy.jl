@@ -98,7 +98,7 @@ The Gu-Wen ratios are related to the Ground state Degeneracy and the the scaling
 
 # References
 * [Zheng-Cheng Gu & Xiao-Gang Wen. PhysRevB.80.155131](@cite gu2009)
-* [Satoshi Morita et al. arxiv:2512.03395](@cite morita2025)
+* [Satoshi Morita et al. arxiv:2512.03395](@cite morita2025b)
 """
 function gu_wen_ratio(scheme::TNRScheme{E}) where {E}
     T_unit = scheme.T
