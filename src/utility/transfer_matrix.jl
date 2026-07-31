@@ -379,7 +379,7 @@ function leading_eigenvalue(
         BraidingStyle(I) != Bosonic() || error("pbc = false only applies to fermionic tensors.")
     end
     V = (I == Trivial) ? field(tm.TA)^1 : Vect[I](charge => 1)
-    x = ones(domain(tm) ← V)
+    x = ones(E, domain(tm) ← V)
     dim(x) == 0 && error("$charge is not allowed by the transfer matrix.")
     tm′(x) = tm(x; pbc)
     spec, _, info = eigsolve(
